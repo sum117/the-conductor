@@ -95,5 +95,14 @@ export const ptBr = {
     appearance: {
       submitted: "Aparência enviada. Se não houver mais nenhuma mudança, clique em **ENVIAR**.",
     },
+    send: {
+      submitted: "✅ Personagem enviado para aprovação.",
+    },
+    evaluation: {
+      waiting: "Ficha de {user} está aguardando aprovação, {mention}!",
+      threadName: "Avaliação de {characterName}",
+      approved: "Ficha de {user} foi aprovada por {mention}!",
+      rejected: "Ficha de {user} foi rejeitada por {mention}!",
+    },
   },
 };

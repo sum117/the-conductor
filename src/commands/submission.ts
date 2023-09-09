@@ -11,6 +11,8 @@ import {
   ComponentType,
   EmbedBuilder,
   PermissionFlagsBits,
+  roleMention,
+  userMention,
 } from "discord.js";
 import {ButtonComponent, Discord, Slash} from "discordx";
 import {Duration} from "luxon";
@@ -25,42 +27,116 @@ const createCharacterPopupButtonId = "createCharacter";
 const createCharacterEssentialsButtonId = "createCharacterEssentials";
 const createCharacterAppearanceButtonId = "createCharacterAppearance";
 const createCharacterSendButtonId = "createCharacterSend";
-const createCharacterApproveButtonId = (characterId: number) => "createCharacterApprove-" + characterId;
-const createCharacterRejectButtonId = (characterId: number) => "createCharacterReject-" + characterId;
+const createCharacterApproveButtonIdPrefix = "createCharacterApprove-";
+const createCharacterRejectButtonIdPrefix = "createCharacterReject-";
+const createCharacterApproveButtonId = (characterId: number) => createCharacterApproveButtonIdPrefix + characterId;
+const createCharacterRejectButtonId = (characterId: number) => createCharacterRejectButtonIdPrefix + characterId;
 
 @Discord()
 export class Submission {
+  // Admin
+  @ButtonComponent({
+    id: new RegExp(createCharacterApproveButtonIdPrefix + "\\d+"),
+  })
+  public async buttonCreateCharacterApprove(interaction: ButtonInteraction) {
+    if (!interaction.inCachedGuild()) return;
+    if (!interaction.member.roles.cache.has(credentials.roles.adminRole)) return;
+
+    const approvedChannel = interaction.guild?.channels.cache.get(credentials.channels.approvedChannel);
+    if (approvedChannel?.type !== ChannelType.GuildText) {
+      console.error(`Approved channel is not a text channel: ${approvedChannel?.id}`);
+      return;
+    }
+    const characterId = parseInt(interaction.customId.replace(createCharacterApproveButtonIdPrefix, ""));
+    try {
+      await interaction.deferReply({ephemeral: true});
+      const character = await prisma.character.findUnique({where: {id: characterId}});
+      if (!character?.userId) {
+        console.error(`User for character ${characterId} not found`);
+        return;
+      }
+
+      const characterEmbed = EmbedBuilder.from(interaction.message.embeds[0]);
+      characterEmbed.setFooter(null);
+      characterEmbed.setTimestamp(Date.now());
+
+      await approvedChannel.send({
+        content: ptBr.feedback.evaluation.approved.replace("{user}", userMention(character?.userId)).replace("{mention}", interaction.user.toString()),
+        embeds: [characterEmbed],
+      });
+      await interaction.editReply({
+        content: ptBr.feedback.evaluation.approved.replace("{user}", userMention(character?.userId)).replace("{mention}", interaction.user.toString()),
+      });
+      await interaction.message.delete().catch((error) => console.error("Error deleting message: ", error));
+    } catch (characterApprovalError) {
+      console.error("Error approving character: ", characterApprovalError);
+    }
+  }
+
+  @ButtonComponent({
+    id: new RegExp(createCharacterRejectButtonIdPrefix + "\\d+"),
+  })
+  public async buttonCreateCharacterReject(interaction: ButtonInteraction) {
+    if (!interaction.inCachedGuild()) return;
+    if (!interaction.member.roles.cache.has(credentials.roles.adminRole)) return;
+
+    const characterId = parseInt(interaction.customId.replace(createCharacterRejectButtonIdPrefix, ""));
+    try {
+      await interaction.deferReply({ephemeral: true});
+      const character = await prisma.character.delete({where: {id: characterId}});
+
+      await interaction.editReply({
+        content: ptBr.feedback.evaluation.rejected.replace("{user}", userMention(character?.userId)).replace("{mention}", interaction.user.toString()),
+      });
+      await interaction.message.delete().catch((error) => console.error("Error deleting message: ", error));
+    } catch (characterRejectionError) {
+      console.error("Error rejecting character: ", characterRejectionError);
+    }
+  }
+
+  // User
   @ButtonComponent({
     id: createCharacterAppearanceButtonId,
   })
   public async buttonCreateCharacterAppearance(interaction: ButtonInteraction) {
-    const user = await prisma.user.findUnique({where: {id: interaction.user.id}});
-    if (user) this.handleModalInteraction(interaction, user, "appearance");
+    try {
+      const user = await prisma.user.findUnique({where: {id: interaction.user.id}});
+      if (user) this.handlePopupInteraction(interaction, user, "appearance");
+    } catch (error) {
+      console.error("Error finding user to create character appearance modal: ", error);
+    }
   }
 
   @ButtonComponent({
     id: createCharacterEssentialsButtonId,
   })
   public async buttonCreateCharacterEssentials(interaction: ButtonInteraction) {
-    const user = await prisma.user.findUnique({where: {id: interaction.user.id}});
-    if (user) this.handleModalInteraction(interaction, user, "essentials");
+    try {
+      const user = await prisma.user.findUnique({where: {id: interaction.user.id}});
+      if (user) this.handlePopupInteraction(interaction, user, "essentials");
+    } catch (error) {
+      console.error("Error finding user to create character essentials modal: ", error);
+    }
   }
 
   @ButtonComponent({
     id: createCharacterSendButtonId,
   })
   public async buttonCreateCharacterSend(interaction: ButtonInteraction) {
-    const user = await prisma.user.findUnique({where: {id: interaction.user.id}});
-    if (user) this.handleModalInteraction(interaction, user, "send");
+    try {
+      const user = await prisma.user.findUnique({where: {id: interaction.user.id}});
+      if (user) this.handlePopupInteraction(interaction, user, "send");
+    } catch (error) {
+      console.error("Error finding user to send character embed to approval channel: ", error);
+    }
   }
 
   @ButtonComponent({
     id: createCharacterPopupButtonId,
   })
   public async buttonCreateCharacter(interaction: ButtonInteraction) {
-    await interaction.deferReply({ephemeral: true});
-
     try {
+      await interaction.deferReply({ephemeral: true});
       const user = await prisma.user.create({data: {id: interaction.user.id}}).catch((error) => {
         if (error.code === "P2002") return prisma.user.findUnique({where: {id: interaction.user.id}}) as Promise<User>;
         throw error;
@@ -96,7 +172,7 @@ export class Submission {
     }
   }
 
-  private async handleModalInteraction(interaction: ButtonInteraction, user: User, type: "appearance" | "essentials" | "send") {
+  private async handlePopupInteraction(interaction: ButtonInteraction, user: User, type: "appearance" | "essentials" | "send") {
     try {
       const character = await prisma.character.findFirst({where: {userId: user.id, isPending: true}});
       if (!character) {
@@ -189,12 +265,35 @@ export class Submission {
           break;
 
         case "send":
-          const approvalChannel = interaction.guild?.channels.cache.get(credentials.channels.approvalChannel);
+          await interaction.deferUpdate();
+          await interaction.editReply({
+            embeds: [],
+            content: ptBr.feedback.send.submitted,
+            components: [],
+          });
+          const approvalChannel = interaction.guild?.channels.cache.get(credentials.channels.evaluationChannel);
           if (approvalChannel?.type !== ChannelType.GuildText) {
             console.error(`Approval channel is not a text channel: ${approvalChannel?.id}`);
             return;
           }
-          await approvalChannel.send({embeds: [popupEmbed], components: [this.createCharacterEvaluationButtonRow(character.id)]});
+          const characterToEvaluateMessage = await approvalChannel.send({
+            embeds: [popupEmbed],
+            components: [this.createCharacterEvaluationButtonRow(character.id)],
+            content: ptBr.feedback.evaluation.waiting
+              .replace("{user}", interaction.user.toString())
+              .replace("{mention}", roleMention(credentials.roles.adminRole)),
+          });
+
+          const evaluationThread = await characterToEvaluateMessage.startThread({
+            name: ptBr.feedback.evaluation.threadName.replace("{characterName}", `${character.name} ${character.surname}`),
+          });
+          evaluationThread.permissionsFor(interaction.user.id)?.add(PermissionFlagsBits.ViewChannel).add(PermissionFlagsBits.SendMessages);
+          evaluationThread.send({
+            content: ptBr.feedback.evaluation.waiting
+              .replace("{user}", interaction.user.toString())
+              .replace("{mention}", roleMention(credentials.roles.adminRole)),
+          });
+
           await prisma.character.update({data: {isPending: false}, where: {id: character.id}});
           break;
 
