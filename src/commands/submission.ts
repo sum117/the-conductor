@@ -1,9 +1,11 @@
+import {User} from "@prisma/client";
 import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonComponent as ButtonComponentType,
   ButtonInteraction,
   ButtonStyle,
+  ChannelType,
   ChatInputCommandInteraction,
   Colors,
   ComponentType,
@@ -12,15 +14,19 @@ import {
 } from "discord.js";
 import {ButtonComponent, Discord, Slash} from "discordx";
 import {Duration} from "luxon";
+import {imageLinks} from "../data/assets";
+import {credentials} from "../data/credentials";
+import {prisma} from "../db";
 import {submissionAppearanceModal, submissionEssentialsModal} from "../lib/components/modals";
-import {User} from "../lib/structs/User";
-import {imageLinks} from "../lib/util/assets";
-import {ptBr} from "../lib/util/translation";
+import {cleanImageUrl} from "../lib/util/helpers";
+import {ptBr} from "../translations/ptBr";
 
 const createCharacterPopupButtonId = "createCharacter";
 const createCharacterEssentialsButtonId = "createCharacterEssentials";
 const createCharacterAppearanceButtonId = "createCharacterAppearance";
 const createCharacterSendButtonId = "createCharacterSend";
+const createCharacterApproveButtonId = (characterId: number) => "createCharacterApprove-" + characterId;
+const createCharacterRejectButtonId = (characterId: number) => "createCharacterReject-" + characterId;
 
 @Discord()
 export class Submission {
@@ -28,7 +34,7 @@ export class Submission {
     id: createCharacterAppearanceButtonId,
   })
   public async buttonCreateCharacterAppearance(interaction: ButtonInteraction) {
-    const user = await this.getUser(interaction);
+    const user = await prisma.user.findUnique({where: {id: interaction.user.id}});
     if (user) this.handleModalInteraction(interaction, user, "appearance");
   }
 
@@ -36,8 +42,16 @@ export class Submission {
     id: createCharacterEssentialsButtonId,
   })
   public async buttonCreateCharacterEssentials(interaction: ButtonInteraction) {
-    const user = await this.getUser(interaction);
+    const user = await prisma.user.findUnique({where: {id: interaction.user.id}});
     if (user) this.handleModalInteraction(interaction, user, "essentials");
+  }
+
+  @ButtonComponent({
+    id: createCharacterSendButtonId,
+  })
+  public async buttonCreateCharacterSend(interaction: ButtonInteraction) {
+    const user = await prisma.user.findUnique({where: {id: interaction.user.id}});
+    if (user) this.handleModalInteraction(interaction, user, "send");
   }
 
   @ButtonComponent({
@@ -47,9 +61,14 @@ export class Submission {
     await interaction.deferReply({ephemeral: true});
 
     try {
-      const user = await this.getOrCreateUser(interaction);
-      await user.deletePendingCharacters();
-      await user.createCharacter({isPending: true});
+      const user = await prisma.user.create({data: {id: interaction.user.id}}).catch((error) => {
+        if (error.code === "P2002") return prisma.user.findUnique({where: {id: interaction.user.id}}) as Promise<User>;
+        throw error;
+      });
+
+      await prisma.character.deleteMany({where: {userId: user.id, AND: {isPending: true}}});
+      await prisma.character.create({data: {userId: user.id, isPending: true}});
+
       await interaction.editReply({
         embeds: [this.createCharacterEmbed()],
         components: [this.createCharacterButtonRow()],
@@ -77,13 +96,14 @@ export class Submission {
     }
   }
 
-  private async handleModalInteraction(
-    interaction: ButtonInteraction,
-    user: User,
-    type: "appearance" | "essentials" | "send",
-  ) {
+  private async handleModalInteraction(interaction: ButtonInteraction, user: User, type: "appearance" | "essentials" | "send") {
     try {
-      const character = await this.getCharacter(user);
+      const character = await prisma.character.findFirst({where: {userId: user.id, isPending: true}});
+      if (!character) {
+        console.warn(`Character not found for user ${user.id}`);
+        return;
+      }
+
       const awaitSubmitModal = async () => {
         const submitted = await interaction.awaitModalSubmit({
           time: Duration.fromObject({hours: 1}).as("milliseconds"),
@@ -93,23 +113,20 @@ export class Submission {
         return submitted;
       };
 
+      const popupEmbed = EmbedBuilder.from(interaction.message.embeds[0]);
+
       switch (type) {
         case "essentials":
           await interaction.showModal(submissionEssentialsModal(character));
           const essentialsSubmitted = await awaitSubmitModal();
 
-          const [name, surname, personality, backstory, age] = [
-            "name",
-            "surname",
-            "personality",
-            "backstory",
-            "age",
-          ].map((key) => essentialsSubmitted.fields.getTextInputValue(key));
+          const [name, surname, personality, backstory, age] = ["name", "surname", "personality", "backstory", "age"].map((key) =>
+            essentialsSubmitted.fields.getTextInputValue(key),
+          );
 
-          const essentialsEmbed = EmbedBuilder.from(interaction.message.embeds[0]);
-          essentialsEmbed.setDescription(backstory);
-          essentialsEmbed.setTitle(`${name} ${surname}`);
-          essentialsEmbed.setFields([
+          popupEmbed.setDescription(backstory);
+          popupEmbed.setTitle(`${name} ${surname}`);
+          popupEmbed.setFields([
             {
               name: ptBr.character.age,
               value: age.toString(),
@@ -120,7 +137,7 @@ export class Submission {
             },
           ]);
 
-          const essentialsButtons = interaction.message.components[0].components
+          const actionButtons = interaction.message.components[0].components
             .filter((component): component is ButtonComponentType => component.type === ComponentType.Button)
             .map((component) => {
               const newButton = ButtonBuilder.from(component);
@@ -129,58 +146,65 @@ export class Submission {
             });
 
           await interaction.editReply({
-            embeds: [essentialsEmbed],
-            components: [new ActionRowBuilder<ButtonBuilder>().addComponents(...essentialsButtons)],
+            embeds: [popupEmbed],
+            components: [new ActionRowBuilder<ButtonBuilder>().addComponents(...actionButtons)],
           });
 
           await essentialsSubmitted.editReply({
             content: ptBr.feedback.essentials.submitted,
           });
 
-          const essentialsData = await Promise.allSettled([
-            user?.setCharacterField(character.id, "name", name),
-            user?.setCharacterField(character.id, "surname", surname),
-            user?.setCharacterField(character.id, "personality", personality),
-            user?.setCharacterField(character.id, "backstory", backstory),
-            user?.setCharacterField(character.id, "age", age),
-          ]);
+          await prisma.character.update({data: {name, surname, personality, backstory, age}, where: {id: character.id}});
 
-          essentialsData
-            .filter((promise) => promise.status === "rejected")
-            .forEach((promise) => {
-              console.error("Error submitting essentials modal field: ", promise);
-            });
           break;
 
         case "appearance":
           await interaction.showModal(submissionAppearanceModal(character));
           const appearanceSubmitted = await awaitSubmitModal();
-          // TODO: Implement appearance modal submit logic
+          const [appearance, height, gender, weight, imageUrl] = ["appearance", "height", "gender", "weight", "imageUrl"].map((key) =>
+            appearanceSubmitted.fields.getTextInputValue(key),
+          );
+          const sanitizedImageUrl = cleanImageUrl(imageUrl);
+          if (!sanitizedImageUrl) {
+            await appearanceSubmitted.editReply({content: ptBr.errors.imageLinkError});
+            return;
+          }
+
+          popupEmbed.setImage(sanitizedImageUrl);
+          popupEmbed.addFields([
+            {name: ptBr.character.appearance, value: appearance},
+            {name: ptBr.character.height, value: height},
+            {name: ptBr.character.weight, value: weight},
+            {name: ptBr.character.gender, value: gender},
+          ]);
+
+          await appearanceSubmitted.editReply({
+            content: ptBr.feedback.appearance.submitted,
+          });
+          await interaction.editReply({
+            embeds: [popupEmbed],
+          });
+
+          await prisma.character.update({data: {appearance, height, gender, weight, imageUrl: sanitizedImageUrl}, where: {id: character.id}});
           break;
 
         case "send":
-          // TODO: Implement the "send" case logic
+          const approvalChannel = interaction.guild?.channels.cache.get(credentials.channels.approvalChannel);
+          if (approvalChannel?.type !== ChannelType.GuildText) {
+            console.error(`Approval channel is not a text channel: ${approvalChannel?.id}`);
+            return;
+          }
+          await approvalChannel.send({embeds: [popupEmbed], components: [this.createCharacterEvaluationButtonRow(character.id)]});
+          await prisma.character.update({data: {isPending: false}, where: {id: character.id}});
           break;
 
         default:
-          console.warn(`Unsupported type: ${type}`);
+          console.error(`Unsupported type: ${type}`);
           break;
       }
     } catch (error) {
       console.error(`Error creating character ${type} modal: `, error);
     }
-  }
-
-  private async getUser(interaction: ButtonInteraction) {
-    return await User.get(interaction.user.id);
-  }
-
-  private async getCharacter(user: User) {
-    return (await user.getPendingCharacters(1))?.[0];
-  }
-
-  private async getOrCreateUser(interaction: ButtonInteraction) {
-    return (await User.get(interaction.user.id)) || (await User.create(interaction.user.id));
   }
 
   private createCharacterEmbed(): EmbedBuilder {
@@ -194,20 +218,16 @@ export class Submission {
 
   private createCharacterButtonRow(): ActionRowBuilder<ButtonBuilder> {
     return new ActionRowBuilder<ButtonBuilder>().addComponents(
-      new ButtonBuilder()
-        .setCustomId(createCharacterEssentialsButtonId)
-        .setLabel(ptBr.buttons.essentials)
-        .setStyle(ButtonStyle.Primary),
-      new ButtonBuilder()
-        .setCustomId(createCharacterAppearanceButtonId)
-        .setLabel(ptBr.buttons.appearance)
-        .setDisabled(true)
-        .setStyle(ButtonStyle.Secondary),
-      new ButtonBuilder()
-        .setCustomId(createCharacterSendButtonId)
-        .setLabel(ptBr.buttons.send)
-        .setDisabled(true)
-        .setStyle(ButtonStyle.Success),
+      new ButtonBuilder().setCustomId(createCharacterEssentialsButtonId).setLabel(ptBr.buttons.essentials).setStyle(ButtonStyle.Primary),
+      new ButtonBuilder().setCustomId(createCharacterAppearanceButtonId).setLabel(ptBr.buttons.appearance).setDisabled(true).setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder().setCustomId(createCharacterSendButtonId).setLabel(ptBr.buttons.send).setDisabled(true).setStyle(ButtonStyle.Success),
+    );
+  }
+
+  private createCharacterEvaluationButtonRow(characterId: number): ActionRowBuilder<ButtonBuilder> {
+    return new ActionRowBuilder<ButtonBuilder>().addComponents(
+      new ButtonBuilder().setCustomId(createCharacterApproveButtonId(characterId)).setLabel(ptBr.buttons.approve).setStyle(ButtonStyle.Success),
+      new ButtonBuilder().setCustomId(createCharacterRejectButtonId(characterId)).setLabel(ptBr.buttons.reject).setStyle(ButtonStyle.Danger),
     );
   }
 
@@ -223,10 +243,7 @@ export class Submission {
 
   private createSubmissionButtonRow(): ActionRowBuilder<ButtonBuilder> {
     return new ActionRowBuilder<ButtonBuilder>().addComponents(
-      new ButtonBuilder()
-        .setCustomId(createCharacterPopupButtonId)
-        .setLabel(ptBr.buttons.createCharacter)
-        .setStyle(ButtonStyle.Success),
+      new ButtonBuilder().setCustomId(createCharacterPopupButtonId).setLabel(ptBr.buttons.createCharacter).setStyle(ButtonStyle.Success),
     );
   }
 }

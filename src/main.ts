@@ -1,7 +1,7 @@
-import { dirname, importx } from "@discordx/importer";
-import type { Interaction, Message } from "discord.js";
-import { IntentsBitField } from "discord.js";
-import { Client } from "discordx";
+import {dirname, importx} from "@discordx/importer";
+import type {Interaction, Message} from "discord.js";
+import {IntentsBitField} from "discord.js";
+import {Client} from "discordx";
 
 export const bot = new Client({
   // To use only guild command
@@ -58,7 +58,7 @@ async function run() {
   // await importx(__dirname + "/{events,commands}/**/*.{ts,js}");
 
   // The following syntax should be used in the ECMAScript environment
-  await importx(`${dirname(import.meta.url)}/{events,commands,lib}/**/*.{ts,js}`);
+  await importx(`${dirname(import.meta.url)}/{events,commands}/**/*.{ts,js}`);
 
   // Let's start the bot
   if (!process.env.BOT_TOKEN) {

@@ -3,9 +3,9 @@ export const ptBr = {
     name: "Nome",
     surname: "Sobrenome",
     personality: "Personalidade",
-    appearance: "Aparência",
     backstory: "História",
     age: "Idade",
+    appearance: "Aparência",
     height: "Altura",
     gender: "Gênero",
     weight: "Peso",
@@ -27,6 +27,8 @@ export const ptBr = {
     appearance: "Aparência",
     send: "Enviar",
     createCharacter: "Criar personagem",
+    approve: "Aprovar",
+    reject: "Rejeitar",
   },
   modals: {
     essentials: {
@@ -84,10 +86,14 @@ export const ptBr = {
   },
   errors: {
     somethingWentWrong: "Algo deu errado, tente novamente.",
+    imageLinkError: "O link da imagem não é válido. Tente com um link que termina com .png, .jpg,etc.",
   },
   feedback: {
     essentials: {
       submitted: "Campos essenciais enviados, continue preenchendo os outros campos.",
+    },
+    appearance: {
+      submitted: "Aparência enviada. Se não houver mais nenhuma mudança, clique em **ENVIAR**.",
     },
   },
 };

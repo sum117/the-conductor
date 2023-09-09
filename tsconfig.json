@@ -6,14 +6,18 @@
     "rootDir": "src",
     "strict": true,
     "moduleResolution": "Node",
+    "sourceMap": true,
     "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
 
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
 
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "types": ["bun-types"]
+    "forceConsistentCasingInFileNames": true
   },
-  "exclude": ["build", "node_modules"]
+  "exclude": ["build", "node_modules"],
+  "ts-node": {
+    "experimentalSpecifierResolution": "node"
+  }
 }

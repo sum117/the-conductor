@@ -1,10 +1,10 @@
+import {Character} from "@prisma/client";
 import {ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle} from "discord.js";
-import {CharacterType} from "../structs/Character";
-import {ptBr} from "../util/translation";
+import {ptBr} from "../../translations/ptBr";
 
 export const submissionEssentialsModalId = "submissionEssentialsModal";
 
-type Essentials = Pick<CharacterType, "name" | "surname" | "personality" | "backstory" | "age">;
+type Essentials = Pick<Character, "name" | "surname" | "personality" | "backstory" | "age">;
 
 export const submissionEssentialsModal = (essentials?: Essentials) => {
   const nameField = new ActionRowBuilder<TextInputBuilder>().addComponents(
@@ -83,7 +83,7 @@ export const submissionEssentialsModal = (essentials?: Essentials) => {
     .addComponents(nameField, surnameField, personalityField, backstoryField, ageField);
 };
 
-type Appearance = Pick<CharacterType, "appearance" | "height" | "gender" | "weight" | "imageUrl">;
+type Appearance = Pick<Character, "appearance" | "height" | "gender" | "weight" | "imageUrl">;
 export const submissionAppearanceModalId = "submissionAppearanceModal";
 
 export const submissionAppearanceModal = (appearance?: Appearance) => {
@@ -93,7 +93,7 @@ export const submissionAppearanceModal = (appearance?: Appearance) => {
       .setCustomId("appearance")
       .setPlaceholder(ptBr.modals.appearance.appearance.placeholder)
       .setMinLength(1)
-      .setStyle(TextInputStyle.Short)
+      .setStyle(TextInputStyle.Paragraph)
       .setMaxLength(512),
   );
 
@@ -104,7 +104,7 @@ export const submissionAppearanceModal = (appearance?: Appearance) => {
   const heightField = new ActionRowBuilder<TextInputBuilder>().addComponents(
     new TextInputBuilder()
       .setLabel(ptBr.modals.appearance.height.label)
-      .setCustomId("surname")
+      .setCustomId("height")
       .setPlaceholder(ptBr.modals.appearance.height.placeholder)
       .setMinLength(1)
       .setStyle(TextInputStyle.Short)
@@ -118,10 +118,10 @@ export const submissionAppearanceModal = (appearance?: Appearance) => {
   const genderField = new ActionRowBuilder<TextInputBuilder>().addComponents(
     new TextInputBuilder()
       .setLabel(ptBr.modals.appearance.gender.label)
-      .setCustomId("personality")
+      .setCustomId("gender")
       .setPlaceholder(ptBr.modals.appearance.gender.placeholder)
       .setMinLength(1)
-      .setStyle(TextInputStyle.Paragraph)
+      .setStyle(TextInputStyle.Short)
       .setMaxLength(64),
   );
 
@@ -132,10 +132,10 @@ export const submissionAppearanceModal = (appearance?: Appearance) => {
   const weightField = new ActionRowBuilder<TextInputBuilder>().addComponents(
     new TextInputBuilder()
       .setLabel(ptBr.modals.appearance.weight.label)
-      .setCustomId("backstory")
+      .setCustomId("weight")
       .setPlaceholder(ptBr.modals.appearance.weight.placeholder)
       .setMinLength(1)
-      .setStyle(TextInputStyle.Paragraph)
+      .setStyle(TextInputStyle.Short)
       .setMaxLength(64),
   );
 
@@ -146,11 +146,11 @@ export const submissionAppearanceModal = (appearance?: Appearance) => {
   const imageUrlField = new ActionRowBuilder<TextInputBuilder>().addComponents(
     new TextInputBuilder()
       .setLabel(ptBr.modals.appearance.imageUrl.label)
-      .setCustomId("age")
+      .setCustomId("imageUrl")
       .setPlaceholder(ptBr.modals.appearance.imageUrl.placeholder)
       .setMinLength(0)
       .setStyle(TextInputStyle.Short)
-      .setMaxLength(3),
+      .setMaxLength(256),
   );
 
   if (appearance?.imageUrl) {

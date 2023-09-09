@@ -1,31 +1,30 @@
 {
-  "name": "the-conductor",
+  "name": "my-bot",
   "version": "1.0.0",
   "private": true,
   "license": "MIT",
   "type": "module",
   "main": "build/main.js",
   "scripts": {
-    "build": "bun build",
-    "build:changelog": "bun @discordx/changelog --src src",
-    "dev": "bun run src/main.ts",
-    "start": "bun run build/main.js",
-    "watch": "bun --hot run src/main.ts",
-    "format": "prettier --write ."
+    "build": "tsc",
+    "build:changelog": "npx @discordx/changelog --src src",
+    "dev": "ts-node-esm src/main.ts",
+    "start": "node build/main.js",
+    "watch": "nodemon --exec ts-node-esm src/main.ts",
+    "prisma:studio": "npx prisma studio"
   },
   "dependencies": {
     "@discordx/importer": "^1.2.3",
     "@discordx/pagination": "^3.4.1",
-    "@types/luxon": "^3.3.2",
+    "@prisma/client": "^5.2.0",
     "discord.js": "^14.13.0",
     "discordx": "^11.7.6",
     "lodash": "^4.17.21",
     "luxon": "^3.4.3"
   },
   "devDependencies": {
-    "@types/lodash": "^4.14.198",
+    "@types/luxon": "^3.3.2",
     "@types/node": "^20.5.9",
-    "bun-types": "^1.0.1",
     "nodemon": "^3.0.1",
     "prettier": "^3.0.3",
     "ts-node": "^10.9.1",
