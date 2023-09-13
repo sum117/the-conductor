@@ -7,11 +7,13 @@
   "main": "build/main.js",
   "scripts": {
     "build": "tsc",
-    "build:changelog": "npx @discordx/changelog --src src",
-    "dev": "ts-node-esm src/main.ts",
-    "start": "node build/main.js",
-    "watch": "nodemon --exec ts-node-esm src/main.ts",
-    "prisma:studio": "npx prisma studio"
+    "build:changelog": "bunx @discordx/changelog --src src",
+    "dev": "bun run src/main.ts",
+    "start": "bun run build/main.js",
+    "watch": "bun --hot run src/main.ts",
+    "prisma:generate": "bunx prisma generate",
+    "prisma:studio": "bunx prisma studio",
+    "prisma:migrate": "bunx prisma migrate dev --name init"
   },
   "dependencies": {
     "@discordx/importer": "^1.2.3",
@@ -25,6 +27,7 @@
   "devDependencies": {
     "@types/luxon": "^3.3.2",
     "@types/node": "^20.5.9",
+    "bun-types": "^1.0.1",
     "nodemon": "^3.0.1",
     "prettier": "^3.0.3",
     "ts-node": "^10.9.1",

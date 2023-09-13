@@ -8,3 +8,7 @@ yarn.lock
 # folders
 build
 node_modules
+
+# DB
+*.db
+migrations

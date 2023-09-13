@@ -1,23 +1,22 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
-    "module": "ESNext",
-    "outDir": "build",
-    "rootDir": "src",
+    "types": [
+      "bun-types"
+    ],
+    "lib": [
+      "esnext"
+    ],
+    "module": "esnext",
+    "target": "esnext",
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "moduleDetection": "force",
+    "jsx": "react-jsx",
+    "allowJs": true,
+    "esModuleInterop": true,
     "strict": true,
-    "moduleResolution": "Node",
-    "sourceMap": true,
-    "allowSyntheticDefaultImports": true,
-    "resolveJsonModule": true,
-
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
-  },
-  "exclude": ["build", "node_modules"],
-  "ts-node": {
-    "experimentalSpecifierResolution": "node"
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true
   }
 }
