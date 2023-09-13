@@ -6,11 +6,12 @@
     "lib": [
       "esnext"
     ],
+    "outDir": "build",
     "module": "esnext",
     "target": "esnext",
     "moduleResolution": "bundler",
-    "noEmit": true,
-    "allowImportingTsExtensions": true,
+    "noEmit": false,
+    "allowImportingTsExtensions": false,
     "experimentalDecorators": true,
     "moduleDetection": "force",
     "jsx": "react-jsx",
