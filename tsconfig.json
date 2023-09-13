@@ -11,6 +11,7 @@
     "moduleResolution": "bundler",
     "noEmit": true,
     "allowImportingTsExtensions": true,
+    "experimentalDecorators": true,
     "moduleDetection": "force",
     "jsx": "react-jsx",
     "allowJs": true,
