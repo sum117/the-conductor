@@ -1,41 +1,41 @@
-FROM oven/bun AS builder
+FROM node:latest AS builder
+
+ARG DATABASE_URL= "file:./deploy.db"
+ENV DATABASE_URL=$DATABASE_URL
+
+ARG DATABASE_PROXY_URL= "file:./deploy.db"
+ENV DATABASE_PROXY_URL=$DATABASE_PROXY_URL
 
 WORKDIR /tmp/app
 
-COPY package.json .
-COPY bun.lockb .
+RUN npm install -g pnpm
+RUN npm install -g prisma
 
-RUN bun install
+COPY package.json .
+
+RUN pnpm install
 
 COPY src ./src
 COPY tsconfig.json .
 
-# This would be the optimal solution but it doesn't work, so I'm gonna use a hack here until I figure out how to fix it
-#   RUN bunx prisma:generate
-#   COPY prisma/schema.prisma ./prisma/schema.prisma
-COPY node_modules/.prisma ./node_modules/.prisma
+COPY prisma/schema.prisma ./prisma/schema.prisma
+RUN pnpm exec prisma migrate dev --name init
+RUN pnpm exec prisma generate
+RUN pnpm run build
 
-RUN bun run build
+FROM node:lts-slim AS runner
 
-FROM oven/bun AS runner
-
-ARG DEFAULT_DATABASE_URL= "file:./deploy.db"
-ENV DATABASE_URL=$DEFAULT_DATABASE_URL
+RUN npm install -g pnpm
+RUN npm install -g bun
+RUN npm install -g prisma
 
 WORKDIR /app
 
 COPY --from=builder /tmp/app/package.json /app/package.json
-COPY --from=builder /tmp/app/bun.lockb /app/bun.lockb
-RUN bun install -p
+RUN pnpm install --production
 
-# Refer to the comment above
-#   COPY --from=builder /tmp/app/prisma/schema.prisma ./prisma/schema.prisma
-#   RUN bun run prisma:generate
-COPY --from=builder /tmp/app/node_modules/.prisma /app/node_modules/.prisma
-
-#   These commands aren't working either. The prisma:migrate has to be done in the external machine
-#   RUN bun add prisma
-#   RUN bun run prisma:migrate
+COPY --from=builder /tmp/app/prisma/  /app/prisma/
+RUN pnpm exec prisma generate
 
 COPY --from=builder /tmp/app/build /app/build
 
