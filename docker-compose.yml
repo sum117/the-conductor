@@ -6,11 +6,13 @@ services:
       args:
         - DATABASE_URL=${DATABASE_URL}
         - DATABASE_PROXY_URL=${DATABASE_PROXY_URL}
-    volumes:
-      - ./prisma:/app/prisma
     command: bun start
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - DATABASE_PROXY_URL=${DATABASE_PROXY_URL}
       - BOT_TOKEN=${BOT_TOKEN}
     restart: unless-stopped
+    volumes:
+      - ./prisma-data:/app/prisma
+volumes:
+  prisma-data:
