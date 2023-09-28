@@ -1,7 +1,6 @@
-import {Character} from "@prisma/client";
+import {Character, Faction, Instrument, Race} from "@prisma/client";
 import {ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle} from "discord.js";
 import {ptBr} from "../../translations/ptBr";
-
 export const submissionEssentialsModalId = "submissionEssentialsModal";
 
 type Essentials = Pick<Character, "name" | "surname" | "personality" | "backstory" | "age">;
@@ -161,4 +160,147 @@ export const submissionAppearanceModal = (appearance?: Appearance) => {
     .setCustomId(submissionEssentialsModalId)
     .setTitle(ptBr.modals.appearance.title)
     .addComponents(appearanceField, heightField, genderField, weightField, imageUrlField);
+};
+
+export const entityCreatorRaceModalId = "entityCreatorRaceModal";
+export const entityCreatorRaceFields: Omit<Race, "id"> = {
+  name: "name",
+  description: "description",
+  imageUrl: "imageUrl",
+};
+
+export const entityCreatorRaceModal = () => {
+  const nameField = new ActionRowBuilder<TextInputBuilder>().addComponents(
+    new TextInputBuilder()
+      .setLabel(ptBr.modals.entityCreator.race.name.label)
+      .setPlaceholder(ptBr.modals.entityCreator.race.name.placeholder)
+      .setCustomId(entityCreatorRaceFields.name)
+      .setMinLength(1)
+      .setStyle(TextInputStyle.Short)
+      .setMaxLength(128),
+  );
+
+  const descriptionField = new ActionRowBuilder<TextInputBuilder>().addComponents(
+    new TextInputBuilder()
+      .setLabel(ptBr.modals.entityCreator.race.description.label)
+      .setPlaceholder(ptBr.modals.entityCreator.race.description.placeholder)
+      .setCustomId(entityCreatorRaceFields.description)
+      .setMinLength(1)
+      .setStyle(TextInputStyle.Paragraph)
+      .setMaxLength(4000),
+  );
+
+  const imageUrlField = new ActionRowBuilder<TextInputBuilder>().addComponents(
+    new TextInputBuilder()
+      .setLabel(ptBr.modals.entityCreator.race.imageUrl.label)
+      .setPlaceholder(ptBr.modals.entityCreator.race.imageUrl.placeholder)
+      .setCustomId(entityCreatorRaceFields.imageUrl)
+      .setMinLength(1)
+      .setStyle(TextInputStyle.Short)
+      .setMaxLength(256),
+  );
+
+  return new ModalBuilder()
+    .setCustomId(entityCreatorRaceModalId)
+    .setTitle(ptBr.modals.entityCreator.race.title)
+    .addComponents(nameField, descriptionField, imageUrlField);
+};
+
+export const entityCreatorFactionModalId = "entityCreatorFactionModal";
+export const entityCreatorFactionFields: Omit<Faction, "id"> = {
+  name: "name",
+  description: "description",
+  imageUrl: "imageUrl",
+  emoji: "emoji",
+};
+
+export const entityCreatorFactionModal = () => {
+  const nameField = new ActionRowBuilder<TextInputBuilder>().addComponents(
+    new TextInputBuilder()
+      .setLabel(ptBr.modals.entityCreator.faction.name.label)
+      .setPlaceholder(ptBr.modals.entityCreator.faction.name.placeholder)
+      .setCustomId(entityCreatorFactionFields.name)
+      .setMinLength(1)
+      .setStyle(TextInputStyle.Short)
+      .setMaxLength(128),
+  );
+
+  const descriptionField = new ActionRowBuilder<TextInputBuilder>().addComponents(
+    new TextInputBuilder()
+      .setLabel(ptBr.modals.entityCreator.faction.description.label)
+      .setPlaceholder(ptBr.modals.entityCreator.faction.description.placeholder)
+      .setCustomId(entityCreatorFactionFields.description)
+      .setMinLength(1)
+      .setStyle(TextInputStyle.Paragraph)
+      .setMaxLength(4000),
+  );
+
+  const imageUrlField = new ActionRowBuilder<TextInputBuilder>().addComponents(
+    new TextInputBuilder()
+      .setLabel(ptBr.modals.entityCreator.faction.imageUrl.label)
+      .setPlaceholder(ptBr.modals.entityCreator.faction.imageUrl.placeholder)
+      .setCustomId(entityCreatorFactionFields.imageUrl)
+      .setMinLength(1)
+      .setStyle(TextInputStyle.Short)
+      .setMaxLength(256),
+  );
+
+  const emojiField = new ActionRowBuilder<TextInputBuilder>().addComponents(
+    new TextInputBuilder()
+      .setLabel(ptBr.modals.entityCreator.faction.emoji.label)
+      .setPlaceholder(ptBr.modals.entityCreator.faction.emoji.placeholder)
+      .setCustomId(entityCreatorFactionFields.emoji)
+      .setMinLength(1)
+      .setStyle(TextInputStyle.Short)
+      .setMaxLength(256),
+  );
+
+  return new ModalBuilder()
+    .setCustomId(entityCreatorFactionModalId)
+    .setTitle(ptBr.modals.entityCreator.faction.title)
+    .addComponents(nameField, descriptionField, imageUrlField, emojiField);
+};
+
+export const entityCreatorInstrumentModalId = "entityCreatorInstrumentModal";
+export const entityCreatorInstrumentFields: Omit<Instrument, "id"> = {
+  name: "name",
+  description: "description",
+  imageUrl: "imageUrl",
+};
+
+export const entityCreatorInstrumentModal = () => {
+  const nameField = new ActionRowBuilder<TextInputBuilder>().addComponents(
+    new TextInputBuilder()
+      .setLabel(ptBr.modals.entityCreator.instrument.name.label)
+      .setPlaceholder(ptBr.modals.entityCreator.instrument.name.placeholder)
+      .setCustomId(entityCreatorInstrumentFields.name)
+      .setMinLength(1)
+      .setStyle(TextInputStyle.Short)
+      .setMaxLength(128),
+  );
+
+  const descriptionField = new ActionRowBuilder<TextInputBuilder>().addComponents(
+    new TextInputBuilder()
+      .setLabel(ptBr.modals.entityCreator.instrument.description.label)
+      .setPlaceholder(ptBr.modals.entityCreator.instrument.description.placeholder)
+      .setCustomId(entityCreatorInstrumentFields.description)
+      .setMinLength(1)
+      .setStyle(TextInputStyle.Paragraph)
+      .setMaxLength(2048),
+  );
+
+  const imageUrlField = new ActionRowBuilder<TextInputBuilder>().addComponents(
+    new TextInputBuilder()
+      .setLabel(ptBr.modals.entityCreator.instrument.imageUrl.label)
+      .setPlaceholder(ptBr.modals.entityCreator.instrument.imageUrl.placeholder)
+      .setCustomId(entityCreatorInstrumentFields.imageUrl)
+      .setMinLength(1)
+      .setStyle(TextInputStyle.Short)
+      .setMaxLength(256),
+  );
+
+  return new ModalBuilder()
+    .setCustomId(entityCreatorInstrumentModalId)
+    .setTitle(ptBr.modals.entityCreator.instrument.title)
+    .addComponents(nameField, descriptionField, imageUrlField);
 };
