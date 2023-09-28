@@ -11,4 +11,5 @@ node_modules
 
 # DB
 *.db
+*.db-journal
 migrations

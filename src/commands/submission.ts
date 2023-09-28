@@ -11,22 +11,27 @@ import {
   ComponentType,
   EmbedBuilder,
   PermissionFlagsBits,
+  StringSelectMenuBuilder,
+  StringSelectMenuInteraction,
+  StringSelectMenuOptionBuilder,
   roleMention,
   userMention,
 } from "discord.js";
-import {ButtonComponent, Discord, Slash} from "discordx";
-import {Duration} from "luxon";
+import {ButtonComponent, Discord, SelectMenuComponent, Slash} from "discordx";
 import {imageLinks} from "../data/assets";
 import {credentials} from "../data/credentials";
 import {prisma} from "../db";
 import {submissionAppearanceModal, submissionEssentialsModal} from "../lib/components/modals";
-import {cleanImageUrl} from "../lib/util/helpers";
+import {awaitSubmitModal, cleanImageUrl} from "../lib/util/helpers";
 import {ptBr} from "../translations/ptBr";
 
 const createCharacterPopupButtonId = "createCharacter";
 const createCharacterEssentialsButtonId = "createCharacterEssentials";
 const createCharacterAppearanceButtonId = "createCharacterAppearance";
 const createCharacterSendButtonId = "createCharacterSend";
+const createCharacterRaceSelectMenuId = "createCharacterRaceSelectMenu";
+const createCharacterFactionSelectMenuId = "createCharacterFactionSelectMenu";
+const createCharacterInstrumentSelectMenuId = "createCharacterInstrumentSelectMenu";
 const createCharacterApproveButtonIdPrefix = "createCharacterApprove-";
 const createCharacterRejectButtonIdPrefix = "createCharacterReject-";
 const createCharacterApproveButtonId = (characterId: number) => createCharacterApproveButtonIdPrefix + characterId;
@@ -119,6 +124,42 @@ export class Submission {
     }
   }
 
+  @SelectMenuComponent({
+    id: createCharacterRaceSelectMenuId,
+  })
+  public async selectCreateCharacterRace(interaction: StringSelectMenuInteraction) {
+    try {
+      const user = await prisma.user.findUnique({where: {id: interaction.user.id}});
+      if (user) this.handlePopupInteraction(interaction, user, "race");
+    } catch (error) {
+      console.error("Error finding user to select race for their character: ", error);
+    }
+  }
+
+  @SelectMenuComponent({
+    id: createCharacterInstrumentSelectMenuId,
+  })
+  public async selectCreateCharacterInstrument(interaction: StringSelectMenuInteraction) {
+    try {
+      const user = await prisma.user.findUnique({where: {id: interaction.user.id}});
+      if (user) this.handlePopupInteraction(interaction, user, "instrument");
+    } catch (error) {
+      console.error("Error finding user to select initial instrument for their character: ", error);
+    }
+  }
+
+  @SelectMenuComponent({
+    id: createCharacterFactionSelectMenuId,
+  })
+  public async selectCreateCharacterFaction(interaction: StringSelectMenuInteraction) {
+    try {
+      const user = await prisma.user.findUnique({where: {id: interaction.user.id}});
+      if (user) this.handlePopupInteraction(interaction, user, "faction");
+    } catch (error) {
+      console.error("Error finding user to select faction for their character: ", error);
+    }
+  }
+
   @ButtonComponent({
     id: createCharacterSendButtonId,
   })
@@ -172,29 +213,27 @@ export class Submission {
     }
   }
 
-  private async handlePopupInteraction(interaction: ButtonInteraction, user: User, type: "appearance" | "essentials" | "send") {
+  private async handlePopupInteraction(
+    interaction: ButtonInteraction | StringSelectMenuInteraction,
+    user: User,
+    type: "appearance" | "essentials" | "send" | "race" | "instrument" | "faction",
+  ) {
     try {
-      const character = await prisma.character.findFirst({where: {userId: user.id, isPending: true}});
+      const character = await prisma.character.findFirst({where: {userId: user.id, isPending: true}, include: {instruments: true}});
       if (!character) {
         console.warn(`Character not found for user ${user.id}`);
         return;
       }
 
-      const awaitSubmitModal = async () => {
-        const submitted = await interaction.awaitModalSubmit({
-          time: Duration.fromObject({hours: 1}).as("milliseconds"),
-          filter: (submitInteraction) => submitInteraction.user.id === interaction.user.id,
-        });
-        await submitted.deferReply({ephemeral: true});
-        return submitted;
-      };
-
       const popupEmbed = EmbedBuilder.from(interaction.message.embeds[0]);
+
+      const getRemovedIndex = (id: string) =>
+        interaction.message.components.findIndex((actionRow) => actionRow.components.some((component) => component.customId === id));
 
       switch (type) {
         case "essentials":
           await interaction.showModal(submissionEssentialsModal(character));
-          const essentialsSubmitted = await awaitSubmitModal();
+          const essentialsSubmitted = await awaitSubmitModal(interaction);
 
           const [name, surname, personality, backstory, age] = ["name", "surname", "personality", "backstory", "age"].map((key) =>
             essentialsSubmitted.fields.getTextInputValue(key),
@@ -223,7 +262,12 @@ export class Submission {
 
           await interaction.editReply({
             embeds: [popupEmbed],
-            components: [new ActionRowBuilder<ButtonBuilder>().addComponents(...actionButtons)],
+            components: [
+              new ActionRowBuilder<ButtonBuilder>().addComponents(...actionButtons),
+              await this.createRaceSelectMenu(),
+              await this.createInstrumentSelectMenu(),
+              await this.createFactionSelectMenu(),
+            ],
           });
 
           await essentialsSubmitted.editReply({
@@ -236,7 +280,7 @@ export class Submission {
 
         case "appearance":
           await interaction.showModal(submissionAppearanceModal(character));
-          const appearanceSubmitted = await awaitSubmitModal();
+          const appearanceSubmitted = await awaitSubmitModal(interaction);
           const [appearance, height, gender, weight, imageUrl] = ["appearance", "height", "gender", "weight", "imageUrl"].map((key) =>
             appearanceSubmitted.fields.getTextInputValue(key),
           );
@@ -262,6 +306,108 @@ export class Submission {
           });
 
           await prisma.character.update({data: {appearance, height, gender, weight, imageUrl: sanitizedImageUrl}, where: {id: character.id}});
+          break;
+
+        case "race":
+          if (!interaction.isStringSelectMenu()) return;
+          await interaction.deferUpdate();
+          if (character.raceId) {
+            await interaction.followUp({content: ptBr.errors.raceAlreadySelected, ephemeral: true});
+            await prisma.character.update({data: {raceId: null}, where: {id: character.id}});
+            popupEmbed.data.fields = popupEmbed.data.fields?.filter((field) => field.name !== ptBr.character.race);
+          }
+          const raceId = parseInt(interaction.values[0]);
+
+          const {race} = await prisma.character.update({data: {raceId}, where: {id: character.id}, select: {race: {select: {name: true}}}});
+          if (!race?.name) {
+            await interaction.followUp({content: ptBr.errors.somethingWentWrong, ephemeral: true});
+            return;
+          }
+          popupEmbed.addFields([{name: ptBr.character.race, value: race.name}]);
+
+          const removedRaceIndex = getRemovedIndex(createCharacterRaceSelectMenuId);
+
+          await interaction.editReply({
+            embeds: [popupEmbed],
+            components: await Promise.all(
+              Array.from({length: interaction.message.components.length}).map(async (_, index) => {
+                if (index === removedRaceIndex) return await this.createRaceSelectMenu(raceId);
+                return interaction.message.components[index];
+              }),
+            ),
+          });
+
+          break;
+
+        case "instrument":
+          if (!interaction.isStringSelectMenu()) return;
+          await interaction.deferUpdate();
+          if (character.instruments.length > 0) {
+            await interaction.followUp({content: ptBr.errors.tooManyInstruments, ephemeral: true});
+            await prisma.character.update({data: {instruments: {deleteMany: {}}}, where: {id: character.id}});
+            popupEmbed.data.fields = popupEmbed.data.fields?.filter((field) => field.name !== ptBr.character.instrument);
+          }
+
+          const instrumentId = parseInt(interaction.values[0]);
+
+          const {instrument} = await prisma.instrumentCharacter.create({
+            data: {characterId: character.id, instrumentId},
+            select: {instrument: {select: {name: true}}},
+          });
+
+          if (!instrument?.name) {
+            await interaction.followUp({content: ptBr.errors.somethingWentWrong, ephemeral: true});
+            return;
+          }
+
+          popupEmbed.addFields([{name: ptBr.character.instrument, value: instrument.name}]);
+
+          const removedInstrumentIndex = getRemovedIndex(createCharacterInstrumentSelectMenuId);
+
+          await interaction.editReply({
+            embeds: [popupEmbed],
+            components: await Promise.all(
+              Array.from({length: interaction.message.components.length}).map(async (_, index) => {
+                if (index === removedInstrumentIndex) return await this.createInstrumentSelectMenu(instrumentId);
+                return interaction.message.components[index];
+              }),
+            ),
+          });
+
+          break;
+
+        case "faction":
+          if (!interaction.isStringSelectMenu()) return;
+          await interaction.deferUpdate();
+          if (character.factionId) {
+            await interaction.followUp({content: ptBr.errors.factionAlreadySelected, ephemeral: true});
+            await prisma.character.update({data: {factionId: null}, where: {id: character.id}});
+            popupEmbed.data.fields = popupEmbed.data.fields?.filter((field) => field.name !== ptBr.character.faction);
+          }
+          const factionId = parseInt(interaction.values[0]);
+
+          const {faction} = await prisma.character.update({
+            data: {factionId},
+            where: {id: character.id},
+            select: {faction: {select: {name: true, emoji: true}}},
+          });
+          if (!faction?.name) {
+            await interaction.followUp({content: ptBr.errors.somethingWentWrong, ephemeral: true});
+            return;
+          }
+          popupEmbed.addFields([{name: ptBr.character.faction, value: `${faction.emoji} ${faction.name}`}]);
+
+          const removedFactionIndex = getRemovedIndex(createCharacterFactionSelectMenuId);
+          await interaction.editReply({
+            embeds: [popupEmbed],
+            components: await Promise.all(
+              Array.from({length: interaction.message.components.length}).map(async (_, index) => {
+                if (index === removedFactionIndex) return await this.createFactionSelectMenu(factionId);
+                return interaction.message.components[index];
+              }),
+            ),
+          });
+
           break;
 
         case "send":
@@ -320,6 +466,66 @@ export class Submission {
       new ButtonBuilder().setCustomId(createCharacterEssentialsButtonId).setLabel(ptBr.buttons.essentials).setStyle(ButtonStyle.Primary),
       new ButtonBuilder().setCustomId(createCharacterAppearanceButtonId).setLabel(ptBr.buttons.appearance).setDisabled(true).setStyle(ButtonStyle.Secondary),
       new ButtonBuilder().setCustomId(createCharacterSendButtonId).setLabel(ptBr.buttons.send).setDisabled(true).setStyle(ButtonStyle.Success),
+    );
+  }
+
+  private async createRaceSelectMenu(selectedRaceId?: number) {
+    const races = await prisma.race.findMany({take: 25, orderBy: {name: "asc"}});
+    return new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+      new StringSelectMenuBuilder()
+        .setCustomId(createCharacterRaceSelectMenuId)
+        .setMaxValues(1)
+        .setMinValues(1)
+        .setPlaceholder(ptBr.selectMenus.race.placeholder)
+        .addOptions(
+          races.map((race) => {
+            const option = new StringSelectMenuOptionBuilder().setLabel(race.name).setValue(race.id.toString());
+            if (selectedRaceId === race.id) {
+              option.setDefault(true);
+            }
+            return option;
+          }),
+        ),
+    );
+  }
+
+  private async createFactionSelectMenu(selectedFactionId?: number) {
+    const factions = await prisma.faction.findMany({take: 25, orderBy: {name: "asc"}});
+    return new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+      new StringSelectMenuBuilder()
+        .setCustomId(createCharacterFactionSelectMenuId)
+        .setMaxValues(1)
+        .setMinValues(1)
+        .setPlaceholder(ptBr.selectMenus.faction.placeholder)
+        .addOptions(
+          factions.map((faction) => {
+            const option = new StringSelectMenuOptionBuilder().setLabel(faction.name).setValue(faction.id.toString()).setEmoji(faction.emoji);
+            if (selectedFactionId === faction.id) {
+              option.setDefault(true);
+            }
+            return option;
+          }),
+        ),
+    );
+  }
+
+  private async createInstrumentSelectMenu(selectedInstrumentId?: number) {
+    const instruments = await prisma.instrument.findMany({take: 25, orderBy: {id: "asc"}});
+    return new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+      new StringSelectMenuBuilder()
+        .setCustomId(createCharacterInstrumentSelectMenuId)
+        .setMaxValues(1)
+        .setMinValues(1)
+        .setPlaceholder(ptBr.selectMenus.instrument.placeholder)
+        .addOptions(
+          instruments.map((instrument) => {
+            const option = new StringSelectMenuOptionBuilder().setLabel(instrument.name).setValue(instrument.id.toString());
+            if (selectedInstrumentId === instrument.id) {
+              option.setDefault(true);
+            }
+            return option;
+          }),
+        ),
     );
   }
 

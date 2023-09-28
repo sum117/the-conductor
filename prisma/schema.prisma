@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  // provider  = "sqlite"
+  // provider  = "postgresql"
+  provider  = "sqlite"
   url       = env("DATABASE_PROXY_URL")
   directUrl = env("DATABASE_URL")
 }
@@ -16,7 +16,7 @@ model User {
 }
 
 model Character {
-  id          Int          @id @default(autoincrement())
+  id          Int                   @id @default(autoincrement())
   name        String?
   surname     String?
   personality String?
@@ -27,17 +27,46 @@ model Character {
   height      String?
   gender      String?
   weight      String?
+  isPending   Boolean               @default(true)
+  user        User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  race        Race?                 @relation(fields: [raceId], references: [id], onDelete: SetNull)
+  faction     Faction?              @relation(fields: [factionId], references: [id])
   userId      String
-  isPending   Boolean      @default(true)
-  user        User         @relation(fields: [userId], references: [id])
-  instruments Instrument[]
+  raceId      Int?
+  instruments InstrumentCharacter[]
+  factionId   Int?
+}
+
+model Race {
+  id          Int         @id @default(autoincrement())
+  name        String
+  description String
+  imageUrl    String
+  characters  Character[]
+}
+
+model Faction {
+  id          Int         @id @default(autoincrement())
+  name        String
+  description String
+  imageUrl    String
+  emoji       String
+  characters  Character[]
+}
+
+model InstrumentCharacter {
+  id           Int         @id @default(autoincrement())
+  quantity     Int         @default(0)
+  character    Character?  @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  instrument   Instrument? @relation(fields: [instrumentId], references: [id], onDelete: Cascade)
+  characterId  Int?
+  instrumentId Int?
 }
 
 model Instrument {
-  id          Int       @id
+  id          Int                   @id @default(autoincrement())
   name        String
   description String
-  type        String
-  characterId Int
-  character   Character @relation(fields: [characterId], references: [id])
+  imageUrl    String
+  characters  InstrumentCharacter[]
 }
