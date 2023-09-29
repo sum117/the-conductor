@@ -5,6 +5,13 @@ on:
     branches:
       - main
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  DATABASE_PROXY_URL: ${{ secrets.DATABASE_PROXY_URL }}
+  BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+
 jobs:
   build_and_push:
     runs-on: ubuntu-latest
@@ -16,44 +23,39 @@ jobs:
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v1
         with:
-          registry: ghcr.io
+          registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_PAT }}
 
       - name: Build using docker-compose
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          DATABASE_PROXY_URL: ${{ secrets.DATABASE_PROXY_URL }}
-
         run: docker-compose build app
 
-      - name: Tag Docker image
-        run: docker tag app ghcr.io/${{ github.repository }}:latest
-
       - name: Push Docker image
-        run: docker push ghcr.io/${{ github.repository }}:latest
+        run: |
+          docker tag app ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+
   deploy:
     needs: build_and_push
     runs-on: ubuntu-latest
     steps:
-      - name: SSH and pull latest image on VM
+      - name: SSH and deploy latest image on VM
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            export GHCR_PAT=${{ secrets.GHCR_PAT }}
-            echo $GHCR_PAT | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            docker pull ghcr.io/${{ github.repository }}:latest
+            echo ${{ secrets.GHCR_PAT }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
             docker stop app || true
             docker rm app || true
             docker run -d \
               --name app \
               -p 8080:8080 \
-              -e DATABASE_URL=${{ secrets.DATABASE_URL }} \
-              -e DATABASE_PROXY_URL=${{ secrets.DATABASE_PROXY_URL }} \
-              -e BOT_TOKEN=${{ secrets.BOT_TOKEN }} \
+              -e DATABASE_URL=${{ env.DATABASE_URL }} \
+              -e DATABASE_PROXY_URL=${{ env.DATABASE_PROXY_URL }} \
+              -e BOT_TOKEN=${{ env.BOT_TOKEN }} \
               --restart unless-stopped \
               -v $HOME/prisma-data:/app/prisma \
-              ghcr.io/${{ github.repository }}:latest
+              ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
