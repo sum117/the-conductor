@@ -241,7 +241,11 @@ export class Submission {
 
           popupEmbed.setDescription(backstory);
           popupEmbed.setTitle(`${name} ${surname}`);
-          popupEmbed.setFields([
+          if (popupEmbed.data.fields) {
+            const fieldsToCheck = [ptBr.character.age, ptBr.character.personality];
+            popupEmbed.data.fields = popupEmbed.data.fields.filter((field) => !fieldsToCheck.includes(field.name));
+          }
+          popupEmbed.addFields([
             {
               name: ptBr.character.age,
               value: age.toString(),
@@ -291,6 +295,10 @@ export class Submission {
           }
 
           popupEmbed.setImage(sanitizedImageUrl);
+          if (popupEmbed.data.fields) {
+            const fieldsToCheck = [ptBr.character.appearance, ptBr.character.height, ptBr.character.weight, ptBr.character.gender];
+            popupEmbed.data.fields = popupEmbed.data.fields.filter((field) => !fieldsToCheck.includes(field.name));
+          }
           popupEmbed.addFields([
             {name: ptBr.character.appearance, value: appearance},
             {name: ptBr.character.height, value: height},
@@ -439,8 +447,8 @@ export class Submission {
               .replace("{user}", interaction.user.toString())
               .replace("{mention}", roleMention(credentials.roles.adminRole)),
           });
-
-          await prisma.character.update({data: {isPending: false}, where: {id: character.id}});
+          await prisma.character.updateMany({where: {userId: user.id}, data: {isBeingUsed: false}});
+          await prisma.character.update({data: {isPending: false, isBeingUsed: true}, where: {id: character.id}});
           break;
 
         default:

@@ -145,6 +145,16 @@ export const ptBr = {
     },
   },
   commands: {
+    profile: {
+      description: "Mostra seu perfil ou o perfil de um usuário.",
+      name: "perfil",
+      options: {
+        user: {
+          name: "usuário",
+          description: "O usuário para mostrar o perfil.",
+        },
+      },
+    },
     submission: {
       name: "criar-modal-de-personagem",
       description: "Cria um modal de personagem",
@@ -172,6 +182,13 @@ export const ptBr = {
     imageLinkError: "O link da imagem não é válido. Tente com um link que termina com .png, .jpg,etc.",
     raceAlreadySelected: "Você já escolheu uma raça. Estamos resetando para que você possa escolher outra.",
     factionAlreadySelected: "Você já escolheu uma facção. Estamos resetando para que você possa escolher outra.",
+    generatingProfile: "Erro ao gerar esse perfil. Tente novamente mais tarde.",
+  },
+  profile: {
+    aboutMe: {
+      title: "SOBRE",
+      placeholder: "Esse usuário não preencheu essa seção.",
+    },
   },
   feedback: {
     essentials: {
@@ -194,5 +211,8 @@ export const ptBr = {
       instrument: "Instrumento {name} criado com sucesso!",
       faction: "Facção {name} criada com sucesso!",
     },
+    editingNotice:
+      "{user}, você tem 30 minutos para editar sua mensagem. Qualquer mensagem que você enviar editará a mensagem com a reação de edição. Para cancelar a edição, remova a reação de edição.",
+    editingCancelled: "Edição cancelada.",
   },
 };
