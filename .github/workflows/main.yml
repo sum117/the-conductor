@@ -21,6 +21,10 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build using docker-compose
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_PROXY_URL: ${{ secrets.DATABASE_PROXY_URL }}
+
         run: docker-compose build app
 
       - name: Tag Docker image
