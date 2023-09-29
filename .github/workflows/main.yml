@@ -48,7 +48,7 @@ jobs:
             docker pull ghcr.io/${{ github.repository }}:latest
             docker stop app || true
             docker rm app || true
-            docker run \
+            docker run -d \
               --name app \
               -p 8080:8080 \
               -e DATABASE_URL=${{ secrets.DATABASE_URL }} \
