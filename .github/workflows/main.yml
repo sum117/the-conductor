@@ -32,7 +32,6 @@ jobs:
 
       - name: Push Docker image
         run: docker push ghcr.io/${{ github.repository }}:latest
-
   deploy:
     needs: build_and_push
     runs-on: ubuntu-latest
@@ -43,13 +42,18 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          DATABASE_PROXY_URL: ${{ secrets.DATABASE_PROXY_URL }}
-          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-
           script: |
+            export GHCR_PAT=${{ secrets.GHCR_PAT }}
+            echo $GHCR_PAT | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             docker pull ghcr.io/${{ github.repository }}:latest
-            cd $HOME/projects/the-conductor
-            docker-compose down
-            docker-compose up -d
+            docker stop app || true
+            docker rm app || true
+            docker run \
+              --name app \
+              -p 8080:8080 \
+              -e DATABASE_URL=${{ secrets.DATABASE_URL }} \
+              -e DATABASE_PROXY_URL=${{ secrets.DATABASE_PROXY_URL }} \
+              -e BOT_TOKEN=${{ secrets.BOT_TOKEN }} \
+              --restart unless-stopped \
+              -v $HOME/prisma-data:/app/prisma \
+              ghcr.io/${{ github.repository }}:latest
