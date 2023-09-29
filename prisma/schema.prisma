@@ -12,6 +12,10 @@ datasource db {
 model User {
   id         String      @id @default(uuid())
   xp         Int         @default(0)
+  lastXpTime DateTime    @default(now())
+  isEditing  Boolean     @default(false)
+  reputation Int         @default(0)
+  about      String?     @default("")
   characters Character[]
 }
 
@@ -28,13 +32,22 @@ model Character {
   gender      String?
   weight      String?
   isPending   Boolean               @default(true)
+  isBeingUsed Boolean               @default(false)
   user        User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
   race        Race?                 @relation(fields: [raceId], references: [id], onDelete: SetNull)
   faction     Faction?              @relation(fields: [factionId], references: [id])
   userId      String
   raceId      Int?
+  messages    Message[]
   instruments InstrumentCharacter[]
   factionId   Int?
+}
+
+model Message {
+  id          String    @unique
+  content     String
+  character   Character @relation(fields: [characterId], references: [id])
+  characterId Int
 }
 
 model Race {

@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
-    "types": [
-      "bun-types"
-    ],
-    "lib": [
-      "esnext"
-    ],
+    "types": ["bun-types"],
+    "lib": ["esnext"],
     "outDir": "build",
     "module": "esnext",
     "target": "esnext",
@@ -14,11 +10,11 @@
     "allowImportingTsExtensions": false,
     "experimentalDecorators": true,
     "moduleDetection": "force",
-    "jsx": "react-jsx",
     "allowJs": true,
     "esModuleInterop": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "jsx": "react",
   }
 }

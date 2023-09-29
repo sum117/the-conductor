@@ -2,6 +2,8 @@ import {dirname, importx} from "@discordx/importer";
 import type {Interaction, Message} from "discord.js";
 import {IntentsBitField} from "discord.js";
 import {Client} from "discordx";
+import {prisma} from "./db";
+import app from "./server";
 
 export const bot = new Client({
   // To use only guild command
@@ -29,6 +31,9 @@ export const bot = new Client({
 bot.once("ready", async () => {
   // Make sure all guilds are cached
   // await bot.guilds.fetch();
+
+  // Make sure all users aren't stuck in editing mode in case of a crash
+  await prisma.user.updateMany({data: {isEditing: false}});
 
   // Synchronize applications commands with Discord
   await bot.initApplicationCommands();
@@ -70,3 +75,6 @@ async function run() {
 }
 
 run();
+
+app.listen(8080);
+console.log(`Elysia is running at ${app.server?.hostname}:${app.server?.port}`);

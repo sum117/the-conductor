@@ -1,0 +1,51 @@
+name: Deploy to VM
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_and_push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build using docker-compose
+        run: docker-compose build app
+
+      - name: Tag Docker image
+        run: docker tag app ghcr.io/${{ github.repository }}:latest
+
+      - name: Push Docker image
+        run: docker push ghcr.io/${{ github.repository }}:latest
+
+  deploy:
+    needs: build_and_push
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH and pull latest image on VM
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_PROXY_URL: ${{ secrets.DATABASE_PROXY_URL }}
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+
+          script: |
+            docker pull ghcr.io/${{ github.repository }}:latest
+            cd $HOME/projects/the-conductor
+            docker-compose down
+            docker-compose up -d
