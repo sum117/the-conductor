@@ -1,3 +1,4 @@
+import {User} from "@prisma/client";
 import {ButtonInteraction, CommandInteraction, StringSelectMenuInteraction} from "discord.js";
 import {Duration} from "luxon";
 
@@ -27,4 +28,14 @@ export async function awaitSubmitModal(interaction: ButtonInteraction | CommandI
 
 export function getSafeKeys<T extends object>(obj: T) {
   return Object.keys(obj) as (keyof T)[];
+}
+
+export function getUserLevelData(user: User) {
+  const userLevel = Math.max(1, Math.floor(user.xp / 10000));
+  const percentageToNextLevel = (user.xp % 10000) / 100;
+
+  return {
+    userLevel,
+    percentageToNextLevel,
+  };
 }

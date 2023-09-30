@@ -45,7 +45,7 @@ export class Events {
       if (!messagePayload) return;
 
       const characterPost = await message.channel.send(messagePayload);
-      await prisma.message.create({data: {id: characterPost.id, content: message.content, characterId: character.id}});
+      await prisma.message.create({data: {id: characterPost.id, content: message.content, characterId: character.id, channelId: message.channel.id}});
       await message.delete().catch((error) => console.error("Failed to delete message", error));
 
       const timeSinceLastXP = DateTime.now().diff(DateTime.fromJSDate(character.user.lastXpTime), "minutes").as("minutes");
