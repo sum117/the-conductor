@@ -1,5 +1,5 @@
 import {User} from "@prisma/client";
-import {ButtonInteraction, CommandInteraction, StringSelectMenuInteraction} from "discord.js";
+import {ButtonInteraction, CommandInteraction, StringSelectMenuInteraction, TextChannel} from "discord.js";
 import {Duration} from "luxon";
 
 export function cleanImageUrl(url: string) {
@@ -38,4 +38,12 @@ export function getUserLevelData(user: User) {
     userLevel,
     percentageToNextLevel,
   };
+}
+
+export async function recursivelyDelete(channel: TextChannel) {
+  const messages = await channel.messages.fetch().catch(() => null);
+  if (messages && messages.size > 0) {
+    await channel.bulkDelete(messages).catch((error) => console.error("Error deleting messages in bulk", error));
+    await recursivelyDelete(channel);
+  }
 }

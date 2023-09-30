@@ -165,6 +165,10 @@ export const ptBr = {
     },
   },
   commands: {
+    poll: {
+      name: "enquete",
+      description: "Cria uma enquete.",
+    },
     setCharacter: {
       description: "Define um personagem para jogar.",
       name: "setar-personagem",
@@ -256,6 +260,8 @@ export const ptBr = {
     },
   },
   feedback: {
+    clubChatCleared:
+      "🧹 Esse canal é completamente limpo todos os dias às 00:00. Escreva nele suas confissões, desabafos, ou o que quiser (dentro das regras do servidor).",
     setCharacter: {
       submitted: "{factionEmoji} Personagem **{name}** definido(a) com sucesso para RP.",
     },
