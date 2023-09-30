@@ -16,5 +16,6 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "jsx": "react",
-  }
+  },
+  "exclude": ["prisma/seed.ts"]
 }
