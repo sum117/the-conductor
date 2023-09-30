@@ -2,9 +2,10 @@ import {AttachmentBuilder, BaseMessageOptions, EmbedBuilder, Message, PartialMes
 import {ArgsOf, Discord, Guard, On} from "discordx";
 import lodash from "lodash";
 import {DateTime, Duration} from "luxon";
+import {credentials} from "../data/credentials";
 import {prisma} from "../db";
 import {isValidRoleplayMessage} from "../lib/guards";
-import {cleanImageUrl} from "../lib/util/helpers";
+import {cleanImageUrl, getUserLevelDetails} from "../lib/util/helpers";
 import {ptBr} from "../translations/ptBr";
 @Discord()
 export class Events {
@@ -52,10 +53,29 @@ export class Events {
       if (timeSinceLastXP < 60) {
         return;
       }
-
       const random = lodash.random(500, 1000);
-      const randomMusicalEmoji = lodash.sample(["🎵", "🎶", "🎼", "🎹", "🎺", "🎸", "🎷", "🥁", "🎻", "🎤", "🎧"]);
+      const musicalEmojis = ["🎵", "🎶", "🎼", "🎹", "🎺", "🎸", "🎷", "🥁", "🎻", "🎤", "🎧"];
+      const randomMusicalEmoji = lodash.sample(musicalEmojis) ?? "🎵";
+
       await prisma.user.update({where: {id: character.user.id}, data: {lastXpTime: DateTime.now().toJSDate(), xp: {increment: random}}});
+
+      const userLevelDetails = getUserLevelDetails(character.user);
+      const isLevelUp = userLevelDetails.xpToNextLevel <= random;
+
+      if (isLevelUp) {
+        const previousRoles = Object.values(credentials.roles.levels).filter((roleId) => roleId !== userLevelDetails.nextRoleId);
+        await message.member?.roles.remove(previousRoles).catch((error) => console.error("Failed to remove previous roles", error));
+        await message.member?.roles.add(userLevelDetails.nextRoleId).catch((error) => console.error("Failed to add new role", error));
+
+        const congratulationsMessage = await characterPost.channel.send(
+          ptBr.feedback.levelUp.replace("{user}", character.user.toString()).replace("{level}", userLevelDetails.nextLevel.toString()),
+        );
+        musicalEmojis.forEach(
+          async (emoji) => await congratulationsMessage.react(emoji).catch((error) => console.error("Failed to react to level up message", error)),
+        );
+        await characterPost.react(userLevelDetails.nextEmojiId).catch((error) => console.error("Failed to react to level up character post", error));
+        return;
+      }
       await characterPost.react(randomMusicalEmoji);
     } catch (characterPostError) {
       console.error("Failed to post character message", characterPostError);

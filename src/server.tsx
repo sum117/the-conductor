@@ -5,7 +5,7 @@ import React from "react";
 import satori, {SatoriOptions} from "satori";
 import sharp from "sharp";
 import {prisma} from "./db";
-import {getUserLevelData} from "./lib/util/helpers";
+import {getUserLevelDetails} from "./lib/util/helpers";
 import {bot} from "./main";
 import {ptBr} from "./translations/ptBr";
 
@@ -175,7 +175,7 @@ app.get("/profile/:id", async ({params, set}) => {
     const {id} = params;
     const mainCharacterWithUser = await prisma.character.findFirst({
       where: {userId: id, isBeingUsed: true},
-      include: {user: true, faction: true, messages: {select: {id: true}}},
+      include: {user: true, messages: {select: {id: true}}},
     });
     if (!mainCharacterWithUser || !mainCharacterWithUser.imageUrl) {
       set.status = 404;
@@ -198,10 +198,8 @@ app.get("/profile/:id", async ({params, set}) => {
       return "User Not Found in Bot Cache";
     }
 
-    const factionEmoji = bot.guilds.cache
-      .first()
-      ?.emojis.cache.find((emoji) => emoji.id === mainCharacterWithUser.faction?.emoji.split(":")[2].replace(">", ""));
-    const {userLevel, percentageToNextLevel} = getUserLevelData(mainCharacterWithUser.user);
+    const {userLevel, percentageToNextLevel, emojiId} = getUserLevelDetails(mainCharacterWithUser.user);
+    const levelEmoji = bot.guilds.cache.first()?.emojis.cache.find((emoji) => emoji.id === emojiId);
     const progressBarWidth = -0.16 * percentageToNextLevel + 16;
 
     const svg = await satori(
@@ -210,7 +208,7 @@ app.get("/profile/:id", async ({params, set}) => {
         <RowContainer>
           <img style={featuredImageStyle} src={user.displayAvatarURL({extension: "png", size: 128})} width={128} height={128} />
           <ColumnContainer gap="0.25rem" style={{paddingBlock: "0.25rem"}}>
-            <img src={factionEmoji?.url} style={textShadowStyle} width={32} height={32} />
+            <img src={levelEmoji?.url} style={textShadowStyle} width={32} height={32} />
             <p style={{...textShadowStyle, fontSize: "1.5rem", margin: 0, fontWeight: "bold", color: "white"}}>@{user.username}</p>
             <p style={{...textShadowStyle, fontSize: "0.75rem", margin: 0, fontWeight: "bold", color: "white"}}>
               {ptBr.profile.aboutMe.nowUsing} {mainCharacterWithUser.name} {mainCharacterWithUser.surname}
