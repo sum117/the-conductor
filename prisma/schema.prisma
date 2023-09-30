@@ -10,13 +10,14 @@ datasource db {
 }
 
 model User {
-  id         String      @id @default(uuid())
-  xp         Int         @default(0)
-  lastXpTime DateTime    @default(now())
-  isEditing  Boolean     @default(false)
-  reputation Int         @default(0)
-  about      String?     @default("")
-  characters Character[]
+  id                  String      @id @default(uuid())
+  xp                  Int         @default(0)
+  lastXpTime          DateTime    @default(now())
+  lastReputationGiven DateTime    @default(now())
+  isEditing           Boolean     @default(false)
+  reputation          Int         @default(0)
+  about               String?     @default("")
+  characters          Character[]
 }
 
 model Character {
@@ -45,6 +46,7 @@ model Character {
 
 model Message {
   id          String    @unique
+  channelId   String
   content     String
   character   Character @relation(fields: [characterId], references: [id])
   characterId Int

@@ -1,11 +1,13 @@
-import { Elysia } from "elysia";
+import {Prisma} from "@prisma/client";
+import {Elysia} from "elysia";
 import path from "path";
 import React from "react";
-import satori, { SatoriOptions } from "satori";
+import satori, {SatoriOptions} from "satori";
 import sharp from "sharp";
-import { prisma } from "./db";
-import { bot } from "./main";
-import { ptBr } from "./translations/ptBr";
+import {prisma} from "./db";
+import {getUserLevelData} from "./lib/util/helpers";
+import {bot} from "./main";
+import {ptBr} from "./translations/ptBr";
 
 const app = new Elysia();
 
@@ -61,8 +63,6 @@ const statsStyle: React.CSSProperties = {
 };
 
 const aboutStyle: React.CSSProperties = {
-  display: "flex",
-  columnGap: "0.25rem",
   alignItems: "center",
   textTransform: "uppercase",
   color: "white",
@@ -70,104 +70,162 @@ const aboutStyle: React.CSSProperties = {
   ...textShadowStyle,
 };
 
+const featuredImageStyle: React.CSSProperties = {
+  ...boxShadowStyle,
+  objectFit: "cover",
+  objectPosition: "top",
+  borderRadius: "8px",
+};
+
+const ColumnContainer = ({gap = "1rem", style, children}: {gap?: string; style?: React.CSSProperties; children: React.ReactNode}) => (
+  <div style={{display: "flex", flexDirection: "column", rowGap: gap, ...style}}>{children}</div>
+);
+const RowContainer = ({gap = "1rem", style, children}: {gap?: string; style?: React.CSSProperties; children: React.ReactNode}) => (
+  <div style={{display: "flex", columnGap: gap, ...style}}>{children}</div>
+);
+
+const LevelHeader = ({userLevel}: {userLevel: number}) => <p style={{...titleStyle, ...textShadowStyle}}>lvl {userLevel}</p>;
+
+const TopFiveCharacters = ({characters}: {characters: Prisma.CharacterGetPayload<{include: {messages: true}}>[]}) => (
+  <RowContainer gap="0.25rem">
+    {characters.map((character, index) => (
+      <ColumnContainer key={character.id} style={{alignItems: "center", position: "relative"}} gap="0.25rem">
+        <img
+          style={{...featuredImageStyle, border: index === 0 ? "1px solid #F7B32B" : "1px solid transparent"}}
+          src={character.imageUrl!}
+          width={32}
+          height={32}
+        />
+        <RowContainer style={{justifyContent: "center"}} gap="0.25rem">
+          <img style={{width: "0.75rem", height: "0.75rem", filter: "invert(1)"}} src="https://i.imgur.com/2YTmnEB.png" />
+          <span style={{...textShadowStyle, fontSize: "0.75rem", margin: 0, fontWeight: "bold", color: "white"}}>{character.messages.length}</span>
+        </RowContainer>
+      </ColumnContainer>
+    ))}
+  </RowContainer>
+);
+
+const XPBar = ({progressBarWidth}: {progressBarWidth: number}) => (
+  <div
+    style={{
+      ...boxShadowStyle,
+      backgroundColor: "#888098",
+      padding: "0.25rem 0.5rem",
+      borderRadius: "8px",
+      display: "flex",
+      width: "16rem",
+      position: "relative",
+      alignItems: "center",
+      overflow: "hidden",
+    }}
+  >
+    <div
+      style={{
+        ...boxShadowStyle,
+        position: "absolute",
+        top: 0,
+        left: "0",
+        right: `${progressBarWidth}rem`,
+        bottom: 0,
+        borderRadius: "8px",
+        backgroundColor: "#CFB3CD",
+      }}
+    />
+    <span style={{...textShadowStyle, textTransform: "uppercase", fontSize: "1.25rem", fontWeight: "bold", color: "white"}}>xp</span>
+  </div>
+);
+
+const RepBar = ({reputation}: {reputation: number}) => (
+  <div style={{...boxShadowStyle, padding: "0.5rem 2rem", borderRadius: "8px", backgroundColor: "#C9DDFF", display: "flex"}}>
+    <span style={{...textShadowStyle, color: "white", fontWeight: "bold", fontSize: "1.125rem"}}>+{reputation}rep</span>
+  </div>
+);
+
+const StatLine = ({label, value}: {label: string; value: string | number}) => (
+  <div style={statsStyle}>
+    <span>{label}</span> <span>{value}</span>
+  </div>
+);
+
+const AboutSection = ({about}: {about: string | null}) => (
+  <RowContainer gap="0.25rem" style={{alignItems: "center"}}>
+    <RowContainer style={aboutStyle} gap="0.15rem">
+      <img style={{width: "2rem", height: "2rem", filter: "invert(1)"}} src="https://i.imgur.com/ESA6hxu.png" />
+      <span style={{fontWeight: "bold"}}>{ptBr.profile.aboutMe.title}</span>
+    </RowContainer>
+    <p
+      style={{
+        ...textShadowStyle,
+        color: "white",
+        maxWidth: "18rem",
+        margin: "0",
+        maxHeight: "5rem",
+        overflow: "hidden",
+        columnGap: "0.5rem",
+        paddingLeft: "2rem",
+      }}
+    >
+      {about ?? ptBr.profile.aboutMe.placeholder}
+    </p>
+  </RowContainer>
+);
+
 app.get("/profile/:id", async ({params, set}) => {
   try {
     const {id} = params;
-    const character = await prisma.character.findFirst({
+    const mainCharacterWithUser = await prisma.character.findFirst({
       where: {userId: id, isBeingUsed: true},
       include: {user: true, faction: true, messages: {select: {id: true}}},
     });
-    if (!character || !character.imageUrl) {
+    if (!mainCharacterWithUser || !mainCharacterWithUser.imageUrl) {
       set.status = 404;
       return "Character Not Found";
     }
+    const allCharacters = await prisma.character.findMany({where: {userId: id}, orderBy: {messages: {_count: "desc"}}, include: {messages: true}});
+
+    const counters = allCharacters.reduce(
+      (accumulator, character) => {
+        accumulator.totalMessages += character.messages.length;
+        accumulator.totalCharacters += 1;
+        return accumulator;
+      },
+      {totalMessages: 0, totalCharacters: 0},
+    );
+
     const user = await bot.users.fetch(id);
     if (!user) {
       set.status = 404;
       return "User Not Found in Bot Cache";
     }
 
-    const factionEmoji = bot.guilds.cache.first()?.emojis.cache.find((emoji) => emoji.id === character.faction?.emoji.split(":")[2].replace(">", ""));
-    const userLevel = Math.max(1, Math.floor(character.user.xp / 10000));
-    const percentageToNextLevel = (character.user.xp % 10000) / 100;
+    const factionEmoji = bot.guilds.cache
+      .first()
+      ?.emojis.cache.find((emoji) => emoji.id === mainCharacterWithUser.faction?.emoji.split(":")[2].replace(">", ""));
+    const {userLevel, percentageToNextLevel} = getUserLevelData(mainCharacterWithUser.user);
     const progressBarWidth = -0.16 * percentageToNextLevel + 16;
 
     const svg = await satori(
       <main style={mainStyle}>
-        <p style={{...titleStyle, ...textShadowStyle}}>lvl {userLevel}</p>
-
-        <div style={{display: "flex", columnGap: "1rem"}}>
-          <img style={{...boxShadowStyle, objectFit: "cover", objectPosition: "top", borderRadius: "8px"}} src={character.imageUrl} width={128} height={128} />
-
-          <div style={{display: "flex", flexDirection: "column", paddingBlock: "0.25rem", rowGap: "0.25rem"}}>
+        <LevelHeader userLevel={userLevel} />
+        <RowContainer>
+          <img style={featuredImageStyle} src={user.displayAvatarURL({extension: "png", size: 128})} width={128} height={128} />
+          <ColumnContainer gap="0.25rem" style={{paddingBlock: "0.25rem"}}>
             <img src={factionEmoji?.url} style={textShadowStyle} width={32} height={32} />
-            <p style={{...textShadowStyle, fontSize: "1.5rem", margin: 0, fontWeight: "bold", color: "white"}}>
-              {character.name} {character.surname}
+            <p style={{...textShadowStyle, fontSize: "1.5rem", margin: 0, fontWeight: "bold", color: "white"}}>@{user.username}</p>
+            <p style={{...textShadowStyle, fontSize: "0.75rem", margin: 0, fontWeight: "bold", color: "white"}}>
+              {ptBr.profile.aboutMe.nowUsing} {mainCharacterWithUser.name} {mainCharacterWithUser.surname}
             </p>
-            <p style={{...textShadowStyle, fontSize: "0.75rem", margin: 0, fontWeight: "bold", color: "white"}}>@{user.username}</p>
-          </div>
-        </div>
-
-        <div style={{display: "flex", columnGap: "0.5rem"}}>
-          <div
-            style={{
-              ...boxShadowStyle,
-              backgroundColor: "#888098",
-              padding: "0.25rem 0.5rem",
-              borderRadius: "8px",
-              display: "flex",
-              width: "16rem",
-              position: "relative",
-              alignItems: "center",
-              overflow: "hidden",
-            }}
-          >
-            <div
-              style={{
-                ...boxShadowStyle,
-                position: "absolute",
-                top: 0,
-                left: "0",
-                right: `${progressBarWidth}rem`,
-                bottom: 0,
-                borderRadius: "8px",
-                backgroundColor: "#CFB3CD",
-              }}
-            />
-            <span style={{...textShadowStyle, textTransform: "uppercase", fontSize: "1.25rem", fontWeight: "bold", color: "white"}}>xp</span>
-          </div>
-
-          <div style={{...boxShadowStyle, padding: "0.5rem 2rem", borderRadius: "8px", backgroundColor: "#C9DDFF", display: "flex"}}>
-            <span style={{...textShadowStyle, color: "white", fontWeight: "bold", fontSize: "1.125rem"}}>+{character.user.reputation}rep</span>
-          </div>
-        </div>
-
-        <div style={statsStyle}>
-          <span>Total XP</span> <span>{character.user.xp}</span>
-        </div>
-
-        <div style={statsStyle}>
-          <span>Total Posts</span> <span>{character.messages.length}</span>
-        </div>
-
-        <div style={aboutStyle}>
-          <img style={{width: "2rem", height: "2rem", filter: "invert(1)"}} src="https://i.imgur.com/ESA6hxu.png" />
-          <span style={{fontWeight: "bold"}}>{ptBr.profile.aboutMe.title}</span>
-        </div>
-        <p
-          style={{
-            ...textShadowStyle,
-            color: "white",
-            maxWidth: "20rem",
-            margin: "0",
-            maxHeight: "5rem",
-            overflow: "hidden",
-            columnGap: "0.5rem",
-            paddingLeft: "2rem",
-          }}
-        >
-          {character.user?.about ?? ptBr.profile.aboutMe.placeholder}
-        </p>
+            {allCharacters.length && <TopFiveCharacters characters={allCharacters} />}
+          </ColumnContainer>
+        </RowContainer>
+        <RowContainer gap="0.5rem">
+          <XPBar progressBarWidth={progressBarWidth} />
+          <RepBar reputation={mainCharacterWithUser.user.reputation} />
+        </RowContainer>
+        <StatLine label={ptBr.profile.stats.totalXp} value={mainCharacterWithUser.user.xp} />
+        <StatLine label={ptBr.profile.stats.totalPosts} value={counters.totalMessages} />
+        <StatLine label={ptBr.profile.stats.totalCharacters} value={counters.totalCharacters} />
+        <AboutSection about={mainCharacterWithUser.user?.about} />
       </main>,
       options,
     );

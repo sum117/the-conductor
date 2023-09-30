@@ -14,6 +14,14 @@ export const ptBr = {
     weight: "Peso",
     userId: "ID do usuário",
     imageUrl: "URL da imagem",
+    lastSeen: "Última vez Visto(a) em",
+    instruments: "Instrumentos",
+  },
+  pagination: {
+    previous: "Anterior",
+    next: "Próximo",
+    start: "Início",
+    end: "Fim",
   },
   submission: {
     title: "Criação de personagem",
@@ -44,7 +52,19 @@ export const ptBr = {
       placeholder: "Selecione uma facção",
     },
   },
+  embeds: {
+    characterList: {
+      footer: "Personagem {currentIndex} de {characterCount}",
+    },
+  },
   modals: {
+    aboutMe: {
+      title: "Sobre mim",
+      newAboutMe: {
+        placeholder: "Escreva sobre você.",
+        label: "Sobre mim",
+      },
+    },
     essentials: {
       title: "Campos Essenciais",
       name: {
@@ -145,6 +165,36 @@ export const ptBr = {
     },
   },
   commands: {
+    setCharacter: {
+      description: "Define um personagem para jogar.",
+      name: "setar-personagem",
+      options: {
+        character: {
+          name: "personagem",
+          description: "O personagem para definir.",
+        },
+      },
+    },
+    charactersList: {
+      description: "Lista todos os personagens de um jogador.",
+      name: "listar-personagens",
+      options: {
+        user: {
+          name: "usuário",
+          description: "O usuário para listar os personagens.",
+        },
+      },
+    },
+    repSomeone: {
+      description: "Dá um ponto de reputação para alguém a cada 24 horas.",
+      name: "elogiar",
+      options: {
+        user: {
+          name: "usuário",
+          description: "O usuário para dar reputação.",
+        },
+      },
+    },
     profile: {
       description: "Mostra seu perfil ou o perfil de um usuário.",
       name: "perfil",
@@ -154,6 +204,10 @@ export const ptBr = {
           description: "O usuário para mostrar o perfil.",
         },
       },
+    },
+    setAboutMe: {
+      description: "Define sua seção sobre mim.",
+      name: "setar-sobre-mim",
     },
     submission: {
       name: "criar-modal-de-personagem",
@@ -176,23 +230,45 @@ export const ptBr = {
     },
   },
   errors: {
+    setCharacter: "Erro ao definir personagem. Tente novamente mais tarde.",
+    noCharacters: "Esse usuário não tem nenhum personagem.",
     somethingWentWrong: "Algo deu errado, tente novamente.",
+    aboutMe: "Erro ao definir sobre mim. Tente novamente.",
     entityCreationError: "Erro ao criar entidade. Tente novamente.",
     tooManyInstruments: "Você já escolheu um instrumento. Estamos resetando para que você possa escolher outro.",
     imageLinkError: "O link da imagem não é válido. Tente com um link que termina com .png, .jpg,etc.",
     raceAlreadySelected: "Você já escolheu uma raça. Estamos resetando para que você possa escolher outra.",
     factionAlreadySelected: "Você já escolheu uma facção. Estamos resetando para que você possa escolher outra.",
     generatingProfile: "Erro ao gerar esse perfil. Tente novamente mais tarde.",
+    reputation: "Erro ao dar reputação. Tente novamente mais tarde.",
+    listCharacters: "Erro ao listar personagens. Tente novamente mais tarde.",
   },
   profile: {
     aboutMe: {
       title: "SOBRE",
+      nowUsing: "Atualmente cenando com",
       placeholder: "Esse usuário não preencheu essa seção.",
+    },
+    stats: {
+      totalXp: "XP Total",
+      totalPosts: "Posts",
+      totalCharacters: "Personagens",
     },
   },
   feedback: {
+    setCharacter: {
+      submitted: "{factionEmoji} Personagem **{name}** definido(a) com sucesso para RP.",
+    },
+    reputation: {
+      self: "Você não pode dar reputação para si mesmo.",
+      tooEarly: "Você já deu reputação para um usuário nas últimas 24 horas.",
+      success: "Você deu +1 reputação para {user}!",
+    },
     essentials: {
       submitted: "Campos essenciais enviados, continue preenchendo os outros campos.",
+    },
+    aboutMe: {
+      submitted: "Sobre mim modificado com sucesso.",
     },
     appearance: {
       submitted: "Aparência enviada. Se não houver mais nenhuma mudança, clique em **ENVIAR**.",

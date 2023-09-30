@@ -15,7 +15,7 @@ RUN bun install
 
 COPY src ./src
 COPY tsconfig.json .
-COPY prisma/schema.prisma ./prisma/schema.prisma
+COPY prisma/ ./prisma/
 
 RUN bun prisma:migrate
 RUN bun prisma:generate
