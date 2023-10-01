@@ -6,5 +6,4 @@ if [ -z "$(ls -A /app/prisma)" ]; then
    rm -rf /app_default/prisma
 fi
 
-mkdir -p /app/cache
 exec bun start
