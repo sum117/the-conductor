@@ -260,6 +260,8 @@ export const ptBr = {
     },
   },
   feedback: {
+    loadingDone: "✅ Carregado, {user}!",
+    loading: "⏲️ Carregando...",
     levelUp: "🎉 {user} subiu para o nível **{level}**, parabéns!",
     clubChatCleared:
       "🧹 Esse canal é completamente limpo todos os dias às 00:00. Escreva nele suas confissões, desabafos, ou o que quiser (dentro das regras do servidor).",

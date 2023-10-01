@@ -33,6 +33,10 @@ COPY --from=builder /tmp/app/prisma/schema.prisma /app/prisma/schema.prisma
 COPY --from=builder /tmp/app/build /app/build
 COPY --from=builder /tmp/app/src/fonts /app/build/fonts
 
+RUN apt-get update && apt-get install -y ffmpeg
+RUN apt-get install -y curl
+RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux -o /usr/local/bin/yt-dlp && chmod +x /usr/local/bin/yt-dlp
+
 RUN bun install --production
 RUN cd node_modules/sharp && bun install && cd ../..
 RUN bun prisma:generate
