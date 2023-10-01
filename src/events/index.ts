@@ -202,14 +202,15 @@ export class Events {
     return messagePayload;
   }
 
-  private createFilePath(folder: string, name: string, extension: string) {
+  private createFilePath(folder: string, name: string, extension?: string) {
+    if (!extension) return path.resolve(folder, name);
     return path.resolve(folder, `${name}.${extension}`);
   }
 
   private async saveAttachmentToDisk(cacheFolder: string, message: Message) {
     const response = await fetch(message.attachments.first()!.url);
     const imageBuffer = await response.arrayBuffer();
-    const imagePath = this.createFilePath(cacheFolder, message.attachments.first()!.name, "png");
+    const imagePath = this.createFilePath(cacheFolder, message.attachments.first()!.name);
     await Bun.write(imagePath, imageBuffer);
     return imagePath;
   }
