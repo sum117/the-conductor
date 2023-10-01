@@ -6,8 +6,8 @@ if [ -z "$(ls -A /app/prisma)" ]; then
    rm -rf /app_default/prisma
 fi
 
-if [ ! -d "/app/cache" ]; then
-   mkdir -p /app/cache
+if [ -z "$(ls -A /app/cache)" ]; then
+   echo "The directory /app/cache is empty. Initializing..."
    echo "This directory is used to cache files for the imageVideoMerge command" > /app/cache/README.txt
 fi
 
