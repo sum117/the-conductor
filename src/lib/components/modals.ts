@@ -262,7 +262,7 @@ export const entityCreatorFactionModal = () => {
 };
 
 export const entityCreatorInstrumentModalId = "entityCreatorInstrumentModal";
-export const entityCreatorInstrumentFields: Omit<Instrument, "id"> = {
+export const entityCreatorInstrumentFields: Omit<Instrument, "id" | "isBeginner" | "messageId"> = {
   name: "name",
   description: "description",
   imageUrl: "imageUrl",
