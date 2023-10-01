@@ -17,7 +17,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./prisma-data:/app/prisma
-      - ./image-video-merge-cache:/app/cache
+      - ./cache:/app/cache
 volumes:
   prisma-data:
   cache:
