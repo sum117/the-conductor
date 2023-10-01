@@ -229,6 +229,9 @@ export class Events {
 
   private async mergeImageAndAudio(imagePath: string, audioPath: string, duration: number, outputPath: string, loadingMessage: Message) {
     const BAR_SIZE = 10;
+    const MINIMUM_PROGRESS_CHANGE = 10;
+
+    let lastProgress = 0;
 
     const createProgressBar = (progress: number) => {
       const filledBlocks = Math.round(BAR_SIZE * (progress / 100));
@@ -281,7 +284,10 @@ export class Events {
         const currentTime = extractCurrentTime(data.toString());
         if (currentTime !== null) {
           const progress = (currentTime / duration) * 100;
-          loadingMessage.edit(createProgressBar(progress)).catch((error) => console.error("Failed to edit loading message", error));
+          if (Math.abs(progress - lastProgress) >= MINIMUM_PROGRESS_CHANGE) {
+            lastProgress = progress;
+            loadingMessage.edit(createProgressBar(progress)).catch((error) => console.error("Failed to edit loading message", error));
+          }
         }
       },
     );
