@@ -53,6 +53,7 @@ export const ptBr = {
     },
   },
   embeds: {
+    beginnerInstrument: "Iniciante",
     characterList: {
       footer: "Personagem {currentIndex} de {characterCount}",
     },

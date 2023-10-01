@@ -526,13 +526,15 @@ export class Submission {
         .setMinValues(1)
         .setPlaceholder(ptBr.selectMenus.instrument.placeholder)
         .addOptions(
-          instruments.map((instrument) => {
-            const option = new StringSelectMenuOptionBuilder().setLabel(instrument.name).setValue(instrument.id.toString());
-            if (selectedInstrumentId === instrument.id) {
-              option.setDefault(true);
-            }
-            return option;
-          }),
+          instruments
+            .filter((instrument) => instrument.isBeginner)
+            .map((instrument) => {
+              const option = new StringSelectMenuOptionBuilder().setLabel(instrument.name).setValue(instrument.id.toString());
+              if (selectedInstrumentId === instrument.id) {
+                option.setDefault(true);
+              }
+              return option;
+            }),
         ),
     );
   }

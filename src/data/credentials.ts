@@ -4,6 +4,7 @@ export const credentials = {
     approvedChannel: "1150151673696751616",
     randomRoleplay: "1155274110901944330",
     clubChat: "1155735837410078770",
+    instrumentsChannel: "1149940155004768316",
   },
   roles: {
     adminRole: "1150149645692047492",

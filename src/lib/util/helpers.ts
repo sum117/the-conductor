@@ -1,7 +1,9 @@
-import {User} from "@prisma/client";
-import {ButtonInteraction, CommandInteraction, StringSelectMenuInteraction, TextChannel} from "discord.js";
+import {Instrument, User} from "@prisma/client";
+import {ButtonInteraction, CommandInteraction, EmbedBuilder, StringSelectMenuInteraction, TextBasedChannel, TextChannel} from "discord.js";
 import {Duration} from "luxon";
 import {credentials} from "../../data/credentials";
+import {prisma} from "../../db";
+import {ptBr} from "../../translations/ptBr";
 
 export function cleanImageUrl(url: string) {
   try {
@@ -80,5 +82,35 @@ export async function recursivelyDelete(channel: TextChannel) {
   if (messages && messages.size > 0) {
     await channel.bulkDelete(messages).catch((error) => console.error("Error deleting messages in bulk", error));
     await recursivelyDelete(channel);
+  }
+}
+
+export async function processInstruments(instrumentsChannel: TextBasedChannel) {
+  const instrumentEmbed = (instrument: Instrument) => {
+    const embed = new EmbedBuilder()
+      .setTitle(instrument.name)
+      .setDescription(instrument.description)
+      .setThumbnail(instrument.imageUrl)
+      .setColor("Random")
+      .setFields([{name: ptBr.embeds.beginnerInstrument, value: instrument.isBeginner ? "✅" : "❌"}]);
+
+    return embed;
+  };
+
+  const sendMessageAndUpdateInstrument = async (instrument: Instrument, instrumentsChannel: TextBasedChannel) => {
+    const message = await instrumentsChannel.send({embeds: [instrumentEmbed(instrument)]});
+    await prisma.instrument.update({where: {id: instrument.id}, data: {messageId: message.id}});
+  };
+
+  const instruments = await prisma.instrument.findMany();
+  for (const instrument of instruments) {
+    if (!instrument.messageId) {
+      await sendMessageAndUpdateInstrument(instrument, instrumentsChannel);
+    } else {
+      const instrumentMessage = await instrumentsChannel.messages.fetch(instrument.messageId).catch(() => null);
+      if (!instrumentMessage) {
+        await sendMessageAndUpdateInstrument(instrument, instrumentsChannel);
+      }
+    }
   }
 }

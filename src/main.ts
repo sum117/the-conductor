@@ -5,7 +5,7 @@ import {Client} from "discordx";
 import cron from "node-cron";
 import {credentials} from "./data/credentials";
 import {prisma} from "./db";
-import {recursivelyDelete} from "./lib/util/helpers";
+import {processInstruments, recursivelyDelete} from "./lib/util/helpers";
 import app from "./server";
 import {ptBr} from "./translations/ptBr";
 
@@ -49,7 +49,6 @@ bot.once("ready", async () => {
   //  await bot.clearApplicationCommands(
   //    ...bot.guilds.cache.map((g) => g.id)
   //  );
-
   console.log("Bot started");
 });
 
@@ -85,12 +84,21 @@ async function run() {
     "0 0 * * *",
     async () => {
       const clubChannel = await bot.channels.fetch(credentials.channels.clubChat).catch((error) => console.error("Error fetching club channel", error));
-      if (clubChannel?.type === ChannelType.GuildText) recursivelyDelete(clubChannel);
+      if (clubChannel?.type === ChannelType.GuildText) {
+        await recursivelyDelete(clubChannel);
+        await clubChannel.send(ptBr.feedback.clubChatCleared).catch((error) => console.error("Error sending club chat cleared message", error));
+      }
 
-      for (const [_channelId, channel] of bot.channels.cache) {
-        if (channel.type !== ChannelType.GuildText) return;
+      const instrumentsChannel = await bot.channels
+        .fetch(credentials.channels.instrumentsChannel)
+        .catch((error) => console.error("Error fetching instruments channel", error));
+      if (instrumentsChannel?.type === ChannelType.GuildText)
+        await processInstruments(instrumentsChannel).catch((error) => console.error("Error processing instruments", error));
+
+      for (const [_channelId, channel] of bot.channels.cache.entries()) {
+        if (channel.type !== ChannelType.GuildText) continue;
         const messages = await prisma.message.findMany({where: {channelId: channel.id}}).catch((error) => console.error("Error fetching messages", error));
-        if (!messages) return;
+        if (!messages) continue;
         await Promise.all(
           messages.map(async (message) => {
             const discordMessage = await channel.messages.fetch(message.id).catch(() => null);
@@ -98,10 +106,8 @@ async function run() {
           }),
         );
       }
-      if (clubChannel?.isTextBased())
-        await clubChannel.send(ptBr.feedback.clubChatCleared).catch((error) => console.error("Error sending club chat cleared message", error));
     },
-    {timezone: "America/Sao_Paulo"},
+    {timezone: "America/Sao_Paulo", runOnInit: true},
   );
 }
 
