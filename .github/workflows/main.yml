@@ -58,4 +58,5 @@ jobs:
               -e BOT_TOKEN=${{ env.BOT_TOKEN }} \
               --restart unless-stopped \
               -v $HOME/prisma-data:/app/prisma \
+              -v $HOME/cache:/app/cache \
               ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
