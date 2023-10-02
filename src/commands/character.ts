@@ -74,7 +74,6 @@ export class Character {
 
       const pagination = new Pagination(interaction, await generatePages(characters), {
         type: PaginationType.Button,
-        filter: (interaction) => interaction.user.id === member?.id,
         end: {emoji: {name: "⏩"}, label: ptBr.pagination.end, style: ButtonStyle.Secondary},
         start: {emoji: {name: "⏪"}, label: ptBr.pagination.start, style: ButtonStyle.Primary},
         next: {emoji: {name: "▶️"}, label: ptBr.pagination.next, style: ButtonStyle.Primary},
