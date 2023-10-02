@@ -3,6 +3,7 @@ import {
   ApplicationCommandOptionType,
   AttachmentBuilder,
   ChatInputCommandInteraction,
+  GuildMember,
   ModalBuilder,
   TextInputBuilder,
   TextInputStyle,
@@ -34,15 +35,15 @@ export class Profile {
       nameLocalizations: {"pt-BR": ptBr.commands.profile.options.user.name},
       type: ApplicationCommandOptionType.User,
     })
-    user: User | null = null,
+    member: GuildMember | null = null,
     interaction: ChatInputCommandInteraction,
   ) {
-    if (!user) {
-      user = interaction.user;
+    if (!member && interaction.inCachedGuild()) {
+      member = interaction.member;
     }
     try {
       await interaction.deferReply();
-      const response = await fetch(`http://localhost:8080/profile/${user.id}`);
+      const response = await fetch(`http://localhost:8080/profile/${member!.id}`);
       if (!response.ok) {
         interaction.editReply(ptBr.errors.generatingProfile);
         return;

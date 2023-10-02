@@ -7,7 +7,7 @@ import {
   ButtonStyle,
   ChatInputCommandInteraction,
   EmbedBuilder,
-  User,
+  GuildMember,
   channelMention,
 } from "discord.js";
 import {Discord, Slash, SlashOption} from "discordx";
@@ -37,18 +37,18 @@ export class Character {
       nameLocalizations: {"pt-BR": ptBr.commands.charactersList.options.user.name},
       descriptionLocalizations: {"pt-BR": ptBr.commands.charactersList.options.user.description},
     })
-    user: User | null = null,
+    member: GuildMember | null = null,
     interaction: ChatInputCommandInteraction,
   ) {
-    if (!user) {
-      user = interaction.user;
+    if (!member && interaction.inCachedGuild()) {
+      member = interaction.member;
     }
 
     try {
       await interaction.deferReply();
 
       const characters = await prisma.character.findMany({
-        where: {userId: user.id},
+        where: {userId: member!.id},
         orderBy: {id: "asc"},
         include: {faction: true, instruments: {include: {instrument: true}}, messages: {orderBy: {id: "desc"}}},
       });
@@ -60,7 +60,7 @@ export class Character {
       const generatePages = async (characters: CharacterWithInstrumentsFactionsMessages[]) => {
         const pages = [];
         for (const character of characters) {
-          const messagePayload = await this.makeProfileComponent(character, user!, characters.indexOf(character) + 1, characters.length);
+          const messagePayload = await this.makeProfileComponent(character, member!, characters.indexOf(character) + 1, characters.length);
           pages.push(messagePayload);
         }
         return pages;
@@ -68,7 +68,7 @@ export class Character {
 
       const pagination = new Pagination(interaction, await generatePages(characters), {
         type: PaginationType.Button,
-        filter: (interaction) => interaction.user.id === user?.id,
+        filter: (interaction) => interaction.user.id === member?.id,
         end: {emoji: {name: "⏩"}, label: ptBr.pagination.end, style: ButtonStyle.Secondary},
         start: {emoji: {name: "⏪"}, label: ptBr.pagination.start, style: ButtonStyle.Primary},
         next: {emoji: {name: "▶️"}, label: ptBr.pagination.next, style: ButtonStyle.Primary},
@@ -128,14 +128,14 @@ export class Character {
     }
   }
 
-  private async makeProfileComponent(character: CharacterWithInstrumentsFactionsMessages, user: User, currentIndex: number, characterCount: number) {
+  private async makeProfileComponent(character: CharacterWithInstrumentsFactionsMessages, member: GuildMember, currentIndex: number, characterCount: number) {
     const mudaeImageWidth = 225;
     const mudaeImageHeight = 350;
 
     const messagePayload: BaseMessageOptions = {};
 
     const displayEmbed = new EmbedBuilder()
-      .setAuthor({name: user.username, iconURL: user.displayAvatarURL()})
+      .setAuthor({name: member.user.username, iconURL: member.displayAvatarURL()})
       .setFooter({
         text: ptBr.embeds.characterList.footer.replace("{currentIndex}", currentIndex.toString()).replace("{characterCount}", characterCount.toString()),
       })
