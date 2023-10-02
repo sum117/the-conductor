@@ -34,6 +34,7 @@ export const ptBr = {
     footerText: "É comum que hajam erros nessa etapa,\nentão não se contenha em pedir ajuda.",
   },
   buttons: {
+    displayCharacterProfile: "Ver perfil Completo",
     essentials: "Essenciais",
     appearance: "Aparência",
     send: "Enviar",

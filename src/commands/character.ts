@@ -1,11 +1,14 @@
 import {Pagination, PaginationType} from "@discordx/pagination";
 import {Prisma} from "@prisma/client";
 import {
+  ActionRowBuilder,
   ApplicationCommandOptionType,
   AttachmentBuilder,
   BaseMessageOptions,
+  ButtonBuilder,
   ButtonStyle,
   ChatInputCommandInteraction,
+  ColorResolvable,
   EmbedBuilder,
   GuildMember,
   channelMention,
@@ -19,6 +22,9 @@ import {ptBr} from "../translations/ptBr";
 type CharacterWithInstrumentsFactionsMessages = Prisma.CharacterGetPayload<{
   include: {instruments: {include: {instrument: true}}; faction: true; messages: {orderBy: {id: "desc"}}};
 }>;
+
+const displayCharacterProfileButtonIdPrefix = "displayCharacterProfileButtonId_";
+const displayCharacterProfileButtonId = (characterId: number) => displayCharacterProfileButtonIdPrefix + characterId;
 
 @Discord()
 export class Character {
@@ -78,7 +84,35 @@ export class Character {
         onTimeout: () => interaction.deleteReply().catch((error) => "Error deleting pagination reply: " + error),
       });
 
-      await pagination.send();
+      const sentPagination = await pagination.send();
+
+      sentPagination.collector.on("collect", async (interaction) => {
+        if (!interaction.customId.startsWith(displayCharacterProfileButtonIdPrefix)) return;
+        try {
+          const characterId = parseInt(interaction.customId.split("_")[1]);
+          const character = await prisma.character.findUnique({
+            where: {id: characterId, AND: {userId: member!.id}},
+            include: {race: true, faction: true, instruments: {include: {instrument: true}}, messages: {orderBy: {id: "desc"}}},
+          });
+          const embed = new EmbedBuilder()
+            .setDescription(character?.backstory ?? null)
+            .setColor((sentPagination.message.embeds[0].hexColor as ColorResolvable) ?? "Random")
+            .setFields([
+              {name: ptBr.character.personality, value: character?.personality ?? "Nenhuma"},
+              {name: ptBr.character.appearance, value: character?.appearance ?? "Nenhuma"},
+              {name: ptBr.character.race, value: character?.race?.name ?? "Nenhuma", inline: true},
+              {name: ptBr.character.age, value: character?.age ?? "Nenhuma", inline: true},
+              {name: ptBr.character.height, value: character?.height ?? "Nenhuma", inline: true},
+              {name: ptBr.character.weight, value: character?.weight ?? "Nenhuma", inline: true},
+              {name: ptBr.character.imageUrl, value: character?.imageUrl ?? "Nenhuma", inline: true},
+            ]);
+
+          interaction.reply({ephemeral: true, embeds: [embed]}).catch((error) => "Error sending character detailed profile: " + error);
+        } catch (error) {
+          console.log("Error displaying character profile:", error);
+          interaction.reply({ephemeral: true, content: ptBr.errors.somethingWentWrong}).catch((error) => "Error sending error feedback: " + error);
+        }
+      });
     } catch (listCharactersErrors) {
       console.log("Error listing characters:", listCharactersErrors);
       interaction.editReply(ptBr.errors.listCharacters).catch((error) => "Error sending error feedback: " + error);
@@ -168,7 +202,14 @@ export class Character {
     }
 
     messagePayload.embeds = [displayEmbed];
-
+    messagePayload.components = [
+      new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder()
+          .setCustomId(displayCharacterProfileButtonId(character.id))
+          .setLabel(ptBr.buttons.displayCharacterProfile)
+          .setStyle(ButtonStyle.Primary),
+      ),
+    ];
     return messagePayload;
   }
 
