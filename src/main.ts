@@ -1,11 +1,12 @@
 import {dirname, importx} from "@discordx/importer";
-import type {Interaction, Message} from "discord.js";
-import {ChannelType, IntentsBitField} from "discord.js";
+import {ChannelType, GuildTextBasedChannel, IntentsBitField, Interaction, Message} from "discord.js";
 import {Client} from "discordx";
+import {DateTime} from "luxon";
 import cron from "node-cron";
 import {credentials} from "./data/credentials";
 import {prisma} from "./db";
-import {processInstruments, recursivelyDelete} from "./lib/util/helpers";
+import {makeRoleplayingPlaceholderPayload} from "./lib/components/messagePayloads";
+import {getSanitizedChannelName, processInstruments, recursivelyDelete} from "./lib/util/helpers";
 import app from "./server";
 import {ptBr} from "./translations/ptBr";
 
@@ -83,29 +84,94 @@ async function run() {
   cron.schedule(
     "0 0 * * *",
     async () => {
-      const clubChannel = await bot.channels.fetch(credentials.channels.clubChat).catch((error) => console.error("Error fetching club channel", error));
-      if (clubChannel?.type === ChannelType.GuildText) {
-        await recursivelyDelete(clubChannel);
-        await clubChannel.send(ptBr.feedback.clubChatCleared).catch((error) => console.error("Error sending club chat cleared message", error));
+      async function handleClubChannel() {
+        try {
+          const clubChannel = await bot.channels.fetch(credentials.channels.clubChat);
+          if (clubChannel?.type !== ChannelType.GuildText) return;
+
+          await recursivelyDelete(clubChannel);
+          await clubChannel.send(ptBr.feedback.clubChatCleared);
+        } catch (error) {
+          console.error("Error handling club channel:", error);
+        }
       }
 
-      const instrumentsChannel = await bot.channels
-        .fetch(credentials.channels.instrumentsChannel)
-        .catch((error) => console.error("Error fetching instruments channel", error));
-      if (instrumentsChannel?.type === ChannelType.GuildText)
-        await processInstruments(instrumentsChannel).catch((error) => console.error("Error processing instruments", error));
+      async function handleInstrumentsChannel() {
+        try {
+          const instrumentsChannel = await bot.channels.fetch(credentials.channels.instrumentsChannel);
+          if (instrumentsChannel?.type !== ChannelType.GuildText) return;
 
-      for (const [_channelId, channel] of bot.channels.cache.entries()) {
-        if (channel.type !== ChannelType.GuildText) continue;
-        const messages = await prisma.message.findMany({where: {channelId: channel.id}}).catch((error) => console.error("Error fetching messages", error));
-        if (!messages) continue;
-        await Promise.all(
-          messages.map(async (message) => {
-            const discordMessage = await channel.messages.fetch(message.id).catch(() => null);
-            if (!discordMessage) await prisma.message.delete({where: {id: message.id}}).catch((error) => console.error("Error deleting message", error));
-          }),
-        );
+          await processInstruments(instrumentsChannel);
+        } catch (error) {
+          console.error("Error handling instruments channel:", error);
+        }
       }
+
+      async function processRoleplayChannel(channel: GuildTextBasedChannel) {
+        try {
+          let channelData = await prisma.channel.findUnique({where: {id: channel.id}});
+
+          if (!channelData) {
+            const sanitizedChannelName = getSanitizedChannelName(channel);
+            channelData = await prisma.channel.create({data: {id: channel.id, name: sanitizedChannelName}});
+            const placeholderMessage = await channel.send(makeRoleplayingPlaceholderPayload(channel, channelData));
+            await prisma.channel.update({
+              data: {...channelData, placeholderMessageId: placeholderMessage.id, lastTimeActive: DateTime.now().toJSDate()},
+              where: {id: channelData.id},
+            });
+          } else {
+            const hasBeenTwoHoursInactive = DateTime.now().diff(DateTime.fromJSDate(channelData.lastTimeActive)).as("hours") >= 2;
+            if (hasBeenTwoHoursInactive) {
+              const placeholderMessage = channelData.placeholderMessageId
+                ? await channel.messages.fetch(channelData.placeholderMessageId).catch(() => null)
+                : null;
+              if (placeholderMessage) await placeholderMessage.delete().catch((error) => console.error("Error deleting placeholder message", error));
+
+              const newPlaceholderMessage = await channel.send(makeRoleplayingPlaceholderPayload(channel, channelData));
+              await prisma.channel.update({
+                data: {...channelData, placeholderMessageId: newPlaceholderMessage.id, lastTimeActive: DateTime.now().toJSDate()},
+                where: {id: channelData.id},
+              });
+            }
+          }
+        } catch (error) {
+          console.error(`Error processing roleplay channel with ID ${channel.id}:`, error);
+        }
+      }
+
+      async function handleMessages(channel: GuildTextBasedChannel) {
+        try {
+          const messages = await prisma.message.findMany({where: {channelId: channel.id}});
+          if (!messages) return;
+
+          await Promise.all(
+            messages.map(async (message) => {
+              const discordMessage = await channel.messages.fetch(message.id);
+              if (!discordMessage) await prisma.message.delete({where: {id: message.id}});
+            }),
+          );
+        } catch (error) {
+          console.error(`Error handling messages for channel with ID ${channel.id}:`, error);
+        }
+      }
+
+      async function mainRoutine() {
+        await handleClubChannel();
+        await handleInstrumentsChannel();
+
+        for (const [_channelId, channel] of bot.channels.cache.entries()) {
+          if (channel.type !== ChannelType.GuildText) continue;
+
+          const isFirstInCategory = channel.parent?.children.cache.at(0)?.id === channel.id;
+          if ((channel.parent?.name.startsWith("RP") && !isFirstInCategory) || channel.id === credentials.channels.randomRoleplay) {
+            await processRoleplayChannel(channel);
+          }
+
+          await handleMessages(channel);
+        }
+      }
+
+      mainRoutine();
     },
     {timezone: "America/Sao_Paulo", runOnInit: true},
   );

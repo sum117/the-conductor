@@ -34,6 +34,7 @@ export const ptBr = {
     footerText: "É comum que hajam erros nessa etapa,\nentão não se contenha em pedir ajuda.",
   },
   buttons: {
+    dismiss: "Descartar",
     displayCharacterProfile: "Ver perfil Completo",
     essentials: "Essenciais",
     appearance: "Aparência",
@@ -54,12 +55,19 @@ export const ptBr = {
     },
   },
   embeds: {
+    noDescriptionProvided: "Nenhuma descrição foi fornecida.",
     beginnerInstrument: "Iniciante",
     characterList: {
       footer: "Personagem {currentIndex} de {characterCount}",
     },
   },
   modals: {
+    rpChannelEditor: {
+      title: "Editor de Canal de RP",
+      name: {label: "Nome do canal", placeholder: "Nome do canal"},
+      description: {label: "Descrição do canal", placeholder: "Descrição do canal"},
+      imageUrl: {label: "URL da imagem", placeholder: "URL da imagem"},
+    },
     aboutMe: {
       title: "Sobre mim",
       newAboutMe: {
@@ -167,6 +175,16 @@ export const ptBr = {
     },
   },
   commands: {
+    editRpChannel: {
+      name: "editar-canal-de-rp",
+      description: "Edita um canal de RP com novas configurações.",
+      options: {
+        channel: {
+          name: "canal",
+          description: "O canal para editar.",
+        },
+      },
+    },
     poll: {
       name: "enquete",
       description: "Cria uma enquete.",
@@ -236,6 +254,8 @@ export const ptBr = {
     },
   },
   errors: {
+    editingChannel: "Erro ao editar o canal. Tente novamente mais tarde.",
+    updatingChannel: "Erro ao atualizar o canal. Tente novamente mais tarde.",
     setCharacter: "Erro ao definir personagem. Tente novamente mais tarde.",
     noCharacters: "Esse usuário não tem nenhum personagem.",
     somethingWentWrong: "Algo deu errado, tente novamente.",
@@ -262,6 +282,8 @@ export const ptBr = {
     },
   },
   feedback: {
+    channelNotFound: "Canal não encontrado no banco de dados.",
+    notAnEditableChannel: "Esse canal não pode ser editado.",
     loadingDone: "✅ Carregado, {user}!",
     loading: "⏲️ Carregando...",
     levelUp: "🎉 {user} subiu para o nível **{level}**, parabéns!",

@@ -46,9 +46,10 @@ model Character {
 
 model Message {
   id          String    @unique
-  channelId   String
   content     String
-  character   Character @relation(fields: [characterId], references: [id])
+  channel     Channel   @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  character   Character @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  channelId   String
   characterId Int
 }
 
@@ -86,4 +87,14 @@ model Instrument {
   messageId   String?
   imageUrl    String
   characters  InstrumentCharacter[]
+}
+
+model Channel {
+  id                   String    @id @unique
+  name                 String
+  description          String?
+  imageUrl             String?
+  placeholderMessageId String?
+  lastTimeActive       DateTime  @default(now())
+  messages             Message[]
 }

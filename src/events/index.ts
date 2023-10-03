@@ -1,12 +1,13 @@
 import {spawn} from "child_process";
-import {AttachmentBuilder, BaseMessageOptions, EmbedBuilder, Message, PartialMessage} from "discord.js";
-import {ArgsOf, Discord, Guard, On} from "discordx";
+import {AttachmentBuilder, BaseMessageOptions, ButtonInteraction, EmbedBuilder, Message, PartialMessage} from "discord.js";
+import {ArgsOf, ButtonComponent, Discord, Guard, On} from "discordx";
 import {exists, mkdir, unlink} from "fs/promises";
 import lodash from "lodash";
 import {DateTime, Duration} from "luxon";
 import path from "path";
 import {credentials} from "../data/credentials";
 import {prisma} from "../db";
+import {dismissButtonCustomId} from "../lib/components/messagePayloads";
 import {isValidRoleplayMessage} from "../lib/guards";
 import {cleanImageUrl, getUserLevelDetails} from "../lib/util/helpers";
 import {ptBr} from "../translations/ptBr";
@@ -80,7 +81,10 @@ export class Events {
       if (!messagePayload) return;
 
       const characterPost = await message.channel.send(messagePayload);
+
+      // I'd prefer to use Promise.all([]) here, but prisma throws an error when you chain its queries in sqlite: https://github.com/prisma/prisma/issues/11789
       await prisma.message.create({data: {id: characterPost.id, content: message.content, characterId: character.id, channelId: message.channel.id}});
+      await prisma.channel.update({where: {id: characterPost.channel.id}, data: {lastTimeActive: DateTime.now().toJSDate()}});
       await message.delete().catch((error) => console.error("Failed to delete message", error));
 
       const timeSinceLastXP = DateTime.now().diff(DateTime.fromJSDate(character.user.lastXpTime), "minutes").as("minutes");
@@ -172,6 +176,15 @@ export class Events {
       }
     } catch (error) {
       console.error("Failed to listen to reaction add", error);
+    }
+  }
+
+  @ButtonComponent({id: dismissButtonCustomId})
+  async onDismissButtonClick(interaction: ButtonInteraction) {
+    try {
+      await interaction.message.delete();
+    } catch (error) {
+      console.error("Failed to delete message", error);
     }
   }
 

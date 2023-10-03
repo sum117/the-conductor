@@ -1,5 +1,14 @@
 import {Instrument, User} from "@prisma/client";
-import {ButtonInteraction, CommandInteraction, EmbedBuilder, StringSelectMenuInteraction, TextBasedChannel, TextChannel} from "discord.js";
+import {
+  ButtonInteraction,
+  CommandInteraction,
+  EmbedBuilder,
+  GuildTextBasedChannel,
+  StringSelectMenuInteraction,
+  TextBasedChannel,
+  TextChannel,
+} from "discord.js";
+import lodash from "lodash";
 import {Duration} from "luxon";
 import {credentials} from "../../data/credentials";
 import {prisma} from "../../db";
@@ -31,6 +40,10 @@ export async function awaitSubmitModal(interaction: ButtonInteraction | CommandI
 
 export function getSafeKeys<T extends object>(obj: T) {
   return Object.keys(obj) as (keyof T)[];
+}
+
+export function getSanitizedChannelName(channel: GuildTextBasedChannel): string {
+  return lodash.startCase(channel.name.slice(channel.name.indexOf("┊") + 1).trim());
 }
 
 export function getUserLevelDetails(user: User) {

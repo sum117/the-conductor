@@ -1,4 +1,4 @@
-import {Character, Faction, Instrument, Race} from "@prisma/client";
+import {Channel, Character, Faction, Instrument, Race} from "@prisma/client";
 import {ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle} from "discord.js";
 import {ptBr} from "../../translations/ptBr";
 export const submissionEssentialsModalId = "submissionEssentialsModal";
@@ -302,5 +302,62 @@ export const entityCreatorInstrumentModal = () => {
   return new ModalBuilder()
     .setCustomId(entityCreatorInstrumentModalId)
     .setTitle(ptBr.modals.entityCreator.instrument.title)
+    .addComponents(nameField, descriptionField, imageUrlField);
+};
+
+type ChannelFields = Pick<Channel, "name" | "description" | "imageUrl">;
+export const rpChannelEditorModalId = "rpChannelEditorModal";
+export const rpChannelEditorFields = {
+  description: "description",
+  imageUrl: "imageUrl",
+  name: "name",
+} satisfies Omit<Channel, "id" | "placeholderMessageId" | "lastTimeActive">;
+
+export const rpChannelEditorModal = (currentValues: ChannelFields) => {
+  const nameField = new ActionRowBuilder<TextInputBuilder>().addComponents(
+    new TextInputBuilder()
+      .setLabel(ptBr.modals.rpChannelEditor.name.label)
+      .setPlaceholder(ptBr.modals.rpChannelEditor.name.placeholder)
+      .setCustomId(rpChannelEditorFields.name)
+      .setMinLength(1)
+      .setStyle(TextInputStyle.Short)
+      .setRequired(true)
+      .setMaxLength(128),
+  );
+  if (currentValues.name) {
+    nameField.components[0].setValue(currentValues.name);
+  }
+
+  const descriptionField = new ActionRowBuilder<TextInputBuilder>().addComponents(
+    new TextInputBuilder()
+      .setLabel(ptBr.modals.rpChannelEditor.description.label)
+      .setPlaceholder(ptBr.modals.rpChannelEditor.description.placeholder)
+      .setCustomId(rpChannelEditorFields.description)
+      .setMinLength(1)
+      .setRequired(true)
+      .setStyle(TextInputStyle.Paragraph)
+      .setMaxLength(2048),
+  );
+  if (currentValues.description) {
+    descriptionField.components[0].setValue(currentValues.description);
+  }
+  const imageUrlField = new ActionRowBuilder<TextInputBuilder>().addComponents(
+    new TextInputBuilder()
+      .setLabel(ptBr.modals.rpChannelEditor.imageUrl.label)
+      .setPlaceholder(ptBr.modals.rpChannelEditor.imageUrl.placeholder)
+      .setCustomId(rpChannelEditorFields.imageUrl)
+      .setMinLength(1)
+      .setRequired(true)
+      .setStyle(TextInputStyle.Short)
+      .setMaxLength(256),
+  );
+
+  if (currentValues.imageUrl) {
+    imageUrlField.components[0].setValue(currentValues.imageUrl);
+  }
+
+  return new ModalBuilder()
+    .setCustomId(rpChannelEditorModalId)
+    .setTitle(ptBr.modals.rpChannelEditor.title)
     .addComponents(nameField, descriptionField, imageUrlField);
 };
