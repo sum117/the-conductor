@@ -134,19 +134,20 @@ async function run() {
       mainRoutine();
     },
     {timezone: "America/Sao_Paulo", runOnInit: true},
-  ),
-    cron.schedule(
-      "0 */2 * * *",
-      async () => {
-        for (const [_channelId, channel] of bot.channels.cache.entries()) {
-          if (channel.type !== ChannelType.GuildText) continue;
-          const isFirstInCategory = channel.parent?.children.cache.at(0)?.id === channel.id;
-          if ((channel.parent?.name.startsWith("RP") && !isFirstInCategory) || channel.id === credentials.channels.randomRoleplay)
-            await processRoleplayChannel(channel);
-        }
-      },
-      {timezone: "America/Sao_Paulo", runOnInit: false},
-    );
+  );
+
+  cron.schedule(
+    "0 */2 * * *",
+    async () => {
+      for (const [_channelId, channel] of bot.channels.cache.entries()) {
+        if (channel.type !== ChannelType.GuildText) continue;
+        const isFirstInCategory = channel.parent?.children.cache.at(0)?.id === channel.id;
+        if ((channel.parent?.name.startsWith("RP") && !isFirstInCategory) || channel.id === credentials.channels.randomRoleplay)
+          await processRoleplayChannel(channel);
+      }
+    },
+    {timezone: "America/Sao_Paulo", runOnInit: false},
+  );
 }
 
 run();
