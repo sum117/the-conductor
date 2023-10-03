@@ -282,7 +282,7 @@ export const ptBr = {
     createNPC: "Erro ao criar NPC. Tente novamente mais tarde.",
     toggleNPCMode: "Erro ao alternar o modo NPC. Tente novamente mais tarde.",
     nPCnotFound:
-      "⚠️ Você está usando o modo de NPC, mas não foi encontrado nenhum NPC registrado no seu usuário. Saia do modo NPC para usar seu personagem padrão.",
+      "⚠️ Você está usando o modo de NPC, mas não foi encontrado nenhum NPC registrado no seu usuário OU com esse prefixo. Saia do modo NPC para usar seu personagem padrão.",
     editingChannel: "Erro ao editar o canal. Tente novamente mais tarde.",
     updatingChannel: "Erro ao atualizar o canal. Tente novamente mais tarde.",
     setCharacter: "Erro ao definir personagem. Tente novamente mais tarde.",

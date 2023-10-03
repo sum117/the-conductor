@@ -14,7 +14,12 @@ import {cleanImageUrl, getNPCDetails, getUserLevelDetails} from "../lib/util/hel
 import {ptBr} from "../translations/ptBr";
 @Discord()
 export class Events {
-  private timeOuts: Map<string, NodeJS.Timeout> = new Map();
+  private timeOuts: Map<string, NodeJS.Timeout>;
+
+  constructor() {
+    this.timeOuts = new Map();
+    this.scheduleToDelete = this.scheduleToDelete.bind(this);
+  }
 
   @On({event: "messageCreate"})
   async onImageVideoMergeRequest([message]: ArgsOf<"messageCreate">) {
@@ -68,16 +73,16 @@ export class Events {
         const npcsPrefixes = npcs
           .filter((npc): npc is typeof npc & {prefix: string} => Boolean(npc.prefix))
           .map((npc) => npc.prefix.replace(/[.*+\-?^${}()|[\]\\]/g, "\\$&"));
-        const splitRegex = new RegExp(npcsPrefixes.join("|"), "g");
+        const splitRegex = new RegExp(npcsPrefixes.join("|"), "gm");
 
         const npcActions = message.content.split(splitRegex).slice(1);
         const npcMatches = message.content.match(splitRegex);
 
         if (npcMatches) {
           for await (const npcMatch of npcMatches) {
-            const npcIndex = npcsPrefixes.findIndex((prefix) => prefix === npcMatch);
-            const npcAction = npcActions[npcIndex];
-            const npcData = npcs[npcIndex];
+            const npcData = npcs[npcsPrefixes.findIndex((prefix) => prefix === npcMatch)];
+            const npcMatchIndex = npcMatches.findIndex((prefix) => prefix === npcMatch);
+            const npcAction = npcActions[npcMatchIndex];
             if (!npcAction) continue;
 
             const npcDetails = await getNPCDetails(npcData);
@@ -92,15 +97,22 @@ export class Events {
 
             const messagePayload = this.createMessagePayload(npcEmbed, message);
             if (!messagePayload) continue;
-
-            await message.channel.send(messagePayload);
+            if (!messagePayload.files?.[npcMatchIndex]) {
+              messagePayload.files = [];
+              const embed = messagePayload.embeds?.at(0);
+              if (embed) messagePayload.embeds = [EmbedBuilder.from(embed).setImage(null)];
+            }
+            const sentMessage = await message.channel.send(messagePayload);
             await prisma.message.create({
-              data: {id: message.id, content: message.content, npcId: npcData.id, channelId: message.channel.id, authorId: message.author.id},
+              data: {id: sentMessage.id, content: message.content, npcId: npcData.id, channelId: message.channel.id, authorId: message.author.id},
             });
           }
           await prisma.channel.update({where: {id: message.channel.id}, data: {lastTimeActive: DateTime.now().toJSDate()}});
-          return;
+        } else {
+          await message.reply(ptBr.errors.nPCnotFound).then(this.scheduleToDelete);
         }
+        await message.delete().catch((error) => console.error("Failed to delete message", error));
+        return;
       }
 
       const character = await prisma.character.findFirst({where: {isBeingUsed: true, AND: {userId: message.author.id}}, include: {faction: true, user: true}});
@@ -294,7 +306,6 @@ export class Events {
 
       const newAttachment = new AttachmentBuilder(cleanedUrl).setName(fileName);
       embed.setImage("attachment://" + fileName);
-      console.log(embed.data.image);
       messagePayload.files = [newAttachment];
     }
     messagePayload.embeds = [embed];

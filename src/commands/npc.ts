@@ -55,7 +55,7 @@ export class NPC {
       required: true,
       nameLocalizations: {"pt-BR": ptBr.commands.assignNPC.options.npc.name},
       descriptionLocalizations: {"pt-BR": ptBr.commands.assignNPC.options.npc.description},
-      type: ApplicationCommandOptionType.String,
+      type: ApplicationCommandOptionType.Number,
       autocomplete: getNPCAautocomplete,
     })
     npcId: number,
@@ -152,12 +152,12 @@ export class NPC {
     @SlashOption({
       name: "image-url",
       description: "The image URL of the NPC.",
-      required: false,
+      required: true,
       nameLocalizations: {"pt-BR": ptBr.commands.createNPC.options.imageUrl.name},
       descriptionLocalizations: {"pt-BR": ptBr.commands.createNPC.options.imageUrl.description},
       type: ApplicationCommandOptionType.String,
     })
-    imageUrl: string = "",
+    imageUrl: string,
     @SlashOption({
       name: "icon-url",
       description: "The icon URL of the NPC.",
@@ -166,7 +166,7 @@ export class NPC {
       descriptionLocalizations: {"pt-BR": ptBr.commands.createNPC.options.iconUrl.description},
       type: ApplicationCommandOptionType.String,
     })
-    iconUrl: string = "",
+    iconUrl: string | null = null,
     @SlashOption({
       name: "description",
       description: "The description of the NPC.",
@@ -175,7 +175,7 @@ export class NPC {
       descriptionLocalizations: {"pt-BR": ptBr.commands.createNPC.options.description.description},
       type: ApplicationCommandOptionType.String,
     })
-    description: string = "",
+    description: string | null = null,
     @SlashOption({
       name: "title",
       description: "The title of the NPC.",
@@ -184,7 +184,7 @@ export class NPC {
       descriptionLocalizations: {"pt-BR": ptBr.commands.createNPC.options.title.description},
       type: ApplicationCommandOptionType.String,
     })
-    title: string = "",
+    title: string | null = null,
     interaction: ChatInputCommandInteraction,
   ) {
     try {

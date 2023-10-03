@@ -112,7 +112,7 @@ async function run() {
 
           await Promise.all(
             messages.map(async (message) => {
-              const discordMessage = await channel.messages.fetch(message.id);
+              const discordMessage = await channel.messages.fetch(message.id).catch(() => null);
               if (!discordMessage) await prisma.message.delete({where: {id: message.id}});
             }),
           );
