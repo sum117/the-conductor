@@ -1,4 +1,5 @@
 export const ptBr = {
+  npc: {prefix: "Prefixo", rarity: {common: "NPC Comum", uncommon: "NPC Incomum", rare: "NPC Raro", epic: "NPC Épico", legendary: "NPC Lendário"}},
   character: {
     name: "Nome",
     surname: "Sobrenome",
@@ -175,15 +176,37 @@ export const ptBr = {
     },
   },
   commands: {
+    assignNPC: {
+      name: "atribuir-npc",
+      description: "Atribui um NPC para um usuário.",
+      options: {
+        user: {name: "usuario", description: "O usuário para atribuir o NPC."},
+        npc: {name: "npc", description: "O NPC para atribuir ao usuário."},
+      },
+    },
+    deleteNPC: {
+      name: "deletar-npc",
+      description: "Deleta um NPC.",
+      options: {name: {name: "nome", description: "O nome do NPC."}},
+    },
+    createNPC: {
+      name: "criar-npc",
+      description: "Cria um NPC.",
+      options: {
+        prefix: {name: "prefixo", description: "O prefixo do NPC."},
+        iconUrl: {name: "url-do-icone", description: "A URL do ícone do NPC."},
+        imageUrl: {name: "url-da-imagem", description: "A URL da imagem do NPC."},
+        rarity: {name: "raridade", description: "A raridade do NPC."},
+        name: {name: "nome", description: "O nome do NPC."},
+        description: {name: "descricao", description: "A descrição do NPC."},
+        title: {name: "titulo", description: "O título do NPC."},
+      },
+    },
+    toggleNPCMode: {name: "alternar-modo-npc", description: "Ativa o modo NPC."},
     editRpChannel: {
       name: "editar-canal-de-rp",
       description: "Edita um canal de RP com novas configurações.",
-      options: {
-        channel: {
-          name: "canal",
-          description: "O canal para editar.",
-        },
-      },
+      options: {channel: {name: "canal", description: "O canal para editar."}},
     },
     poll: {
       name: "enquete",
@@ -250,10 +273,16 @@ export const ptBr = {
         race: "Raça",
         instrument: "Instrumento",
         faction: "Facção",
+        npc: "NPC",
       },
     },
   },
   errors: {
+    assignNPC: "Erro ao atribuir NPC. Tente novamente mais tarde.",
+    createNPC: "Erro ao criar NPC. Tente novamente mais tarde.",
+    toggleNPCMode: "Erro ao alternar o modo NPC. Tente novamente mais tarde.",
+    nPCnotFound:
+      "⚠️ Você está usando o modo de NPC, mas não foi encontrado nenhum NPC registrado no seu usuário. Saia do modo NPC para usar seu personagem padrão.",
     editingChannel: "Erro ao editar o canal. Tente novamente mais tarde.",
     updatingChannel: "Erro ao atualizar o canal. Tente novamente mais tarde.",
     setCharacter: "Erro ao definir personagem. Tente novamente mais tarde.",
@@ -282,6 +311,12 @@ export const ptBr = {
     },
   },
   feedback: {
+    assignedNPC: "✅ NPC {name} atribuído com sucesso para {user}!",
+    deleteNPC: "✅ NPC {name} deletado com sucesso!",
+    createNPC: "NPC {name} criado com sucesso!",
+    toggleNPCMode: {true: "Modo NPC ativado.", false: "Modo NPC desativado."},
+    sentToStarboard: "😍 Esse post foi enviado para o {channel}, parabéns {user}!",
+    starboardMessage: "**{count}x** 😍 Esse post de {user} está em destaque. Muita gente gostou! Ele vem do canal {channel}",
     channelNotFound: "Canal não encontrado no banco de dados.",
     notAnEditableChannel: "Esse canal não pode ser editado.",
     loadingDone: "✅ Carregado, {user}!",

@@ -17,7 +17,25 @@ model User {
   isEditing           Boolean     @default(false)
   reputation          Int         @default(0)
   about               String?     @default("")
+  coins               Int         @default(0)
   characters          Character[]
+  npcs                NPC[]
+  isUsingNPC          Boolean     @default(false)
+  heartedMessages     Message[]
+  messages            Message[]   @relation("userMessages")
+}
+
+model NPC {
+  id          Int       @id @default(autoincrement())
+  name        String
+  imageUrl    String
+  rarity      String    @default("common")
+  prefix      String
+  title       String?
+  description String?
+  iconUrl     String?
+  messages    Message[]
+  usersWhoOwn User[]
 }
 
 model Character {
@@ -45,12 +63,18 @@ model Character {
 }
 
 model Message {
-  id          String    @unique
-  content     String
-  channel     Channel   @relation(fields: [channelId], references: [id], onDelete: Cascade)
-  character   Character @relation(fields: [characterId], references: [id], onDelete: Cascade)
-  channelId   String
-  characterId Int
+  id                 String     @id @unique
+  content            String
+  channel            Channel    @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  character          Character? @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  npc                NPC?       @relation(fields: [npcId], references: [id], onDelete: Cascade)
+  channelId          String
+  starboardMessageId String?
+  characterId        Int?
+  npcId              Int?
+  author             User       @relation("userMessages", fields: [authorId], references: [id])
+  authorId           String
+  hearts             User[]
 }
 
 model Race {

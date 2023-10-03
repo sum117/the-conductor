@@ -1,4 +1,4 @@
-import {Pagination, PaginationType} from "@discordx/pagination";
+import {Pagination} from "@discordx/pagination";
 import {Prisma} from "@prisma/client";
 import {
   ActionRowBuilder,
@@ -14,9 +14,9 @@ import {
   channelMention,
 } from "discord.js";
 import {Discord, Slash, SlashOption} from "discordx";
-import {Duration} from "luxon";
-import sharp from "sharp";
+import {MUDAE_IMAGE_HEIGHT, MUDAE_IMAGE_WIDTH, PAGINATION_DEFAULT_OPTIONS} from "../data/constants";
 import {prisma} from "../db";
+import {changeImageResolution} from "../lib/util/helpers";
 import {ptBr} from "../translations/ptBr";
 
 type CharacterWithInstrumentsFactionsMessages = Prisma.CharacterGetPayload<{
@@ -73,13 +73,7 @@ export class Character {
       };
 
       const pagination = new Pagination(interaction, await generatePages(characters), {
-        type: PaginationType.Button,
-        end: {emoji: {name: "⏩"}, label: ptBr.pagination.end, style: ButtonStyle.Secondary},
-        start: {emoji: {name: "⏪"}, label: ptBr.pagination.start, style: ButtonStyle.Primary},
-        next: {emoji: {name: "▶️"}, label: ptBr.pagination.next, style: ButtonStyle.Primary},
-        previous: {emoji: {name: "◀️"}, label: ptBr.pagination.previous, style: ButtonStyle.Secondary},
-        enableExit: false,
-        time: Duration.fromObject({minutes: 20}).as("milliseconds"),
+        ...PAGINATION_DEFAULT_OPTIONS,
         onTimeout: () => interaction.deleteReply().catch((error) => "Error deleting pagination reply: " + error),
       });
 
@@ -133,12 +127,17 @@ export class Character {
       descriptionLocalizations: {"pt-BR": ptBr.commands.setCharacter.options.character.description},
       type: ApplicationCommandOptionType.Number,
       autocomplete: async (interaction) => {
-        const characters = await prisma.character.findMany({
-          take: 10,
-          select: {id: true, name: true},
-          where: {userId: interaction.user.id, AND: {name: {contains: interaction.options.getFocused()}}},
-        });
-        await interaction.respond(characters.map((character) => ({name: character.name!, value: character.id})));
+        const characters = await prisma.character
+          .findMany({
+            take: 10,
+            select: {id: true, name: true},
+            where: {userId: interaction.user.id, AND: {name: {contains: interaction.options.getFocused()}}},
+          })
+          .catch((error) => console.log("Error fetching character list:", error));
+        if (!characters) return;
+        await interaction
+          .respond(characters.map((character) => ({name: character.name!, value: character.id})))
+          .catch((error) => console.log("Error sending character list:", error));
       },
     })
     characterId: number,
@@ -162,9 +161,6 @@ export class Character {
   }
 
   private async makeProfileComponent(character: CharacterWithInstrumentsFactionsMessages, member: GuildMember, currentIndex: number, characterCount: number) {
-    const mudaeImageWidth = 225;
-    const mudaeImageHeight = 350;
-
     const messagePayload: BaseMessageOptions = {};
 
     const displayEmbed = new EmbedBuilder()
@@ -191,7 +187,7 @@ export class Character {
 
     if (character.imageUrl) {
       const fileName = "character.png";
-      const attachment = new AttachmentBuilder(await this.changeImageResolution(character.imageUrl, mudaeImageWidth, mudaeImageHeight)).setName(fileName);
+      const attachment = new AttachmentBuilder(await changeImageResolution(character.imageUrl, MUDAE_IMAGE_WIDTH, MUDAE_IMAGE_HEIGHT)).setName(fileName);
       messagePayload.files = [attachment];
       displayEmbed.setImage("attachment://" + fileName);
     }
@@ -210,14 +206,5 @@ export class Character {
       ),
     ];
     return messagePayload;
-  }
-
-  private async changeImageResolution(imageUrl: string, width: number, height: number) {
-    const response = await fetch(imageUrl);
-    const buffer = Buffer.from(await response.arrayBuffer());
-
-    const resizedBuffer = await sharp(buffer).resize({width: width, height: height, fit: "cover", position: "top"}).png().toBuffer();
-
-    return resizedBuffer;
   }
 }

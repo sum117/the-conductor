@@ -1,6 +1,7 @@
-import {Instrument, User} from "@prisma/client";
+import {Instrument, NPC, User} from "@prisma/client";
 import {
   ButtonInteraction,
+  Colors,
   CommandInteraction,
   EmbedBuilder,
   GuildTextBasedChannel,
@@ -10,6 +11,8 @@ import {
 } from "discord.js";
 import lodash from "lodash";
 import {DateTime, Duration} from "luxon";
+import sharp from "sharp";
+import {MUDAE_IMAGE_HEIGHT, MUDAE_IMAGE_WIDTH} from "../../data/constants";
 import {credentials} from "../../data/credentials";
 import {prisma} from "../../db";
 import {ptBr} from "../../translations/ptBr";
@@ -91,6 +94,46 @@ export function getUserLevelDetails(user: User) {
   };
 }
 
+export async function getNPCDetails(npc: NPC) {
+  if (!npc.rarity) return;
+
+  const colorMap = {
+    common: Colors.Blue,
+    uncommon: Colors.Green,
+    rare: Colors.Blurple,
+    epic: Colors.Red,
+    legendary: Colors.Gold,
+  };
+
+  const npcImageResized = await changeImageResolution(npc.imageUrl, MUDAE_IMAGE_WIDTH, MUDAE_IMAGE_HEIGHT);
+
+  const toRGB = (color: (typeof colorMap)[keyof typeof colorMap]) => {
+    const r = (color >> 16) & 0xff;
+    const g = (color >> 8) & 0xff;
+    const b = color & 0xff;
+    return {r, g, b};
+  };
+
+  const rarityColor = colorMap[npc.rarity as keyof typeof colorMap];
+
+  const npcImageWithBorders = await sharp(npcImageResized)
+    .extend({
+      top: 10,
+      bottom: 10,
+      left: 10,
+      right: 10,
+      background: toRGB(rarityColor),
+    })
+    .png()
+    .toBuffer();
+
+  return {
+    rarityColor,
+    npcImage: npcImageWithBorders,
+    footerText: ptBr.npc.rarity[npc.rarity as keyof typeof colorMap],
+  };
+}
+
 export async function recursivelyDelete(channel: TextChannel) {
   const messages = await channel.messages.fetch().catch(() => null);
   if (messages && messages.size > 0) {
@@ -157,4 +200,13 @@ export async function processRoleplayChannel(channel: GuildTextBasedChannel) {
   } catch (error) {
     console.error(`Error processing roleplay channel with ID ${channel.id}:`, error);
   }
+}
+
+export async function changeImageResolution(imageUrl: string, width: number, height: number) {
+  const response = await fetch(imageUrl);
+  const buffer = Buffer.from(await response.arrayBuffer());
+
+  const resizedBuffer = await sharp(buffer).resize({width: width, height: height, fit: "cover", position: "top"}).png().toBuffer();
+
+  return resizedBuffer;
 }
