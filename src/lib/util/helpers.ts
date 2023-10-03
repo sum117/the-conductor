@@ -9,10 +9,11 @@ import {
   TextChannel,
 } from "discord.js";
 import lodash from "lodash";
-import {Duration} from "luxon";
+import {DateTime, Duration} from "luxon";
 import {credentials} from "../../data/credentials";
 import {prisma} from "../../db";
 import {ptBr} from "../../translations/ptBr";
+import {makeRoleplayingPlaceholderPayload} from "../components/messagePayloads";
 
 export function cleanImageUrl(url: string) {
   try {
@@ -125,5 +126,35 @@ export async function processInstruments(instrumentsChannel: TextBasedChannel) {
         await sendMessageAndUpdateInstrument(instrument, instrumentsChannel);
       }
     }
+  }
+}
+
+export async function processRoleplayChannel(channel: GuildTextBasedChannel) {
+  try {
+    let channelData = await prisma.channel.findUnique({where: {id: channel.id}});
+
+    if (!channelData) {
+      const sanitizedChannelName = getSanitizedChannelName(channel);
+      channelData = await prisma.channel.create({data: {id: channel.id, name: sanitizedChannelName}});
+      const placeholderMessage = await channel.send(makeRoleplayingPlaceholderPayload(channel, channelData));
+      await prisma.channel.update({
+        data: {...channelData, placeholderMessageId: placeholderMessage.id, lastTimeActive: DateTime.now().toJSDate()},
+        where: {id: channelData.id},
+      });
+    } else {
+      const hasBeenTwoHoursInactive = DateTime.now().diff(DateTime.fromJSDate(channelData.lastTimeActive)).as("hours") >= 2;
+      if (hasBeenTwoHoursInactive) {
+        const placeholderMessage = channelData.placeholderMessageId ? await channel.messages.fetch(channelData.placeholderMessageId).catch(() => null) : null;
+        if (placeholderMessage) await placeholderMessage.delete().catch((error) => console.error("Error deleting placeholder message", error));
+
+        const newPlaceholderMessage = await channel.send(makeRoleplayingPlaceholderPayload(channel, channelData));
+        await prisma.channel.update({
+          data: {...channelData, placeholderMessageId: newPlaceholderMessage.id, lastTimeActive: DateTime.now().toJSDate()},
+          where: {id: channelData.id},
+        });
+      }
+    }
+  } catch (error) {
+    console.error(`Error processing roleplay channel with ID ${channel.id}:`, error);
   }
 }

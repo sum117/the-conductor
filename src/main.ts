@@ -1,12 +1,10 @@
 import {dirname, importx} from "@discordx/importer";
 import {ChannelType, GuildTextBasedChannel, IntentsBitField, Interaction, Message} from "discord.js";
 import {Client} from "discordx";
-import {DateTime} from "luxon";
 import cron from "node-cron";
 import {credentials} from "./data/credentials";
 import {prisma} from "./db";
-import {makeRoleplayingPlaceholderPayload} from "./lib/components/messagePayloads";
-import {getSanitizedChannelName, processInstruments, recursivelyDelete} from "./lib/util/helpers";
+import {processInstruments, processRoleplayChannel, recursivelyDelete} from "./lib/util/helpers";
 import app from "./server";
 import {ptBr} from "./translations/ptBr";
 
@@ -107,38 +105,6 @@ async function run() {
         }
       }
 
-      async function processRoleplayChannel(channel: GuildTextBasedChannel) {
-        try {
-          let channelData = await prisma.channel.findUnique({where: {id: channel.id}});
-
-          if (!channelData) {
-            const sanitizedChannelName = getSanitizedChannelName(channel);
-            channelData = await prisma.channel.create({data: {id: channel.id, name: sanitizedChannelName}});
-            const placeholderMessage = await channel.send(makeRoleplayingPlaceholderPayload(channel, channelData));
-            await prisma.channel.update({
-              data: {...channelData, placeholderMessageId: placeholderMessage.id, lastTimeActive: DateTime.now().toJSDate()},
-              where: {id: channelData.id},
-            });
-          } else {
-            const hasBeenTwoHoursInactive = DateTime.now().diff(DateTime.fromJSDate(channelData.lastTimeActive)).as("hours") >= 2;
-            if (hasBeenTwoHoursInactive) {
-              const placeholderMessage = channelData.placeholderMessageId
-                ? await channel.messages.fetch(channelData.placeholderMessageId).catch(() => null)
-                : null;
-              if (placeholderMessage) await placeholderMessage.delete().catch((error) => console.error("Error deleting placeholder message", error));
-
-              const newPlaceholderMessage = await channel.send(makeRoleplayingPlaceholderPayload(channel, channelData));
-              await prisma.channel.update({
-                data: {...channelData, placeholderMessageId: newPlaceholderMessage.id, lastTimeActive: DateTime.now().toJSDate()},
-                where: {id: channelData.id},
-              });
-            }
-          }
-        } catch (error) {
-          console.error(`Error processing roleplay channel with ID ${channel.id}:`, error);
-        }
-      }
-
       async function handleMessages(channel: GuildTextBasedChannel) {
         try {
           const messages = await prisma.message.findMany({where: {channelId: channel.id}});
@@ -161,12 +127,6 @@ async function run() {
 
         for (const [_channelId, channel] of bot.channels.cache.entries()) {
           if (channel.type !== ChannelType.GuildText) continue;
-
-          const isFirstInCategory = channel.parent?.children.cache.at(0)?.id === channel.id;
-          if ((channel.parent?.name.startsWith("RP") && !isFirstInCategory) || channel.id === credentials.channels.randomRoleplay) {
-            await processRoleplayChannel(channel);
-          }
-
           await handleMessages(channel);
         }
       }
@@ -174,7 +134,19 @@ async function run() {
       mainRoutine();
     },
     {timezone: "America/Sao_Paulo", runOnInit: true},
-  );
+  ),
+    cron.schedule(
+      "0 */2 * * *",
+      async () => {
+        for (const [_channelId, channel] of bot.channels.cache.entries()) {
+          if (channel.type !== ChannelType.GuildText) continue;
+          const isFirstInCategory = channel.parent?.children.cache.at(0)?.id === channel.id;
+          if ((channel.parent?.name.startsWith("RP") && !isFirstInCategory) || channel.id === credentials.channels.randomRoleplay)
+            await processRoleplayChannel(channel);
+        }
+      },
+      {timezone: "America/Sao_Paulo", runOnInit: false},
+    );
 }
 
 run();
