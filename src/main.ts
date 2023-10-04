@@ -1,5 +1,5 @@
 import {dirname, importx} from "@discordx/importer";
-import {ChannelType, GuildTextBasedChannel, IntentsBitField, Interaction, Message} from "discord.js";
+import {ChannelType, GuildTextBasedChannel, IntentsBitField, Interaction, Message, Partials} from "discord.js";
 import {Client} from "discordx";
 import cron from "node-cron";
 import {credentials} from "./data/credentials";
@@ -21,7 +21,7 @@ export const bot = new Client({
     IntentsBitField.Flags.GuildVoiceStates,
     IntentsBitField.Flags.MessageContent,
   ],
-
+  partials: [Partials.Message, Partials.Channel, Partials.Reaction],
   // Debug logs are disabled in silent mode
   silent: false,
 

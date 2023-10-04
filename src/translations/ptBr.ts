@@ -1,3 +1,5 @@
+import {credentials} from "../data/credentials";
+
 export const ptBr = {
   npc: {prefix: "Prefixo", rarity: {common: "NPC Comum", uncommon: "NPC Incomum", rare: "NPC Raro", epic: "NPC Épico", legendary: "NPC Lendário"}},
   character: {
@@ -176,6 +178,15 @@ export const ptBr = {
     },
   },
   commands: {
+    help: {
+      name: "ajuda",
+      description: "Mostra todos os comandos.",
+    },
+    delete: {
+      name: "deletar",
+      description: "Deleta uma quantidade de mensagens.",
+      options: {amount: {name: "quantidade", description: "A quantidade de mensagens para deletar."}},
+    },
     assignNPC: {
       name: "atribuir-npc",
       description: "Atribui um NPC para um usuário.",
@@ -211,6 +222,10 @@ export const ptBr = {
     poll: {
       name: "enquete",
       description: "Cria uma enquete.",
+      options: {
+        title: {name: "titulo", description: "O título da enquete e uma barra `|`."},
+        options: {name: "opcoes", description: "As opções da enquete separadas por ;."},
+      },
     },
     setCharacter: {
       description: "Define um personagem para jogar.",
@@ -278,6 +293,7 @@ export const ptBr = {
     },
   },
   errors: {
+    helpMessage: "Erro ao enviar mensagem de ajuda. Tente novamente mais tarde.",
     assignNPC: "Erro ao atribuir NPC. Tente novamente mais tarde.",
     createNPC: "Erro ao criar NPC. Tente novamente mais tarde.",
     toggleNPCMode: "Erro ao alternar o modo NPC. Tente novamente mais tarde.",
@@ -311,6 +327,8 @@ export const ptBr = {
     },
   },
   feedback: {
+    helpMessage: `# Ajuda do {botName}:\n⚠️ Você só está vendo comandos que tem permissão para utilizar.\n\n## Comandos de Slash\n{commands}\n\n## Comandos de Chat\n{simpleCommands}\n\n## Extras: \n\n**{botName}** tem funcionalidades de reação também:\n- 😍 para enviar uma mensagem para o <#${credentials.channels.roleplayStarboard}>\n- ❌ para deletar uma mensagem que você enviou com seu personagem ou ✏️ para editá-la.\n\n## Observações\nMensagens de RP só se tornam mensagens de personagens dentro das categorias de RP ou no canal <#${credentials.channels.randomRoleplay}>.`,
+    deleteBulkLimit: "Você só pode deletar até 100 mensagens por vez.",
     assignedNPC: "✅ NPC {name} atribuído com sucesso para {user}!",
     deleteNPC: "✅ NPC {name} deletado com sucesso!",
     createNPC: "NPC {name} criado com sucesso!",

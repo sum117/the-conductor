@@ -290,7 +290,7 @@ export class Events {
     this.timeOuts.set(
       messageToDelete.id,
       setTimeout(() => {
-        messageToDelete.delete().catch((error) => console.error("Failed to delete editing notice", error));
+        messageToDelete.delete().catch((error) => console.error("Failed to delete message", error));
         this.timeOuts.delete(messageToDelete.id);
       }, Duration.fromObject({minutes}).as("milliseconds")),
     );
