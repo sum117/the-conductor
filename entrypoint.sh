@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 
 initialize_directory() {
     local dir_path="$1"
@@ -12,7 +13,7 @@ initialize_directory() {
 
 copy_prisma_files() {
     cp -a /app_default/prisma/. /app/prisma/
-    rm -rf /app_default
+    rm -rf /app_default || echo "Failed to remove /app_default/prisma"
 }
 
 create_cache_readme() {

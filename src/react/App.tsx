@@ -22,7 +22,7 @@ export default function App() {
       <body>
         <AuthContext.Provider value={{user, setUser}}>
           <main className="container">
-            <section>{user?.characters?.map((character) => <Character {...character} />)}</section>
+            <section>{user?.characters?.map((character) => <Character {...character} key={character.id} />)}</section>
             {!user ? (
               <a role="button" href={DISCORD_OAUTH_URL} className="outline">
                 Login with Discord
