@@ -16,6 +16,10 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "jsx": "react",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"]
+    }
   },
   "exclude": ["prisma/seed.ts"],
 }

@@ -1,7 +1,28 @@
 import {credentials} from "../data/credentials";
 
 export const ptBr = {
+  login: "Login com Discord",
   npc: {prefix: "Prefixo", rarity: {common: "NPC Comum", uncommon: "NPC Incomum", rare: "NPC Raro", epic: "NPC Épico", legendary: "NPC Lendário"}},
+  form: {
+    createCharDescription: "Crie seu novo personagem aqui e pressione enviar quando terminar.",
+    createChar: "Criar personagem",
+    sendChar: "Enviar personagem",
+    character: {
+      name: {description: "O nome do seu personagem.", placeholder: "Anastasia"},
+      surname: {description: "O sobrenome do seu personagem.", placeholder: "Romanov"},
+      personality: {description: "A personalidade do seu personagem.", placeholder: "Alegre, extrovertida, etc."},
+      backstory: {description: "A história do seu personagem.", placeholder: "Nascida em 1901, etc."},
+      age: {description: "A idade do seu personagem.", placeholder: "20"},
+      faction: {description: "A facção do seu personagem.", placeholder: "Facção dos Magos"},
+      appearance: {description: "A aparência do seu personagem.", placeholder: "Cabelos loiros, olhos azuis, etc."},
+      race: {description: "A raça do seu personagem.", placeholder: "Humano"},
+      instrument: {description: "O instrumento do seu personagem.", placeholder: "Harpa Atiradora"},
+      height: {description: "A altura do seu personagem.", placeholder: "1.70 (Use esse formato)"},
+      gender: {description: "O gênero do seu personagem.", placeholder: "Feminino"},
+      weight: {description: "O peso do seu personagem.", placeholder: "60KG (Use esse formato)"},
+      imageUrl: {description: "A URL da imagem do seu personagem.", placeholder: "Link que termina com .png, .jpg, etc."},
+    },
+  },
   character: {
     name: "Nome",
     surname: "Sobrenome",

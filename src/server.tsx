@@ -38,7 +38,7 @@ while (!isReady) {
     });
   };
 
-  await build(entrypoint);
+  await build(entrypoint).catch(() => undefined);
 
   script = await Bun.file(path.resolve(import.meta.dir, "../public/index.js"))
     .text()
@@ -346,34 +346,81 @@ app.get("/discord/callback", async ({query, set, cookie: {token}}) => {
     return "Character Not Found";
   }
   set.status = 200;
+  token.path = "/";
   token.value = access_token;
   return userData;
 });
 
-app.get("/discord/check", async ({cookie: {token}, set}) => {
-  const response = await fetch(`${Bun.env.DISCORD_API_ENDPOINT}/users/@me`, {
-    headers: {
-      authorization: `Bearer ${token.value}`,
-    },
-  });
-  const json = await response.json();
-  const {id} = json;
-  if (!id) {
-    set.status = 400;
-    return "Missing User ID";
-  }
-  const discordUser = await bot.users.fetch(id);
-  if (!discordUser) {
-    set.status = 404;
-    return "User Not Found in Bot Cache";
-  }
+app
+  .derive((context) => {
+    const isSignedIn = async () => {
+      const response = await fetch(`${Bun.env.DISCORD_API_ENDPOINT}/users/@me`, {
+        headers: {
+          authorization: `Bearer ${context.cookie.token.value}`,
+        },
+      });
+      const json = await response.json();
+      const {id} = json;
+      if (!id) {
+        context.set.status = 400;
+        return "Missing User ID";
+      }
+      const discordUser = await bot.users.fetch(id);
+      if (!discordUser) {
+        context.set.status = 404;
+        return "User Not Found in Bot Cache";
+      }
 
-  const userData = await prisma.user.findFirst({where: {id}, include: {characters: true}});
-  if (!userData) {
-    set.status = 404;
-    return "Character Not Found";
-  }
-  set.status = 200;
-  return userData;
-});
+      const userData = await prisma.user.findFirst({where: {id}, include: {characters: true}});
+      if (!userData) {
+        context.set.status = 404;
+        return "Character Not Found";
+      }
+    };
+
+    return {isSignedIn, cookie: {token: {value: context.cookie.token.value}}};
+  })
+  .get(
+    "/discord/check",
+    async (context) => {
+      if (!context.cookie.token.value) {
+        context.set.status = 400;
+        return "Missing Access Token";
+      }
+    },
+    {beforeHandle: async ({isSignedIn}) => await isSignedIn()},
+  )
+  .get(
+    "/api/races",
+    async (context) => {
+      try {
+        const allRaces = await prisma.race.findMany();
+        context.set.status = 200;
+        return allRaces;
+      } catch (error) {
+        context.set.status = 500;
+        console.error(error);
+        return error;
+      }
+    },
+    {beforeHandle: async ({isSignedIn}) => await isSignedIn()},
+  )
+  .get(
+    "/api/factions",
+    async (context) => {
+      try {
+        const allFactions = await prisma.faction.findMany();
+        context.set.status = 200;
+        return allFactions;
+      } catch (error) {
+        context.set.status = 500;
+        console.error(error);
+        return error;
+      }
+    },
+    {
+      beforeHandle: async ({isSignedIn}) => await isSignedIn(),
+    },
+  );
+
 export default app;
