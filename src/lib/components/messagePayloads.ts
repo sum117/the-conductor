@@ -1,11 +1,12 @@
 import {Channel} from "@prisma/client";
-import {ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, GuildTextBasedChannel} from "discord.js";
+import {ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, GuildTextBasedChannel, MessageCreateOptions, MessageFlagsBitField} from "discord.js";
 import {ptBr} from "../../translations/ptBr";
 
 export const dismissButtonCustomId = "dismissButtonCustomId";
 
-export function makeRoleplayingPlaceholderPayload(channel: GuildTextBasedChannel, channelPrismaData: Channel) {
+export function makeRoleplayingPlaceholderPayload(channel: GuildTextBasedChannel, channelPrismaData: Channel): MessageCreateOptions {
   return {
+    flags: [MessageFlagsBitField.Flags.SuppressNotifications],
     embeds: [
       new EmbedBuilder()
         .setAuthor({

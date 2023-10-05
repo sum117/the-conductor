@@ -87,7 +87,7 @@ export class ChannelEditor {
   private async updateOrSendPlaceholderMessage(updatedChannel: Channel, channel: GuildTextBasedChannel) {
     const placeholderMessage = updatedChannel.placeholderMessageId ? await channel.messages.fetch(updatedChannel.placeholderMessageId).catch(() => null) : null;
 
-    if (placeholderMessage) await placeholderMessage.edit(makeRoleplayingPlaceholderPayload(channel, updatedChannel));
+    if (placeholderMessage) await placeholderMessage.edit({...makeRoleplayingPlaceholderPayload(channel, updatedChannel), flags: []});
     else {
       const newPlaceholderMessage = await channel.send(makeRoleplayingPlaceholderPayload(channel, updatedChannel));
       await prisma.channel

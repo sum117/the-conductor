@@ -1,5 +1,6 @@
+import {Prisma} from "@prisma/client";
 import {spawn} from "child_process";
-import {AttachmentBuilder, BaseMessageOptions, ButtonInteraction, EmbedBuilder, Message, PartialMessage} from "discord.js";
+import {AttachmentBuilder, BaseMessageOptions, ButtonInteraction, Colors, EmbedBuilder, Message, PartialMessage, channelMention, userMention} from "discord.js";
 import {ArgsOf, ButtonComponent, Discord, Guard, On} from "discordx";
 import {exists, mkdir, unlink} from "fs/promises";
 import lodash from "lodash";
@@ -9,11 +10,16 @@ import {credentials} from "../data/credentials";
 import {prisma} from "../db";
 import {dismissButtonCustomId} from "../lib/components/messagePayloads";
 import {isValidRoleplayMessage} from "../lib/guards";
-import {cleanImageUrl, getUserLevelDetails} from "../lib/util/helpers";
+import {cleanImageUrl, getNPCDetails, getUserLevelDetails} from "../lib/util/helpers";
 import {ptBr} from "../translations/ptBr";
 @Discord()
 export class Events {
-  private timeOuts: Map<string, NodeJS.Timeout> = new Map();
+  private timeOuts: Map<string, NodeJS.Timeout>;
+
+  constructor() {
+    this.timeOuts = new Map();
+    this.scheduleToDelete = this.scheduleToDelete.bind(this);
+  }
 
   @On({event: "messageCreate"})
   async onImageVideoMergeRequest([message]: ArgsOf<"messageCreate">) {
@@ -56,6 +62,59 @@ export class Events {
     }
 
     try {
+      const user = await prisma.user.findFirst({where: {id: message.author.id}});
+
+      if (user?.isUsingNPC) {
+        const npcs = await prisma.nPC.findMany({where: {usersWhoOwn: {some: {id: message.author.id}}}});
+        if (!npcs.length) {
+          await message.reply(ptBr.errors.nPCnotFound).then(this.scheduleToDelete);
+          return;
+        }
+        const npcsPrefixes = npcs
+          .filter((npc): npc is typeof npc & {prefix: string} => Boolean(npc.prefix))
+          .map((npc) => npc.prefix.replace(/[.*+\-?^${}()|[\]\\]/g, "\\$&"));
+        const splitRegex = new RegExp(npcsPrefixes.join("|"), "gm");
+
+        const npcActions = message.content.split(splitRegex).slice(1);
+        const npcMatches = message.content.match(splitRegex);
+
+        if (npcMatches) {
+          for await (const npcMatch of npcMatches) {
+            const npcData = npcs[npcsPrefixes.findIndex((prefix) => prefix === npcMatch)];
+            const npcMatchIndex = npcMatches.findIndex((prefix) => prefix === npcMatch);
+            const npcAction = npcActions[npcMatchIndex];
+            if (!npcAction) continue;
+
+            const npcDetails = await getNPCDetails(npcData);
+            const npcEmbed = new EmbedBuilder()
+              .setTitle(npcData.name)
+              .setColor(npcDetails?.rarityColor ?? "Random")
+              .setTimestamp(DateTime.now().toJSDate())
+              .setDescription(npcAction)
+              .setFooter({text: npcDetails?.footerText ?? ptBr.npc.rarity.common, iconURL: message.guild?.iconURL({size: 128}) ?? undefined})
+              .setThumbnail(npcData.imageUrl);
+            if (npcData.title) npcEmbed.setAuthor({name: npcData.title, iconURL: npcData.iconUrl ?? undefined});
+
+            const messagePayload = this.createMessagePayload(npcEmbed, message);
+            if (!messagePayload) continue;
+            if (!messagePayload.files?.[npcMatchIndex]) {
+              messagePayload.files = [];
+              const embed = messagePayload.embeds?.at(0);
+              if (embed) messagePayload.embeds = [EmbedBuilder.from(embed).setImage(null)];
+            }
+            const sentMessage = await message.channel.send(messagePayload);
+            await prisma.message.create({
+              data: {id: sentMessage.id, content: message.content, npcId: npcData.id, channelId: message.channel.id, authorId: message.author.id},
+            });
+          }
+          await prisma.channel.update({where: {id: message.channel.id}, data: {lastTimeActive: DateTime.now().toJSDate()}});
+        } else {
+          await message.reply(ptBr.errors.nPCnotFound).then(this.scheduleToDelete);
+        }
+        await message.delete().catch((error) => console.error("Failed to delete message", error));
+        return;
+      }
+
       const character = await prisma.character.findFirst({where: {isBeingUsed: true, AND: {userId: message.author.id}}, include: {faction: true, user: true}});
       if (!character || character.user.isEditing) {
         return;
@@ -83,7 +142,9 @@ export class Events {
       const characterPost = await message.channel.send(messagePayload);
 
       // I'd prefer to use Promise.all([]) here, but prisma throws an error when you chain its queries in sqlite: https://github.com/prisma/prisma/issues/11789
-      await prisma.message.create({data: {id: characterPost.id, content: message.content, characterId: character.id, channelId: message.channel.id}});
+      await prisma.message.create({
+        data: {id: characterPost.id, content: message.content, characterId: character.id, channelId: message.channel.id, authorId: message.author.id},
+      });
       await prisma.channel.update({where: {id: characterPost.channel.id}, data: {lastTimeActive: DateTime.now().toJSDate()}});
       await message.delete().catch((error) => console.error("Failed to delete message", error));
 
@@ -122,19 +183,56 @@ export class Events {
 
   @On({event: "messageReactionAdd"})
   @Guard(isValidRoleplayMessage)
-  async onReactionEditDeleteAction([reaction, user]: ArgsOf<"messageReactionAdd">) {
+  async onRoleplayReactionAdd([reaction, user]: ArgsOf<"messageReactionAdd">) {
     try {
-      const message = await prisma.message.findFirst({where: {id: reaction.message.id}, include: {character: true}});
-      if (!message || message.character.userId !== user.id) {
-        return;
-      }
+      const message = await prisma.message.findFirst({where: {id: reaction.message.id}, include: {character: true, hearts: true, author: true}});
+      if (!message) return;
 
       switch (reaction.emoji.name) {
+        case "😍":
+          const roleplayStarboardChannel = await reaction.message.guild?.channels.fetch(credentials.channels.roleplayStarboard);
+          if (!roleplayStarboardChannel || !roleplayStarboardChannel.isTextBased()) return;
+
+          if (message.hearts.find((heartUser) => heartUser.id === user.id)) return;
+          let updateArgs: Prisma.MessageUpdateInput = {hearts: {connect: {id: user.id}}};
+
+          const characterPost = await reaction.message.channel.messages.fetch(message.id);
+          const reactions = characterPost.reactions.cache.filter((reaction) => reaction.emoji.name === "😍");
+
+          const starboardMessageContent = {
+            content: ptBr.feedback.starboardMessage
+              .replace("{count}", String(message.hearts.length + 1))
+              .replace("{user}", userMention(message.authorId))
+              .replace("{channel}", channelMention(message.channelId)),
+          };
+
+          if (!message.starboardMessageId && reactions.size > 2) {
+            const characterPostEmbed = EmbedBuilder.from(characterPost.embeds[0]);
+            const starboardMessage = await roleplayStarboardChannel.send({embeds: [characterPostEmbed], ...starboardMessageContent});
+            characterPostEmbed.setColor(Colors.Gold);
+            await characterPost.edit({
+              embeds: [characterPostEmbed],
+              content: ptBr.feedback.sentToStarboard
+                .replace("{user}", userMention(message.authorId))
+                .replace("{channel}", channelMention(roleplayStarboardChannel.id)),
+            });
+            updateArgs = {...updateArgs, starboardMessageId: starboardMessage.id};
+          } else if (message.starboardMessageId) {
+            const existingStarboardMessage = await roleplayStarboardChannel.messages.fetch(message.starboardMessageId);
+            await existingStarboardMessage.edit(starboardMessageContent);
+          }
+          await prisma.message.update({where: {id: message.id}, data: {...updateArgs}});
+
+          break;
         case "❌":
+          if (message.authorId !== user.id) return;
+
           await prisma.message.delete({where: {id: message.id}});
           await reaction.message.delete().catch((error) => console.error("Failed to delete message", error));
           break;
         case "✏️":
+          if (message.authorId !== user.id) return;
+
           const editingNotice = await reaction.message.channel.send(ptBr.feedback.editingNotice.replace("{user}", user.toString()));
           this.scheduleToDelete(editingNotice);
 
@@ -192,7 +290,7 @@ export class Events {
     this.timeOuts.set(
       messageToDelete.id,
       setTimeout(() => {
-        messageToDelete.delete().catch((error) => console.error("Failed to delete editing notice", error));
+        messageToDelete.delete().catch((error) => console.error("Failed to delete message", error));
         this.timeOuts.delete(messageToDelete.id);
       }, Duration.fromObject({minutes}).as("milliseconds")),
     );
@@ -208,7 +306,6 @@ export class Events {
 
       const newAttachment = new AttachmentBuilder(cleanedUrl).setName(fileName);
       embed.setImage("attachment://" + fileName);
-      console.log(embed.data.image);
       messagePayload.files = [newAttachment];
     }
     messagePayload.embeds = [embed];

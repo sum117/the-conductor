@@ -22,7 +22,7 @@ import {imageLinks} from "../data/assets";
 import {credentials} from "../data/credentials";
 import {prisma} from "../db";
 import {submissionAppearanceModal, submissionEssentialsModal} from "../lib/components/modals";
-import {awaitSubmitModal, cleanImageUrl} from "../lib/util/helpers";
+import {awaitSubmitModal, cleanImageUrl, getUserLevelDetails} from "../lib/util/helpers";
 import {ptBr} from "../translations/ptBr";
 
 const createCharacterPopupButtonId = "createCharacter";
@@ -55,11 +55,21 @@ export class Submission {
     const characterId = parseInt(interaction.customId.replace(createCharacterApproveButtonIdPrefix, ""));
     try {
       await interaction.deferReply({ephemeral: true});
-      const character = await prisma.character.findUnique({where: {id: characterId}});
+      const character = await prisma.character.findUnique({where: {id: characterId}, include: {user: true}});
       if (!character?.userId) {
         console.error(`User for character ${characterId} not found`);
         return;
       }
+
+      const characterOwner = await interaction.guild.members.fetch(character.userId).catch((error) => {
+        console.error(`Error fetching character owner: `, error);
+        return null;
+      });
+      if (!characterOwner) return;
+
+      const userLevelDetails = getUserLevelDetails(character.user);
+      if (!characterOwner.roles.cache.has(credentials.roles.levels.studentRole) && userLevelDetails.userLevel < 2)
+        characterOwner.roles.add(credentials.roles.levels.studentRole);
 
       const characterEmbed = EmbedBuilder.from(interaction.message.embeds[0]);
       characterEmbed.setFooter(null);
