@@ -12,7 +12,7 @@ initialize_directory() {
 
 copy_prisma_files() {
     cp -a /app_default/prisma/. /app/prisma/
-    rm -rf /app_default/prisma
+    rm -rf /app_default
 }
 
 create_cache_readme() {
