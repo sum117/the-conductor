@@ -13,23 +13,29 @@ import {bot} from "./main";
 import App from "./react/App";
 import {ptBr} from "./translations/ptBr";
 
-const script = Bun.file(path.resolve(import.meta.dir, "../public/index.js"));
-
-await Bun.build({
-  entrypoints: ["./src/react/index.tsx"],
-  outdir: "./public",
-  target: "browser",
-  define: {
-    "Bun.env.DISCORD_CLIENT_ID": Bun.env.DISCORD_CLIENT_ID,
-    "Bun.env.DISCORD_API_ENDPOINT": Bun.env.DISCORD_API_ENDPOINT,
-    "Bun.env.WEBSITE_BASE_URL": Bun.env.WEBSITE_BASE_URL,
-  },
-});
-
 let isReady = false;
+
+const script = Bun.file(path.resolve(import.meta.dir, "../public/index.js"));
+let entrypoint = path.resolve(import.meta.dir, "/src/react/index.tsx");
+
 while (!isReady) {
   console.log(script);
   console.log("Waiting for index.js to be built...");
+  if (!(await exists(entrypoint))) {
+    entrypoint = path.resolve(import.meta.dir, "react/index.tsx");
+  }
+
+  await Bun.build({
+    entrypoints: [entrypoint],
+    outdir: "./public",
+    target: "browser",
+    define: {
+      "Bun.env.DISCORD_CLIENT_ID": Bun.env.DISCORD_CLIENT_ID,
+      "Bun.env.DISCORD_API_ENDPOINT": Bun.env.DISCORD_API_ENDPOINT,
+      "Bun.env.WEBSITE_BASE_URL": Bun.env.WEBSITE_BASE_URL,
+    },
+  });
+
   if (await exists(script?.name ?? "")) isReady = true;
   await new Promise((resolve) => setTimeout(resolve, 1000));
 }
