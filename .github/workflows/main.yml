@@ -56,6 +56,10 @@ jobs:
               -e DATABASE_URL=${{ env.DATABASE_URL }} \
               -e DATABASE_PROXY_URL=${{ env.DATABASE_PROXY_URL }} \
               -e BOT_TOKEN=${{ env.BOT_TOKEN }} \
+              -e DISCORD_CLIENT_ID=${{ secrets.DISCORD_CLIENT_ID }} \
+              -e DISCORD_CLIENT_SECRET=${{ secrets.DISCORD_CLIENT_SECRET }} \
+              -e DISCORD_API_ENDPOINT=${{ secrets.DISCORD_API_ENDPOINT }} \
+              -e WEBSITE_BASE_URL=${{ secrets.WEBSITE_BASE_URL }} \
               --restart unless-stopped \
               -v $HOME/prisma-data:/app/prisma \
               -v $HOME/cache:/app/cache \

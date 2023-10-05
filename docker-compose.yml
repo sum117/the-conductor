@@ -14,6 +14,10 @@ services:
       - DATABASE_URL=${DATABASE_URL}
       - DATABASE_PROXY_URL=${DATABASE_PROXY_URL}
       - BOT_TOKEN=${BOT_TOKEN}
+      - DISCORD_CLIENT_ID=${DISCORD_CLIENT_ID}
+      - DISCORD_CLIENT_SECRET=${DISCORD_CLIENT_SECRET}
+      - DISCORD_API_ENDPOINT=${DISCORD_API_ENDPOINT}
+      - WEBSITE_BASE_URL=${WEBSITE_BASE_URL}
     restart: unless-stopped
     volumes:
       - ./prisma-data:/app/prisma
@@ -21,3 +25,4 @@ services:
 volumes:
   prisma-data:
   cache:
+

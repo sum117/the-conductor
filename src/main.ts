@@ -68,11 +68,11 @@ async function run() {
   await importx(`${dirname(import.meta.url)}/{events,commands}/**/*.{ts,js}`);
 
   // Let's start the bot
-  if (!process.env.BOT_TOKEN) {
+  if (!Bun.env.BOT_TOKEN) {
     throw Error("Could not find BOT_TOKEN in your environment");
   }
   // Log in with your bot token
-  await bot.login(process.env.BOT_TOKEN);
+  await bot.login(Bun.env.BOT_TOKEN);
 
   // Start the webserver for SVG profile cards
   app.listen(8080);

@@ -1,17 +1,43 @@
+import {staticPlugin} from "@elysiajs/static";
 import {Prisma} from "@prisma/client";
 import {Elysia} from "elysia";
+import {exists} from "fs/promises";
 import path from "path";
-import React from "react";
+import React, {createElement} from "react";
+import {renderToReadableStream} from "react-dom/server";
 import satori, {SatoriOptions} from "satori";
 import sharp from "sharp";
 import {prisma} from "./db";
 import {getUserLevelDetails} from "./lib/util/helpers";
 import {bot} from "./main";
+import App from "./react/App";
 import {ptBr} from "./translations/ptBr";
 
-const app = new Elysia();
+const script = Bun.file(path.resolve(import.meta.dir, "../public/index.js"));
+
+await Bun.build({
+  entrypoints: ["./src/react/index.tsx"],
+  outdir: "./public",
+  target: "browser",
+  define: {
+    "Bun.env.DISCORD_CLIENT_ID": Bun.env.DISCORD_CLIENT_ID,
+    "Bun.env.DISCORD_API_ENDPOINT": Bun.env.DISCORD_API_ENDPOINT,
+    "Bun.env.WEBSITE_BASE_URL": Bun.env.WEBSITE_BASE_URL,
+  },
+});
+
+let isReady = false;
+while (!isReady) {
+  console.log(script);
+  console.log("Waiting for index.js to be built...");
+  if (await exists(script?.name ?? "")) isReady = true;
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+}
+
+const app = new Elysia().use(staticPlugin());
 
 const interArrayBuffer = await Bun.file(path.resolve(import.meta.dir, "./fonts/Inter-Regular.ttf")).arrayBuffer();
+
 const options: SatoriOptions = {
   width: 420,
   height: 475,
@@ -243,4 +269,97 @@ app.get("/profile/:id", async ({params, set}) => {
   }
 });
 
+app.get("/website", async () => {
+  // create our react App component
+  const app = createElement(App);
+
+  // render the app component to a readable stream
+  const stream = await renderToReadableStream(app, {
+    bootstrapScriptContent: await script.text(),
+  });
+
+  // output the stream as the response
+  return new Response(stream, {
+    headers: {"Content-Type": "text/html"},
+  });
+});
+
+app.get("/discord/callback", async ({query, set, cookie: {token}}) => {
+  const {code} = query;
+  if (!code) {
+    set.status = 400;
+    return "Missing Code";
+  }
+  const response = await fetch(`${Bun.env.DISCORD_API_ENDPOINT}/oauth2/token`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({
+      client_id: Bun.env.DISCORD_CLIENT_ID,
+      client_secret: Bun.env.DISCORD_CLIENT_SECRET,
+      grant_type: "authorization_code",
+      code,
+      redirect_uri: Bun.env.WEBSITE_BASE_URL,
+      scope: "identify",
+    }),
+  });
+  const json = await response.json();
+  const {access_token} = json;
+  if (!access_token) {
+    set.status = 400;
+    return "Missing Access Token";
+  }
+  const userResponse = await fetch(`${Bun.env.DISCORD_API_ENDPOINT}/users/@me`, {
+    headers: {
+      authorization: `Bearer ${access_token}`,
+    },
+  });
+  const userJson = await userResponse.json();
+  const {id} = userJson;
+  if (!id) {
+    set.status = 400;
+    return "Missing User ID";
+  }
+  const discordUser = await bot.users.fetch(id);
+  if (!discordUser) {
+    set.status = 404;
+    return "User Not Found in Bot Cache";
+  }
+  const userData = await prisma.user.findFirst({where: {id}, include: {characters: true}});
+  if (!userData) {
+    set.status = 404;
+    return "Character Not Found";
+  }
+  set.status = 200;
+  token.value = access_token;
+  return userData;
+});
+
+app.get("/discord/check", async ({cookie: {token}, set}) => {
+  const response = await fetch(`${Bun.env.DISCORD_API_ENDPOINT}/users/@me`, {
+    headers: {
+      authorization: `Bearer ${token.value}`,
+    },
+  });
+  const json = await response.json();
+  const {id} = json;
+  if (!id) {
+    set.status = 400;
+    return "Missing User ID";
+  }
+  const discordUser = await bot.users.fetch(id);
+  if (!discordUser) {
+    set.status = 404;
+    return "User Not Found in Bot Cache";
+  }
+
+  const userData = await prisma.user.findFirst({where: {id}, include: {characters: true}});
+  if (!userData) {
+    set.status = 404;
+    return "Character Not Found";
+  }
+  set.status = 200;
+  return userData;
+});
 export default app;

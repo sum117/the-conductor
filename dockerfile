@@ -31,7 +31,6 @@ COPY --from=builder /tmp/app/bun.lockb /app/bun.lockb
 COPY --from=builder /tmp/app/prisma/ /app_default/prisma/
 COPY --from=builder /tmp/app/prisma/schema.prisma /app/prisma/schema.prisma
 COPY --from=builder /tmp/app/build /app/build
-COPY --from=builder /tmp/app/src/fonts /app/build/fonts
 
 RUN apt-get update && apt-get install -y ffmpeg
 RUN apt-get install -y curl
