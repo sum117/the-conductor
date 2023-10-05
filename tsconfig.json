@@ -17,5 +17,5 @@
     "skipLibCheck": true,
     "jsx": "react",
   },
-  "exclude": ["prisma/seed.ts"]
+  "exclude": ["prisma/seed.ts"],
 }
