@@ -21,5 +21,6 @@
       "@/*": ["./*"]
     }
   },
-  "exclude": ["prisma/seed.ts"],
+  "exclude": ["prisma/seed.ts", "./tailwind.config.js"],
+  "include": ["./src/**/*"]
 }

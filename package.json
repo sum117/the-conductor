@@ -6,7 +6,7 @@
   "type": "module",
   "main": "build/main.js",
   "scripts": {
-    "build": "mkdir -p build/fonts && mkdir build/react/ && tsc && cp -r src/fonts build/ && cp src/react/globals.css build/react/ && bunx tailwindcss -i build/react/globals.css -o public/output.css",
+    "build": "mkdir -p build/fonts && mkdir build/react/ && tsc && cp -r src/fonts build/ && cp src/react/globals.css build/react/ && cp ./tailwind.config.js build/ && bunx tailwindcss -i build/react/globals.css -o public/output.css",
     "build:changelog": "bunx @discordx/changelog --src src",
     "dev": "bun run src/main.ts",
     "start": "bun run build/main.js",
