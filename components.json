@@ -11,7 +11,7 @@
     "cssVariables": true
   },
   "aliases": {
-    "components": "@/src/react/components",
-    "utils": "@/src/react/lib/utils"
+    "components": "../../components",
+    "utils": "../../lib/utils"
   }
 }
