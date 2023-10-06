@@ -6,7 +6,10 @@
   "type": "module",
   "main": "build/main.js",
   "scripts": {
-    "build": "mkdir -p build/fonts && mkdir build/react/ && tsc && cp -r src/fonts build/ && cp src/react/globals.css build/react/ && cp ./tailwind.config.js build/ && bunx tailwindcss -i build/react/globals.css -o public/output.css",
+    "build:dirs": "mkdir -p build/fonts build/react",
+    "build:copy": "cp -r src/fonts build/ && cp src/react/globals.css build/react/ && cp ./tailwind.config.js build/",
+    "build:tw": "bun run tw",
+    "build": "bun run build:dirs && tsc && bun run build:copy && bun run build:tw",
     "build:changelog": "bunx @discordx/changelog --src src",
     "dev": "bun run src/main.ts",
     "start": "bun run build/main.js",
@@ -14,7 +17,7 @@
     "prisma:generate": "bunx prisma generate",
     "prisma:studio": "bunx prisma studio",
     "prisma:migrate": "bunx prisma migrate dev --name init",
-    "dev:web": "concurrently \"bun --watch src/server.tsx\" \"bunx tailwindcss -i ./src/react/globals.css -o ./public/output.css --watch\" ",
+    "dev:web": "concurrently \"bun --watch src/server.tsx\" \"bun run tw -- --watch\"",
     "tw": "bunx tailwindcss -i ./src/react/globals.css -o ./public/output.css"
   },
   "dependencies": {

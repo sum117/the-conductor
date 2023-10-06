@@ -15,6 +15,7 @@ RUN bun install
 
 COPY src ./src
 COPY tsconfig.json .
+COPY tailwind.config.js .
 COPY prisma/ ./prisma/
 
 RUN bun prisma:migrate
