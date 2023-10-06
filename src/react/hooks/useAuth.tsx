@@ -1,5 +1,5 @@
 import {useEffect} from "react";
-import useUser from "./useUser";
+import useUser, {UserPrisma} from "./useUser";
 
 export default () => {
   const {user, addUser, removeUser, setUser} = useUser();
@@ -14,7 +14,7 @@ export default () => {
 
   const login = async (code: string) => {
     const response = await fetch(`discord/callback?code=${code}`);
-    const json = await response.json();
+    const json = (await response.json()) as UserPrisma;
     addUser(json);
   };
 
@@ -26,7 +26,7 @@ export default () => {
   useEffect(() => {
     if (!user) {
       const user = localStorage.getItem("user");
-      if (user) addUser(JSON.parse(user));
+      if (user) addUser(JSON.parse(user) as UserPrisma);
     }
     fetch(`discord/check`).then((response) => !response.ok && logout());
     const code = window.location.search.split("code=")?.[1];

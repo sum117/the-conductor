@@ -1,7 +1,6 @@
 import {staticPlugin} from "@elysiajs/static";
 import {Prisma} from "@prisma/client";
 import {Elysia} from "elysia";
-import {exists} from "fs/promises";
 import path from "path";
 import React, {createElement} from "react";
 import {renderToReadableStream} from "react-dom/server";
@@ -17,15 +16,19 @@ let isReady = false;
 
 let script: string | undefined;
 
-let entrypoint = path.resolve(import.meta.dir, "/src/react/index.tsx");
+let entrypoint = Bun.file(path.resolve(import.meta.dir, "/src/react/index.tsx"));
 while (!isReady) {
   console.log("Waiting for index.js to be built...");
-  if (!(await exists(entrypoint))) {
-    entrypoint = path.resolve(import.meta.dir, "react/index.js");
+
+  if (!(await entrypoint.exists())) {
+    entrypoint = Bun.file(path.resolve(import.meta.dir, "react/index.js"));
+  }
+
+  if (!entrypoint.name) {
+    throw new Error("Entrypoint name is undefined");
   }
 
   const build = async (entrypoint: string) => {
-    console.log(entrypoint);
     await Bun.build({
       entrypoints: [entrypoint],
       outdir: "./public",
@@ -38,7 +41,7 @@ while (!isReady) {
     });
   };
 
-  await build(entrypoint);
+  await build(entrypoint.name).catch(() => undefined);
 
   script = await Bun.file(path.resolve(import.meta.dir, "../public/index.js"))
     .text()
@@ -318,7 +321,7 @@ app.get("/discord/callback", async ({query, set, cookie: {token}}) => {
       scope: "identify",
     }),
   });
-  const json = await response.json();
+  const json = (await response.json()) as {access_token?: string};
   const {access_token} = json;
   if (!access_token) {
     set.status = 400;
@@ -329,7 +332,7 @@ app.get("/discord/callback", async ({query, set, cookie: {token}}) => {
       authorization: `Bearer ${access_token}`,
     },
   });
-  const userJson = await userResponse.json();
+  const userJson = (await userResponse.json()) as {id?: string};
   const {id} = userJson;
   if (!id) {
     set.status = 400;
@@ -346,34 +349,81 @@ app.get("/discord/callback", async ({query, set, cookie: {token}}) => {
     return "Character Not Found";
   }
   set.status = 200;
+  token.path = "/";
   token.value = access_token;
   return userData;
 });
 
-app.get("/discord/check", async ({cookie: {token}, set}) => {
-  const response = await fetch(`${Bun.env.DISCORD_API_ENDPOINT}/users/@me`, {
-    headers: {
-      authorization: `Bearer ${token.value}`,
-    },
-  });
-  const json = await response.json();
-  const {id} = json;
-  if (!id) {
-    set.status = 400;
-    return "Missing User ID";
-  }
-  const discordUser = await bot.users.fetch(id);
-  if (!discordUser) {
-    set.status = 404;
-    return "User Not Found in Bot Cache";
-  }
+app
+  .derive((context) => {
+    const isSignedIn = async () => {
+      const response = await fetch(`${Bun.env.DISCORD_API_ENDPOINT}/users/@me`, {
+        headers: {
+          authorization: `Bearer ${context.cookie.token.value}`,
+        },
+      });
+      const json = (await response.json()) as {id?: string};
+      const {id} = json;
+      if (!id) {
+        context.set.status = 400;
+        return "Missing User ID";
+      }
+      const discordUser = await bot.users.fetch(id);
+      if (!discordUser) {
+        context.set.status = 404;
+        return "User Not Found in Bot Cache";
+      }
 
-  const userData = await prisma.user.findFirst({where: {id}, include: {characters: true}});
-  if (!userData) {
-    set.status = 404;
-    return "Character Not Found";
-  }
-  set.status = 200;
-  return userData;
-});
+      const userData = await prisma.user.findFirst({where: {id}, include: {characters: true}});
+      if (!userData) {
+        context.set.status = 404;
+        return "Character Not Found";
+      }
+    };
+
+    return {isSignedIn, cookie: {token: {value: context.cookie.token.value}}};
+  })
+  .get(
+    "/discord/check",
+    async (context) => {
+      if (!context.cookie.token.value) {
+        context.set.status = 400;
+        return "Missing Access Token";
+      }
+    },
+    {beforeHandle: async ({isSignedIn}) => await isSignedIn()},
+  )
+  .get(
+    "/api/races",
+    async (context) => {
+      try {
+        const allRaces = await prisma.race.findMany();
+        context.set.status = 200;
+        return allRaces;
+      } catch (error) {
+        context.set.status = 500;
+        console.error(error);
+        return error;
+      }
+    },
+    {beforeHandle: async ({isSignedIn}) => await isSignedIn()},
+  )
+  .get(
+    "/api/factions",
+    async (context) => {
+      try {
+        const allFactions = await prisma.faction.findMany();
+        context.set.status = 200;
+        return allFactions;
+      } catch (error) {
+        context.set.status = 500;
+        console.error(error);
+        return error;
+      }
+    },
+    {
+      beforeHandle: async ({isSignedIn}) => await isSignedIn(),
+    },
+  );
+
 export default app;
