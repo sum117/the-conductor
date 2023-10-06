@@ -3,8 +3,8 @@ import {Slot} from "@radix-ui/react-slot";
 import * as React from "react";
 import {Controller, ControllerProps, FieldPath, FieldValues, FormProvider, useFormContext} from "react-hook-form";
 
-import {Label} from "@/src/react/components/ui/label";
-import {cn} from "@/src/react/lib/utils";
+import {Label} from "../../components/ui/label";
+import {cn} from "../../lib/utils";
 
 const Form = FormProvider;
 
@@ -91,7 +91,7 @@ FormControl.displayName = "FormControl";
 const FormDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(({className, ...props}, ref) => {
   const {formDescriptionId} = useFormField();
 
-  return <p ref={ref} id={formDescriptionId} className={cn("text-muted-foreground text-sm", className)} {...props} />;
+  return <p ref={ref} id={formDescriptionId} className={cn("text-sm text-muted-foreground", className)} {...props} />;
 });
 FormDescription.displayName = "FormDescription";
 
@@ -104,7 +104,7 @@ const FormMessage = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<
   }
 
   return (
-    <p ref={ref} id={formMessageId} className={cn("text-destructive text-sm font-medium", className)} {...props}>
+    <p ref={ref} id={formMessageId} className={cn("text-sm font-medium text-destructive", className)} {...props}>
       {body}
     </p>
   );
