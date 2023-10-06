@@ -1,7 +1,7 @@
 import {zodResolver} from "@hookform/resolvers/zod";
 import {Faction, Race, type Character} from "@prisma/client";
 import {LogIn, LogOut, Music4, Plus} from "lucide-react";
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useMemo, useState} from "react";
 import {Button, buttonVariants} from "./components/ui/button";
 import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger} from "./components/ui/dialog";
 import {Input} from "./components/ui/input";
@@ -17,8 +17,7 @@ import {z} from "zod";
 import {cn, getSafeKeys} from "../react/lib/utils";
 import {ptBr} from "../translations/ptBr";
 import {Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage} from "./components/ui/form";
-import {ScrollArea} from "./components/ui/scroll-area";
-import {Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle} from "./components/ui/sheet";
+import {Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle} from "./components/ui/sheet";
 import {Textarea} from "./components/ui/textarea";
 
 const CharacterSchema = z.object({
@@ -36,8 +35,22 @@ const CharacterSchema = z.object({
   faction: z.string({required_error: "A facção é obrigatória."}),
 });
 
+const infoBoxFields = ["gender", "weight", "height", "age", "userId"] as const;
+function hasKey<T>(obj: T, key: string | number | symbol): key is keyof T {
+  return Object.prototype.hasOwnProperty.call(obj, key);
+}
+
 export default function App() {
   const {user, logout, setUser} = useAuth();
+  const [selectedCharacterId, setSelectedCharacterId] = useState<number | null>(null);
+
+  const handleCharacterClick = (id: number) => {
+    setSelectedCharacterId(id);
+  };
+
+  const character = useMemo(() => user?.characters?.find((character) => character.id === selectedCharacterId), [user, selectedCharacterId]);
+  const characterFullName = useMemo(() => `${character?.name} ${character?.surname}`, [character]);
+
   return (
     <html>
       <head>
@@ -49,7 +62,7 @@ export default function App() {
       </head>
       <body className="dark">
         <AuthContext.Provider value={{user, setUser}}>
-          <nav className="border-border mb-4 flex items-center justify-between border-b px-4 py-2">
+          <nav className="mb-4 flex items-center justify-between border-b border-border px-4 py-2">
             <ul>
               <li className="inline-flex items-center gap-x-2">
                 <Music4 className="h-8 w-8" />
@@ -71,10 +84,52 @@ export default function App() {
           <main className="container">
             {user && (
               <section className="flex justify-center gap-x-2">
-                {user?.characters?.map((character) => <Character {...character} key={character.id} />)}
+                {user?.characters?.map((character) => (
+                  <Character character={character} key={character.id} handleCharacterClick={() => handleCharacterClick(character.id)} />
+                ))}
                 <CharacterCreatePlaceholder />
               </section>
             )}
+            <InfoSheet
+              title={characterFullName}
+              open={Boolean(selectedCharacterId)}
+              onOpenChange={(open) => setSelectedCharacterId(open ? selectedCharacterId : null)}
+            >
+              <article className="flex flex-row-reverse items-start gap-x-4 max-sm:flex-col max-sm:gap-x-0 max-sm:gap-y-4 max-sm:text-start">
+                {character?.imageUrl && character?.name && (
+                  <section className="rounded-sm border border-border max-sm:mx-auto">
+                    <img
+                      src={character.imageUrl}
+                      alt={character.name}
+                      className="h-64 w-full rounded-md object-cover object-top shadow-sm shadow-neutral-100 max-sm:w-full"
+                    />
+                    <ul className="grid px-8 py-4">
+                      {infoBoxFields.map((key) => {
+                        if (!hasKey(ptBr.character, key)) return null;
+                        return (
+                          <li key={key} className="inline-flex flex-wrap justify-between max-sm:gap-x-4">
+                            <span className="font-thin capitalize tracking-tight">{ptBr.character[key]}</span>
+                            {character?.[key]}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </section>
+                )}
+                {character &&
+                  getSafeKeys(character).map((key) => {
+                    if (key === "imageUrl" || key === "name" || key === "surname" || infoBoxFields.includes(key)) return null;
+                    if (!hasKey(ptBr.character, key)) return null;
+
+                    return (
+                      <section key={key}>
+                        <h2 className="text-xl font-bold capitalize">{ptBr.character[key]}</h2>
+                        <p>{character?.[key]}</p>
+                      </section>
+                    );
+                  })}
+              </article>
+            </InfoSheet>
           </main>
         </AuthContext.Provider>
       </body>
@@ -82,7 +137,7 @@ export default function App() {
   );
 }
 
-function Character(character: Character) {
+function Character({character, handleCharacterClick}: {character: Character; handleCharacterClick: () => void}) {
   if (!character.id) return null;
   if (!character.imageUrl) return null;
   if (!character.personality) return null;
@@ -94,9 +149,9 @@ function Character(character: Character) {
         <figcaption className="pointer-events-none absolute inset-0 flex items-end justify-center bg-gradient-to-b from-transparent to-black opacity-100 transition-opacity duration-300 group-hover:opacity-0">
           <span className="py-4 text-xl capitalize">{character.name}</span>
         </figcaption>
-        <a className="h-full w-full" href={`/character/${character.id}`}>
+        <button className="h-full w-full" onClick={handleCharacterClick}>
           <img src={character.imageUrl} alt={character.name} className="h-96 w-56 object-cover" />
-        </a>
+        </button>
       </figure>
     </article>
   );
@@ -120,8 +175,8 @@ function CharacterForm({submit}: {submit: React.ReactNode}) {
 
         const racesJson = racesResponse.ok ? await racesResponse.json() : null;
         const factionsJson = factionsResponse.ok ? await factionsResponse.json() : null;
-        setRaceOptions(racesJson);
-        setFactionOptions(factionsJson);
+        setRaceOptions(racesJson as Race[]);
+        setFactionOptions(factionsJson as Faction[]);
       } catch (error) {
         if (error instanceof Error) setError(error.message);
         else setError(ptBr.errors.somethingWentWrong);
@@ -135,19 +190,14 @@ function CharacterForm({submit}: {submit: React.ReactNode}) {
 
   const form = useForm<z.infer<typeof CharacterSchema>>({resolver: zodResolver(CharacterSchema)});
 
-  const faction = form.watch("faction");
-
   function onSubmit(values: z.infer<typeof CharacterSchema>) {
     console.log(values);
   }
-
-  const selectedRace = raceOptions?.find((race) => race.id.toString() === form.watch("race"));
 
   if (error) return <p>{error}</p>;
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-2 gap-2 px-4 max-sm:grid-cols-1">
-        {selectedRace && <InfoSheet open={!!selectedRace} description={selectedRace.description} imageUrl={selectedRace.imageUrl} title={selectedRace.name} />}
         {getSafeKeys(CharacterSchema.keyof().Enum).map((key) => {
           if (selectFields.includes(key)) {
             return (
@@ -225,50 +275,45 @@ function CharacterCreatePlaceholder() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <button className="border-border grid h-96 w-56 place-content-center border bg-none">
+        <button className="grid h-96 w-56 place-content-center border border-border bg-none">
           <Plus />
         </button>
       </DialogTrigger>
-      <DialogContent className="p-0 sm:max-w-[553px]">
-        <ScrollArea className="max-h-[90dvh] p-4 max-sm:max-h-screen">
-          <DialogHeader>
-            <DialogTitle>{ptBr.form.createChar}</DialogTitle>
-            <DialogDescription>{ptBr.form.createCharDescription}</DialogDescription>
-          </DialogHeader>
-          <CharacterForm
-            submit={
-              <DialogFooter className="col-span-full mt-2">
-                <Button type="submit">{ptBr.form.sendChar}</Button>
-              </DialogFooter>
-            }
-          />
-        </ScrollArea>
+      <DialogContent className="max-h-[90dvh] overflow-y-scroll p-4 max-sm:max-h-screen sm:max-w-[553px]">
+        <DialogHeader>
+          <DialogTitle className="">{ptBr.form.createChar}</DialogTitle>
+          <DialogDescription>{ptBr.form.createCharDescription}</DialogDescription>
+        </DialogHeader>
+        <CharacterForm
+          submit={
+            <DialogFooter className="col-span-full mt-2">
+              <Button type="submit">{ptBr.form.sendChar}</Button>
+            </DialogFooter>
+          }
+        />
       </DialogContent>
     </Dialog>
   );
 }
 
 type InfoSheetProps = {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   title?: string;
   description?: string;
-  imageUrl?: string;
-  open?: boolean;
+  children?: React.ReactNode;
 };
 
-function InfoSheet({open, title, description, imageUrl}: InfoSheetProps) {
+function InfoSheet({onOpenChange, open, children, title, description}: InfoSheetProps) {
   return (
-    <Sheet open={open}>
-      <SheetContent>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="bottom" className="max-h-[100dvh] overflow-y-scroll">
         <SheetHeader>
-          <SheetTitle>{title}</SheetTitle>
+          <SheetTitle className="text-center text-3xl">{title}</SheetTitle>
           <SheetDescription>{description}</SheetDescription>
         </SheetHeader>
-        <img src={imageUrl} alt={title} className="object-cover" />
-        <SheetFooter></SheetFooter>
+        {children}
       </SheetContent>
-      <SheetClose asChild>
-        <Button variant="destructive">Fechar</Button>
-      </SheetClose>
     </Sheet>
   );
 }
