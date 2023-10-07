@@ -1,6 +1,22 @@
 {
-  "extends": "../../tsconfig.json",
   "compilerOptions": {
+    "types": ["bun-types"],
+    "lib": ["esnext"],
+    "outDir": "build",
+    "module": "esnext",
+    "target": "esnext",
+    "moduleResolution": "bundler",
+    "noEmit": false,
+    "allowImportingTsExtensions": false,
+    "experimentalDecorators": true,
+    "moduleDetection": "force",
+    "allowJs": true,
+    "esModuleInterop": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "jsx": "react",
+    "baseUrl": ".",
     "paths": {
       "~/*": ["./*"],
       "@kitajs/html/register": ["./index.d.ts"],

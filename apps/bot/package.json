@@ -3,8 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "license": "MIT",
+  "module": "build/main.js",
   "main": "build/main.js",
   "scripts": {
+    "build": "tsc",
     "dev": "bun run src/main.ts",
     "start": "bun run build/main.js",
     "watch": "bun --hot run src/main.ts"
@@ -36,7 +38,7 @@
     "@types/node": "^20.5.9",
     "@types/node-cron": "^3.0.9",
     "@types/react": "^18.2.25",
-    "typescript": "5.2.2",
-    "bun-types": "latest"
+    "bun-types": "latest",
+    "typescript": "^5.2.2"
   }
 }

@@ -3,14 +3,12 @@
   "version": "1.0.0",
   "private": true,
   "license": "MIT",
-  "type": "module",
   "workspaces": [
-    "packages/translations",
-    "packages/utilities",
-    "apps/bot",
-    "apps/website"
+    "packages/*",
+    "apps/*"
   ],
   "scripts": {
+    "build": "turbo run build",
     "prisma:generate": "bunx prisma generate",
     "prisma:studio": "bunx prisma studio",
     "prisma:migrate": "bunx prisma migrate dev --name init",
@@ -19,7 +17,6 @@
   "devDependencies": {
     "@total-typescript/ts-reset": "^0.5.1",
     "bun-types": "latest",
-    "concurrently": "^8.2.1",
     "husky": "^8.0.0",
     "prettier": "^3.0.3",
     "prisma": "latest",
@@ -29,5 +26,6 @@
   },
   "prisma": {
     "seed": "node --loader=ts-node/esm prisma/seed.ts"
-  }
+  },
+  "packageManager": "bun@1.0.4"
 }

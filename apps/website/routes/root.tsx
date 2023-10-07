@@ -16,12 +16,12 @@ export type UserPrisma = Prisma.UserGetPayload<{include: {characters: true}}>;
 
 export async function loader() {
   try {
-    const response = await fetch(`${Bun.env.API_BASE_URL}/discord/check`);
+    const response = await fetch(`${import.meta.env.API_BASE_URL}/discord/check`);
     if (!response.ok) return null;
 
     const localStorageData = localStorage.getItem("user");
     if (!localStorageData) {
-      removeCookie("token", "/", new URL(Bun.env.WEBSITE_BASE_URL).hostname);
+      removeCookie("token", "/", new URL(import.meta.env.WEBSITE_BASE_URL).hostname);
       return null;
     }
 

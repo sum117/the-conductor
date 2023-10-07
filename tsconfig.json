@@ -1,22 +1,19 @@
 {
   "compilerOptions": {
-    "types": ["bun-types"],
-    "lib": ["esnext"],
-    "outDir": "build",
-    "module": "esnext",
-    "target": "esnext",
-    "moduleResolution": "bundler",
-    "noEmit": false,
-    "allowImportingTsExtensions": false,
-    "experimentalDecorators": true,
-    "moduleDetection": "force",
-    "allowJs": true,
+    "lib": ["ESNext"],
+    "composite": false,
+    "declaration": true,
+    "declarationMap": true,
     "esModuleInterop": true,
-    "strict": true,
     "forceConsistentCasingInFileNames": true,
+    "inlineSources": false,
+    "isolatedModules": true,
+    "moduleResolution": "node",
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "preserveWatchOutput": true,
     "skipLibCheck": true,
-    "jsx": "react",
+    "strict": true
   },
-  "exclude": ["prisma/seed.ts", "apps/website/tailwind.config.js"],
-  "include": ["./apps/**/*", "./packages/**/*", "./prisma/**/*"]
+  "exclude": ["node_modules"]
 }
