@@ -7,7 +7,7 @@
   "main": "build/main.js",
   "scripts": {
     "build:dirs": "mkdir -p build/fonts build/website",
-    "build:copy": "cp -r src/fonts build/ && cp src/website/globals.css build/website/ && cp ./tailwind.config.js build/",
+    "build:copy": "cp -r src/fonts build/ && cp src/website/globals.css build/website/ && cp ./tailwind.config.js build/ && cp src/website/index.html build/website/",
     "build:tw": "bun run tw",
     "build": "bun run build:dirs && tsc && bun run build:copy && bun run build:tw",
     "build:changelog": "bunx @discordx/changelog --src src",
@@ -18,7 +18,8 @@
     "prisma:studio": "bunx prisma studio",
     "prisma:migrate": "bunx prisma migrate dev --name init",
     "dev:web": "concurrently \"bun --watch src/server.ts\" \"bun run tw -- --watch\"",
-    "tw": "bunx tailwindcss -i ./src/website/globals.css -o ./dist/index.css"
+    "tw": "bunx tailwindcss -i ./src/website/globals.css -o ./dist/index.css",
+    "prepare": "husky install"
   },
   "dependencies": {
     "@discordx/importer": "^1.2.3",
@@ -70,7 +71,8 @@
     "prisma": "5.3.1",
     "tailwindcss": "^3.3.3",
     "ts-node": "^10.9.1",
-    "typescript": "5.2.2"
+    "typescript": "5.2.2",
+    "husky": "^8.0.0"
   },
   "prisma": {
     "seed": "node --loader ts-node/esm prisma/seed.ts"
