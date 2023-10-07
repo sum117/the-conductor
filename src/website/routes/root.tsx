@@ -8,7 +8,7 @@ import {CharacterCreatePlaceholder} from "../components/character-create-placeho
 import {CharacterDetailsMini} from "../components/character-details-mini";
 import {InfoSheet} from "../components/info-sheet";
 import {Button, buttonVariants} from "../components/ui/button";
-import {DISCORD_OAUTH_URL} from "../data/constants";
+import {DISCORD_OAUTH_URL, INFO_BOX_FIELDS} from "../data/constants";
 import useDarkMode from "../hooks/useDarkMode";
 import {getSafeKeys, hasKey, removeCookie} from "../lib/utils";
 export type UserPrisma = Prisma.UserGetPayload<{include: {characters: true}}>;
@@ -88,7 +88,7 @@ export default function Root() {
               <React.Fragment>
                 <CharacterDetailsMini character={character} />
                 {getSafeKeys(character).map((key) => {
-                  if (!hasKey(ptBr.character, key)) return null;
+                  if (!hasKey(ptBr.character, key) || INFO_BOX_FIELDS.includes(key) || key === "imageUrl" || key === "surname" || key === "name") return null;
                   return (
                     <section key={key}>
                       <h2 className="text-xl font-bold capitalize">{ptBr.character?.[key]}</h2>

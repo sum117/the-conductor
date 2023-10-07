@@ -22,10 +22,10 @@ export function CharacterForm({submit}: {submit: React.ReactNode}) {
 
     async function fetchSelectOptions() {
       try {
-        const racesResponse = await fetch(`api/races`, {
+        const racesResponse = await fetch(`${Bun.env.API_BASE_URL}/races`, {
           signal,
         });
-        const factionsResponse = await fetch(`api/factions`, {
+        const factionsResponse = await fetch(`${Bun.env.API_BASE_URL}/factions`, {
           signal,
         });
         if (signal.aborted) return;
