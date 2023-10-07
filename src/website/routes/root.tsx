@@ -1,7 +1,7 @@
 import {Prisma} from "@prisma/client";
 import {LogIn, LogOut, Moon, Music4, Sun} from "lucide-react";
 import React, {useMemo, useState} from "react";
-import {useLoaderData} from "react-router-dom";
+import {Form as RRDForm, useLoaderData, useSubmit} from "react-router-dom";
 import {ptBr} from "../../translations/ptBr";
 import {Character as CharacterCard} from "../components/character";
 import {CharacterCreatePlaceholder} from "../components/character-create-placeholder";
@@ -11,7 +11,6 @@ import {Button, buttonVariants} from "../components/ui/button";
 import {DISCORD_OAUTH_URL} from "../data/constants";
 import useDarkMode from "../hooks/useDarkMode";
 import {getSafeKeys, hasKey, removeCookie} from "../lib/utils";
-
 export type UserPrisma = Prisma.UserGetPayload<{include: {characters: true}}>;
 
 export async function loader() {
@@ -21,7 +20,7 @@ export async function loader() {
 
     const localStorageData = localStorage.getItem("user");
     if (!localStorageData) {
-      removeCookie("token", "/discord", new URL(Bun.env.WEBSITE_BASE_URL!).hostname);
+      removeCookie("token", "/", new URL(Bun.env.WEBSITE_BASE_URL).hostname);
       return null;
     }
 
@@ -42,6 +41,7 @@ export default function Root() {
 
   const character = useMemo(() => user?.characters?.find((character) => character.id === selectedCharacterId), [user, selectedCharacterId]);
   const characterFullName = useMemo(() => `${character?.name} ${character?.surname}`, [character]);
+  const submit = useSubmit();
 
   return (
     <React.Fragment>
@@ -58,9 +58,11 @@ export default function Root() {
               <LogIn className="mr-2 h-4 w-4" /> {ptBr.login}
             </a>
           ) : (
-            <Button variant="destructive" size="icon">
-              <LogOut className="h-4 w-4" />
-            </Button>
+            <RRDForm method="post" action="logout" onSubmit={(event) => event?.preventDefault()}>
+              <Button variant="destructive" size="icon" type="submit" onClick={(event) => submit(event.currentTarget.form)}>
+                <LogOut className="h-4 w-4" />
+              </Button>
+            </RRDForm>
           )}
           <Button variant="outline" size="icon" onClick={toggleTheme}>
             {colorTheme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
