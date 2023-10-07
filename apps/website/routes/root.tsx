@@ -16,12 +16,12 @@ export type UserPrisma = Prisma.UserGetPayload<{include: {characters: true}}>;
 
 export async function loader() {
   try {
-    const response = await fetch(`${import.meta.env.API_BASE_URL}/discord/check`);
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/discord/check`);
     if (!response.ok) return null;
 
     const localStorageData = localStorage.getItem("user");
     if (!localStorageData) {
-      removeCookie("token", "/", new URL(import.meta.env.WEBSITE_BASE_URL).hostname);
+      removeCookie("token", "/", new URL(import.meta.env.VITE_WEBSITE_BASE_URL).hostname);
       return null;
     }
 
@@ -46,7 +46,7 @@ export default function Root() {
 
   return (
     <React.Fragment>
-      <nav className="border-border mb-4 flex items-center justify-between border-b px-4 py-2">
+      <nav className="mb-4 flex items-center justify-between border-b border-border px-4 py-2">
         <ul>
           <li className="inline-flex items-center gap-x-2">
             <Music4 className="h-8 w-8" />
