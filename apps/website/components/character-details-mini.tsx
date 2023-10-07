@@ -6,7 +6,7 @@ import {INFO_BOX_FIELDS} from "../data/constants";
 
 export function CharacterDetailsMini({character}: {character: Character}) {
   return (
-    <section className="rounded-sm border border-border max-sm:mx-auto">
+    <section className="border-border rounded-sm border max-sm:mx-auto">
       {character?.imageUrl && character?.name && (
         <img
           src={character.imageUrl}

@@ -80,7 +80,7 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply relative rounded-full bg-border;
+    @apply bg-border relative rounded-full;
   }
 
   /* Estilos para Firefox */
@@ -89,7 +89,7 @@
   }
 
   scrollbar-thumb {
-    @apply relative rounded-full bg-border;
+    @apply bg-border relative rounded-full;
   }
 
   /* Nota: A pseudoclasse 'scrollbar' para Firefox não é padrão e pode não funcionar em todas as versões. 

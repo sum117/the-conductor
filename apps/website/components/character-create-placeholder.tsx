@@ -13,7 +13,7 @@ export function CharacterCreatePlaceholder() {
   return (
     <Dialog open={isOpen} onOpenChange={() => setIsOpen(!isOpen)}>
       <DialogTrigger asChild>
-        <button className="grid h-96 w-56 place-content-center border border-border bg-none">
+        <button className="border-border grid h-96 w-56 place-content-center border bg-none">
           <Plus />
         </button>
       </DialogTrigger>
