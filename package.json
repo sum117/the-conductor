@@ -19,7 +19,7 @@
     "prisma:migrate": "bunx prisma migrate dev --name init",
     "dev:web": "concurrently \"bun --watch src/server.ts\" \"bun run tw -- --watch\"",
     "tw": "bunx tailwindcss -i ./src/website/globals.css -o ./dist/index.css",
-    "prepare": "husky install"
+    "prepare": "bunx husky install"
   },
   "dependencies": {
     "@discordx/importer": "^1.2.3",
