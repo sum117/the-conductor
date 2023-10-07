@@ -8,5 +8,6 @@ declare module "bun" {
     DISCORD_CLIENT_ID: string;
     DISCORD_CLIENT_SECRET: string;
     WEBSITE_BASE_URL: string;
+    API_BASE_URL: string;
   }
 }
