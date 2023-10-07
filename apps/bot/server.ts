@@ -3,37 +3,10 @@ import {Elysia} from "elysia";
 import path from "path";
 import {SatoriOptions} from "satori";
 import {prisma} from "./db";
-import {getSatoriImage} from "./image-gen/getSatoriImage";
-import {getSatoriOptions} from "./image-gen/getSatoriOptions";
+import {getSatoriImage} from "./lib/image-gen/getSatoriImage";
+import {getSatoriOptions} from "./lib/image-gen/getSatoriOptions";
 import {getUserLevelDetails} from "./lib/util/helpers";
 import {bot} from "./main";
-
-let isReady = false;
-while (!isReady) {
-  let entrypoint = Bun.file(path.resolve(import.meta.dir, "website/index.tsx"));
-  console.log("Waiting for index.js to be built...");
-  if (!(await entrypoint.exists())) {
-    console.log("index.tsx not found, trying index.js...");
-    entrypoint = Bun.file(path.resolve(import.meta.dir, "website/index.js"));
-  }
-
-  await Bun.build({
-    entrypoints: [entrypoint.name!],
-    outdir: "dist",
-    target: "browser",
-    define: {
-      "Bun.env.DISCORD_CLIENT_ID": JSON.stringify(Bun.env.DISCORD_CLIENT_ID),
-      "Bun.env.DISCORD_API_ENDPOINT": JSON.stringify(Bun.env.DISCORD_API_ENDPOINT),
-      "Bun.env.WEBSITE_BASE_URL": JSON.stringify(Bun.env.WEBSITE_BASE_URL),
-      "Bun.env.API_BASE_URL": JSON.stringify(Bun.env.API_BASE_URL),
-    },
-  }).catch((error) => console.error(error));
-
-  const script = Bun.file(path.resolve(import.meta.dir, "../dist/index.js"));
-  if (await script.exists()) isReady = true;
-
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-}
 
 const elysiaServer = new Elysia();
 

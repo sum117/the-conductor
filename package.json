@@ -9,6 +9,7 @@
   ],
   "scripts": {
     "build": "turbo run build",
+    "dev": "turbo run dev --parallel",
     "prisma:generate": "bunx prisma generate",
     "prisma:studio": "bunx prisma studio",
     "prisma:migrate": "bunx prisma migrate dev --name init",

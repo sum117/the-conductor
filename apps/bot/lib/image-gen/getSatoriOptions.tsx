@@ -2,7 +2,7 @@ import path from "path";
 import {SatoriOptions} from "satori";
 
 export async function getSatoriOptions() {
-  const interArrayBuffer = await Bun.file(path.resolve(import.meta.dir, "../fonts/Inter-Regular.ttf")).arrayBuffer();
+  const interArrayBuffer = await Bun.file(path.join(import.meta.dir, "../../fonts/Inter-Regular.ttf")).arrayBuffer();
 
   const options: SatoriOptions = {
     width: 420,

@@ -1,7 +1,7 @@
-import {Character} from "@prisma/client";
+import {Character as CharacterPrisma} from "@prisma/client";
 import React from "react";
 
-export function Character({character, handleCharacterClick}: {character: Character; handleCharacterClick: () => void}) {
+export function Character({character, handleCharacterClick}: {character: CharacterPrisma; handleCharacterClick: () => void}) {
   if (!character.id) return null;
   if (!character.imageUrl) return null;
   if (!character.personality) return null;

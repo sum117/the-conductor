@@ -20,7 +20,8 @@
     "paths": {
       "~/*": ["./*"],
       "@kitajs/html/register": ["./index.d.ts"],
-      "@kitajs/html": ["./index.d.ts"]
+      "@kitajs/html": ["./index.d.ts"],
+      "*.ttf": ["./index.d.ts"]
     }
-  }
+  },
 }

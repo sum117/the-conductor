@@ -1,5 +1,4 @@
 import "@total-typescript/ts-reset";
-
 declare module "bun" {
   interface Env {
     BOT_TOKEN: string;
@@ -12,3 +11,5 @@ declare module "bun" {
     API_BASE_URL: string;
   }
 }
+
+declare module "*.ttf";

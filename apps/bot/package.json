@@ -7,9 +7,9 @@
   "main": "build/main.js",
   "scripts": {
     "build": "tsc",
-    "dev": "bun run src/main.ts",
+    "dev": "bun run main.ts",
     "start": "bun run build/main.js",
-    "watch": "bun --hot run src/main.ts"
+    "watch": "bun --hot run main.ts"
   },
   "dependencies": {
     "@discordx/importer": "^1.2.3",
