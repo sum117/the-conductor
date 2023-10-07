@@ -5,7 +5,7 @@ import cron from "node-cron";
 import {credentials} from "./data/credentials";
 import {prisma} from "./db";
 import {processInstruments, processRoleplayChannel, recursivelyDelete} from "./lib/util/helpers";
-import app from "./server";
+import elysiaServer from "./server";
 import {ptBr} from "./translations/ptBr";
 
 export const bot = new Client({
@@ -75,8 +75,8 @@ async function run() {
   await bot.login(Bun.env.BOT_TOKEN);
 
   // Start the webserver for SVG profile cards
-  app.listen(8080);
-  console.log(`Elysia is running at ${app.server?.hostname}:${app.server?.port}`);
+  elysiaServer.listen(8080);
+  console.log(`Elysia is running at ${elysiaServer.server?.hostname}:${elysiaServer.server?.port}`);
 
   // run every day at 00:00 to delete all the messages in the club channel and delete messages that doesn't exist in the server anymore from the database.
   cron.schedule(

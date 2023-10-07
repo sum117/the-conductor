@@ -18,6 +18,8 @@
     "jsx": "react",
     "baseUrl": ".",
     "paths": {
+      "@kitajs/html/register": ["src/index.d.ts"],
+      "@kitajs/html": ["src/index.d.ts"],
       "@/*": ["./*"]
     }
   },

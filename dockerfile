@@ -32,7 +32,7 @@ COPY --from=builder /tmp/app/bun.lockb /app/bun.lockb
 COPY --from=builder /tmp/app/prisma/ /app_default/prisma/
 COPY --from=builder /tmp/app/prisma/schema.prisma /app/prisma/schema.prisma
 COPY --from=builder /tmp/app/build /app/build
-COPY --from=builder /tmp/app/public /app/public
+COPY --from=builder /tmp/app/dist /app/dist
 
 RUN apt-get update && apt-get install -y ffmpeg
 RUN apt-get install -y curl
