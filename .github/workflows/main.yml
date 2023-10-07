@@ -60,6 +60,7 @@ jobs:
               -e DISCORD_CLIENT_SECRET=${{ secrets.DISCORD_CLIENT_SECRET }} \
               -e DISCORD_API_ENDPOINT=${{ secrets.DISCORD_API_ENDPOINT }} \
               -e WEBSITE_BASE_URL=${{ secrets.WEBSITE_BASE_URL }} \
+              -e API_BASE_URL=${{ secrets.API_BASE_URL }} \
               --restart unless-stopped \
               -v $HOME/prisma-data:/app/prisma \
               -v $HOME/cache:/app/cache \
