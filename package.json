@@ -1,84 +1,33 @@
 {
-  "name": "my-bot",
+  "name": "conductor",
   "version": "1.0.0",
   "private": true,
   "license": "MIT",
   "type": "module",
-  "main": "build/main.js",
+  "workspaces": [
+    "packages/translations",
+    "packages/utilities",
+    "apps/bot",
+    "apps/website"
+  ],
   "scripts": {
-    "build:dirs": "mkdir -p build/fonts build/website",
-    "build:copy": "cp -r src/fonts build/ && cp src/website/globals.css build/website/ && cp ./tailwind.config.js build/ && cp src/website/index.html build/website/",
-    "build:tw": "bun run tw",
-    "build": "bun run build:dirs && tsc && bun run build:copy && bun run build:tw",
-    "build:changelog": "bunx @discordx/changelog --src src",
-    "dev": "bun run src/main.ts",
-    "start": "bun run build/main.js",
-    "watch": "bun --hot run src/main.ts",
     "prisma:generate": "bunx prisma generate",
     "prisma:studio": "bunx prisma studio",
     "prisma:migrate": "bunx prisma migrate dev --name init",
-    "dev:web": "concurrently \"bun --watch src/server.ts\" \"bun run tw -- --watch\"",
-    "tw": "bunx tailwindcss -i ./src/website/globals.css -o ./dist/index.css",
     "prepare": "bunx husky install"
   },
-  "dependencies": {
-    "@discordx/importer": "^1.2.3",
-    "@discordx/pagination": "^3.4.1",
-    "@elysiajs/html": "^0.7.0",
-    "@elysiajs/static": "^0.7.1",
-    "@hookform/resolvers": "^3.3.1",
-    "@prisma/client": "5.3.1",
-    "@radix-ui/react-dialog": "^1.0.5",
-    "@radix-ui/react-label": "^2.0.2",
-    "@radix-ui/react-scroll-area": "^1.0.5",
-    "@radix-ui/react-select": "^2.0.0",
-    "@radix-ui/react-slot": "^1.0.2",
-    "class-variance-authority": "^0.7.0",
-    "clsx": "^2.0.0",
-    "discord.js": "^14.13.0",
-    "discordx": "^11.7.6",
-    "elysia": "^0.7.15",
-    "lodash": "^4.17.21",
-    "lucide-react": "^0.284.0",
-    "luxon": "^3.4.3",
-    "node-cron": "^3.0.2",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-hook-form": "^7.47.0",
-    "react-router-dom": "^6.16.0",
-    "satori": "^0.10.8",
-    "sharp": "^0.32.6",
-    "tailwind-merge": "^1.14.0",
-    "tailwindcss-animate": "^1.0.7",
-    "zod": "^3.22.4"
-  },
-  "trustedDependencies": [
-    "sharp"
-  ],
   "devDependencies": {
     "@total-typescript/ts-reset": "^0.5.1",
-    "@types/lodash": "^4.14.199",
-    "@types/luxon": "^3.3.2",
-    "@types/node": "^20.5.9",
-    "@types/node-cron": "^3.0.9",
-    "@types/react": "^18.2.25",
-    "@types/react-dom": "^18.2.10",
     "bun-types": "latest",
     "concurrently": "^8.2.1",
-    "dedent": "^1.5.1",
+    "husky": "^8.0.0",
     "prettier": "^3.0.3",
-    "prettier-plugin-tailwindcss": "^0.5.5",
-    "prisma": "5.3.1",
-    "tailwindcss": "^3.3.3",
+    "prisma": "latest",
     "ts-node": "^10.9.1",
-    "typescript": "5.2.2",
-    "husky": "^8.0.0"
+    "turbo": "^1.10.15",
+    "typescript": "5.2.2"
   },
   "prisma": {
-    "seed": "node --loader ts-node/esm prisma/seed.ts"
-  },
-  "engines": {
-    "node": ">=16.0.0",
-    "npm": ">=7.0.0"
+    "seed": "node --loader=ts-node/esm prisma/seed.ts"
   }
 }

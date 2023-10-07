@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "paths": {
+      "~/*": ["./*"],
+      "@kitajs/html/register": ["./index.d.ts"],
+      "@kitajs/html": ["./index.d.ts"]
+    }
+  }
+}

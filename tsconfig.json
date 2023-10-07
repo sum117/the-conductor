@@ -16,13 +16,7 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "jsx": "react",
-    "baseUrl": ".",
-    "paths": {
-      "@kitajs/html/register": ["src/index.d.ts"],
-      "@kitajs/html": ["src/index.d.ts"],
-      "@/*": ["./*"]
-    }
   },
-  "exclude": ["prisma/seed.ts", "./tailwind.config.js"],
-  "include": ["./src/**/*"]
+  "exclude": ["prisma/seed.ts", "apps/website/tailwind.config.js"],
+  "include": ["./apps/**/*", "./packages/**/*", "./prisma/**/*"]
 }
