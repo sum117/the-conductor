@@ -1,19 +1,23 @@
 import {Plus} from "lucide-react";
 import React from "react";
 import {ptBr} from "../../translations/ptBr";
+import useSwipe from "../hooks/useSwipe";
 import {CharacterForm} from "./character-form";
 import {Button} from "./ui/button";
 import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger} from "./ui/dialog";
 
 export function CharacterCreatePlaceholder() {
+  const [isOpen, setIsOpen] = React.useState(false);
+  const swipeHandlers = useSwipe({onSwipedLeft: () => setIsOpen(false)});
+
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={() => setIsOpen(!isOpen)}>
       <DialogTrigger asChild>
         <button className="grid h-96 w-56 place-content-center border border-border bg-none">
           <Plus />
         </button>
       </DialogTrigger>
-      <DialogContent className="max-h-[90svh] overflow-y-scroll p-4 max-sm:max-h-screen sm:max-w-[553px]">
+      <DialogContent {...swipeHandlers} className="max-h-[90svh] overflow-y-scroll p-4 max-sm:max-h-[100svh] sm:max-w-[553px]">
         <DialogHeader>
           <DialogTitle className="">{ptBr.form.createChar}</DialogTitle>
           <DialogDescription>{ptBr.form.createCharDescription}</DialogDescription>
