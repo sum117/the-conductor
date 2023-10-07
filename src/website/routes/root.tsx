@@ -1,19 +1,38 @@
+import {Prisma} from "@prisma/client";
 import {LogIn, LogOut, Moon, Music4, Sun} from "lucide-react";
 import React, {useMemo, useState} from "react";
+import {useLoaderData} from "react-router-dom";
 import {ptBr} from "../../translations/ptBr";
 import {Character as CharacterCard} from "../components/character";
 import {CharacterCreatePlaceholder} from "../components/character-create-placeholder";
 import {CharacterDetailsMini} from "../components/character-details-mini";
 import {InfoSheet} from "../components/info-sheet";
 import {Button, buttonVariants} from "../components/ui/button";
-import {AuthContext} from "../context/Auth";
 import {DISCORD_OAUTH_URL} from "../data/constants";
-import useAuth from "../hooks/useAuth";
 import useDarkMode from "../hooks/useDarkMode";
-import {getSafeKeys, hasKey} from "../lib/utils";
+import {getSafeKeys, hasKey, removeCookie} from "../lib/utils";
+
+export type UserPrisma = Prisma.UserGetPayload<{include: {characters: true}}>;
+
+export async function loader() {
+  try {
+    const response = await fetch(`${Bun.env.API_BASE_URL}/discord/check`);
+    if (!response.ok) return null;
+
+    const localStorageData = localStorage.getItem("user");
+    if (!localStorageData) {
+      removeCookie("token", "/discord", new URL(Bun.env.WEBSITE_BASE_URL!).hostname);
+      return null;
+    }
+
+    return JSON.parse(localStorageData) as UserPrisma;
+  } catch {
+    return null;
+  }
+}
 
 export default function Root() {
-  const {user, logout, setUser} = useAuth();
+  const user = useLoaderData() as UserPrisma | null;
   const [selectedCharacterId, setSelectedCharacterId] = useState<number | null>(null);
   const handleCharacterClick = (id: number) => {
     setSelectedCharacterId(id);
@@ -25,7 +44,7 @@ export default function Root() {
   const characterFullName = useMemo(() => `${character?.name} ${character?.surname}`, [character]);
 
   return (
-    <AuthContext.Provider value={{user, setUser}}>
+    <React.Fragment>
       <nav className="mb-4 flex items-center justify-between border-b border-border px-4 py-2">
         <ul>
           <li className="inline-flex items-center gap-x-2">
@@ -39,7 +58,7 @@ export default function Root() {
               <LogIn className="mr-2 h-4 w-4" /> {ptBr.login}
             </a>
           ) : (
-            <Button variant="destructive" size="icon" onClick={logout}>
+            <Button variant="destructive" size="icon">
               <LogOut className="h-4 w-4" />
             </Button>
           )}
@@ -80,6 +99,6 @@ export default function Root() {
           </article>
         </InfoSheet>
       </main>
-    </AuthContext.Provider>
+    </React.Fragment>
   );
 }

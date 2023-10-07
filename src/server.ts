@@ -25,6 +25,7 @@ while (!isReady) {
       "Bun.env.DISCORD_CLIENT_ID": JSON.stringify(Bun.env.DISCORD_CLIENT_ID),
       "Bun.env.DISCORD_API_ENDPOINT": JSON.stringify(Bun.env.DISCORD_API_ENDPOINT),
       "Bun.env.WEBSITE_BASE_URL": JSON.stringify(Bun.env.WEBSITE_BASE_URL),
+      "Bun.env.API_BASE_URL": JSON.stringify(Bun.env.API_BASE_URL),
     },
   }).catch((error) => console.error(error));
 
@@ -116,7 +117,7 @@ elysiaServer.get("/api/discord/callback", async ({query, set, cookie: {token}}) 
       client_secret: Bun.env.DISCORD_CLIENT_SECRET,
       grant_type: "authorization_code",
       code,
-      redirect_uri: Bun.env.WEBSITE_BASE_URL,
+      redirect_uri: Bun.env.WEBSITE_BASE_URL + "/login",
       scope: "identify",
     }),
   });
