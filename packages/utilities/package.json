@@ -1,0 +1,9 @@
+{
+  "name": "utilities",
+  "module": "index.ts",
+  "types": "index.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsc"
+  }
+}

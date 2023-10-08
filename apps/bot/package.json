@@ -1,0 +1,44 @@
+{
+  "name": "bot",
+  "version": "1.0.0",
+  "private": true,
+  "license": "MIT",
+  "module": "build/main.js",
+  "main": "build/main.js",
+  "scripts": {
+    "build": "tsc && cp -r ./fonts ./build/fonts",
+    "dev": "bun run main.ts",
+    "start": "bun run build/main.js",
+    "watch": "bun --hot run main.ts"
+  },
+  "dependencies": {
+    "@discordx/importer": "^1.2.3",
+    "@discordx/pagination": "^3.4.1",
+    "@elysiajs/html": "^0.7.0",
+    "@elysiajs/static": "^0.7.1",
+    "@prisma/client": "latest",
+    "discord.js": "^14.13.0",
+    "discordx": "^11.7.6",
+    "elysia": "^0.7.15",
+    "lodash": "^4.17.21",
+    "luxon": "^3.4.3",
+    "node-cron": "^3.0.2",
+    "react": "^18.2.0",
+    "satori": "^0.10.8",
+    "sharp": "^0.32.6",
+    "translations": "workspace:*",
+    "utilities": "workspace:*"
+  },
+  "trustedDependencies": [
+    "sharp"
+  ],
+  "devDependencies": {
+    "@types/lodash": "^4.14.199",
+    "@types/luxon": "^3.3.2",
+    "@types/node": "^20.5.9",
+    "@types/node-cron": "^3.0.9",
+    "@types/react": "^18.2.25",
+    "bun-types": "^1.0.5-canary.20231006T140143",
+    "typescript": "^5.2.2"
+  }
+}

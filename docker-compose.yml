@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 services:
   app:
     image: app:latest
@@ -19,6 +19,9 @@ services:
       - DISCORD_API_ENDPOINT=${DISCORD_API_ENDPOINT}
       - WEBSITE_BASE_URL=${WEBSITE_BASE_URL}
       - API_BASE_URL=${API_BASE_URL}
+      - VITE_WEBSITE_BASE_URL=${VITE_WEBSITE_BASE_URL}
+      - VITE_API_BASE_URL=${VITE_API_BASE_URL}
+      - VITE_DISCORD_CLIENT_ID=${VITE_DISCORD_CLIENT_ID}
     restart: unless-stopped
     volumes:
       - ./prisma-data:/app/prisma
@@ -26,4 +29,3 @@ services:
 volumes:
   prisma-data:
   cache:
-

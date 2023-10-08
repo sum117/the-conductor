@@ -432,6 +432,7 @@ racesData.push({
   `),
   imageUrl: "https://i.imgur.com/pSArSXg.png",
 });
+
 async function main() {
   const [user, factions, instruments, races] = await Promise.all([
     prisma.user.create({data: {id: "969062359442280548"}}),
@@ -440,28 +441,270 @@ async function main() {
     Promise.all(racesData.map((race) => prisma.race.create({data: race}))),
   ]);
 
-  const character = await prisma.character.create({
-    data: {
-      userId: user.id,
-      name: "Moe",
-      surname: "Ey",
-      age: "23",
-      appearance: "...",
-      isBeingUsed: true,
-      isPending: false,
-      backstory: "...",
-      factionId: factions[0].id,
-      imageUrl: "https://i.imgur.com/sEeWlHf.jpg",
-      gender: "Feminino",
-      weight: "65KG",
-      height: "180cm",
-      personality: "...",
-      raceId: races[4].id,
-      instruments: {create: {instrumentId: instruments[0].id, quantity: 1}},
-    },
+  const charactersData = new Array<Prisma.CharacterUncheckedCreateInput>();
+
+  charactersData.push({
+    userId: user.id,
+    name: "Kana",
+    surname: "Tsuki",
+    age: "19",
+    appearance: "Olhos azuis e cabelos prateados.",
+    isBeingUsed: true,
+    isPending: false,
+    backstory: "Nascida nas montanhas, ela busca vingança pela morte de seu clã.",
+    factionId: factions[2].id,
+    imageUrl: "https://example.com/animeImg1.jpg",
+    gender: "Feminino",
+    weight: "52KG",
+    height: "165cm",
+    personality: "Séria, determinada e corajosa.",
+    raceId: races[2].id,
+    instruments: {create: {instrumentId: instruments[5].id, quantity: 1}},
   });
 
-  console.log({user, factions, instruments, races, character});
+  charactersData.push({
+    userId: user.id,
+    name: "Ryo",
+    surname: "Harada",
+    age: "25",
+    appearance: "Olhos negros e cabelos castanhos.",
+    isBeingUsed: true,
+    isPending: false,
+    backstory: "Um guerreiro errante que perambula pelo mundo em busca de respostas.",
+    factionId: factions[3].id,
+    imageUrl: "https://example.com/animeImg2.jpg",
+    gender: "Masculino",
+    weight: "72KG",
+    height: "185cm",
+    personality: "Calmo, pensativo e habilidoso.",
+    raceId: races[1].id,
+    instruments: {create: {instrumentId: instruments[12].id, quantity: 1}},
+  });
+
+  charactersData.push({
+    userId: user.id,
+    name: "Hana",
+    surname: "Mizuki",
+    age: "21",
+    appearance: "Olhos verdes e cabelos loiros.",
+    isBeingUsed: true,
+    isPending: false,
+    backstory: "Uma maga talentosa que almeja se tornar a melhor em sua geração.",
+    factionId: factions[1].id,
+    imageUrl: "https://example.com/animeImg3.jpg",
+    gender: "Feminino",
+    weight: "58KG",
+    height: "170cm",
+    personality: "Gentil, inteligente e um pouco tímida.",
+    raceId: races[5].id,
+    instruments: {create: {instrumentId: instruments[20].id, quantity: 1}},
+  });
+
+  charactersData.push({
+    userId: user.id,
+    name: "Sora",
+    surname: "Nakamura",
+    age: "20",
+    appearance: "Olhos cinzas e cabelos curtos pretos.",
+    isBeingUsed: true,
+    isPending: false,
+    backstory: "Um jovem com um passado misterioso que busca por seu irmão perdido.",
+    factionId: factions[0].id,
+    imageUrl: "https://example.com/animeImg4.jpg",
+    gender: "Masculino",
+    weight: "70KG",
+    height: "178cm",
+    personality: "Brincalhão, leal e rápido.",
+    raceId: races[3].id,
+    instruments: {create: {instrumentId: instruments[10].id, quantity: 1}},
+  });
+
+  charactersData.push({
+    userId: user.id,
+    name: "Mai",
+    surname: "Tanaka",
+    age: "22",
+    appearance: "Olhos castanhos e cabelos longos ondulados.",
+    isBeingUsed: true,
+    isPending: false,
+    backstory: "Uma dançarina talentosa que encanta a todos com seus movimentos.",
+    factionId: factions[4].id,
+    imageUrl: "https://example.com/animeImg5.jpg",
+    gender: "Feminino",
+    weight: "55KG",
+    height: "165cm",
+    personality: "Elegante, graciosa e determinada.",
+    raceId: races[0].id,
+    instruments: {create: {instrumentId: instruments[6].id, quantity: 1}},
+  });
+
+  charactersData.push({
+    userId: user.id,
+    name: "Toshi",
+    surname: "Yamamoto",
+    age: "30",
+    appearance: "Olhos verdes e cabelo raspado.",
+    isBeingUsed: true,
+    isPending: false,
+    backstory: "Um ex-soldado que agora busca paz em uma vila tranquila.",
+    factionId: factions[1].id,
+    imageUrl: "https://example.com/animeImg6.jpg",
+    gender: "Masculino",
+    weight: "80KG",
+    height: "190cm",
+    personality: "Sério, protetor e sábio.",
+    raceId: races[4].id,
+    instruments: {create: {instrumentId: instruments[8].id, quantity: 1}},
+  });
+
+  charactersData.push({
+    userId: user.id,
+    name: "Aya",
+    surname: "Kojima",
+    age: "18",
+    appearance: "Olhos azuis e cabelos rosados.",
+    isBeingUsed: true,
+    isPending: false,
+    backstory: "Uma estudante que descobre ter poderes mágicos.",
+    factionId: factions[3].id,
+    imageUrl: "https://example.com/animeImg7.jpg",
+    gender: "Feminino",
+    weight: "50KG",
+    height: "160cm",
+    personality: "Curiosa, alegre e um pouco desajeitada.",
+    raceId: races[1].id,
+    instruments: {create: {instrumentId: instruments[3].id, quantity: 1}},
+  });
+
+  charactersData.push({
+    userId: user.id,
+    name: "Kai",
+    surname: "Watanabe",
+    age: "27",
+    appearance: "Olhos negros e cabelos castanhos com um topete.",
+    isBeingUsed: true,
+    isPending: false,
+    backstory: "Um músico que viaja pelo mundo com sua guitarra.",
+    factionId: factions[0].id,
+    imageUrl: "https://example.com/animeImg8.jpg",
+    gender: "Masculino",
+    weight: "74KG",
+    height: "182cm",
+    personality: "Relaxado, carismático e talentoso.",
+    raceId: races[5].id,
+    instruments: {create: {instrumentId: instruments[7].id, quantity: 1}},
+  });
+
+  charactersData.push({
+    userId: user.id,
+    name: "Yumi",
+    surname: "Sasaki",
+    age: "24",
+    appearance: "Olhos lilás e cabelos negros longos.",
+    isBeingUsed: true,
+    isPending: false,
+    backstory: "Uma arqueira da floresta que protege os animais e a natureza.",
+    factionId: factions[2].id,
+    imageUrl: "https://example.com/animeImg9.jpg",
+    gender: "Feminino",
+    weight: "56KG",
+    height: "170cm",
+    personality: "Sensível, determinada e astuta.",
+    raceId: races[3].id,
+    instruments: {create: {instrumentId: instruments[14].id, quantity: 1}},
+  });
+
+  charactersData.push({
+    userId: user.id,
+    name: "Ren",
+    surname: "Okada",
+    age: "29",
+    appearance: "Olhos marrons e cabelos curtos e bagunçados.",
+    isBeingUsed: true,
+    isPending: false,
+    backstory: "Um inventor genial sempre à procura de novas ideias.",
+    factionId: factions[1].id,
+    imageUrl: "https://example.com/animeImg10.jpg",
+    gender: "Masculino",
+    weight: "68KG",
+    height: "175cm",
+    personality: "Inteligente, excêntrico e amigável.",
+    raceId: races[2].id,
+    instruments: {create: {instrumentId: instruments[16].id, quantity: 1}},
+  });
+
+  charactersData.push({
+    userId: user.id,
+    name: "Miki",
+    surname: "Ito",
+    age: "23",
+    appearance: "Olhos dourados e cabelos ruivos.",
+    isBeingUsed: true,
+    isPending: false,
+    backstory: "Uma sacerdotisa com a habilidade de comunicar-se com os espíritos.",
+    factionId: factions[4].id,
+    imageUrl: "https://example.com/animeImg11.jpg",
+    gender: "Feminino",
+    weight: "54KG",
+    height: "163cm",
+    personality: "Gentil, pacífica e espiritual.",
+    raceId: races[0].id,
+    instruments: {create: {instrumentId: instruments[11].id, quantity: 1}},
+  });
+
+  charactersData.push({
+    userId: user.id,
+    name: "Leo",
+    surname: "Kobayashi",
+    age: "28",
+    appearance: "Olhos âmbar e cabelos negros com mechas verdes.",
+    isBeingUsed: true,
+    isPending: false,
+    backstory: "Um guerreiro destemido que luta contra as forças do mal.",
+    factionId: factions[3].id,
+    imageUrl: "https://example.com/animeImg12.jpg",
+    gender: "Masculino",
+    weight: "77KG",
+    height: "188cm",
+    personality: "Bravo, leal e um líder nato.",
+    raceId: races[4].id,
+    instruments: {create: {instrumentId: instruments[22].id, quantity: 1}},
+  });
+
+  charactersData.push({
+    userId: user.id,
+    name: "Chihiro",
+    surname: "Nakajima",
+    age: "26",
+    appearance: "Olhos azuis e cabelos negros com um coque.",
+    isBeingUsed: true,
+    isPending: false,
+    backstory: "Uma bibliotecária que guarda segredos antigos.",
+    factionId: factions[2].id,
+    imageUrl: "https://example.com/animeImg13.jpg",
+    gender: "Feminino",
+    weight: "59KG",
+    height: "168cm",
+    personality: "Calma, inteligente e misteriosa.",
+    raceId: races[5].id,
+    instruments: {create: {instrumentId: instruments[15].id, quantity: 1}},
+  });
+
+  const characters = await Promise.all(
+    charactersData.map(async (char, index) => {
+      try {
+        const randomAnimeImageResponse = await fetch("https://pic.re/image", {method: "POST"});
+        const {file_url} = await randomAnimeImageResponse.json();
+        const created = await prisma.character.create({data: {...char, imageUrl: file_url}});
+        return created;
+      } catch (error) {
+        console.log(`Erro ao criar personagem ${index + 1}: ${char.name}: ${error}`);
+        return null;
+      }
+    }),
+  );
+
+  console.log({user, factions, instruments, races, characters});
 }
 
 main()

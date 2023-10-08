@@ -8,9 +8,19 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+
   DATABASE_URL: ${{ secrets.DATABASE_URL }}
   DATABASE_PROXY_URL: ${{ secrets.DATABASE_PROXY_URL }}
   BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+  DISCORD_CLIENT_ID: ${{ secrets.DISCORD_CLIENT_ID }}
+  DISCORD_CLIENT_SECRET: ${{ secrets.DISCORD_CLIENT_SECRET }}
+  DISCORD_API_ENDPOINT: ${{ secrets.DISCORD_API_ENDPOINT }}
+  WEBSITE_BASE_URL: ${{ secrets.WEBSITE_BASE_URL }}
+  API_BASE_URL: ${{ secrets.API_BASE_URL }}
+
+  VITE_DISCORD_CLIENT_ID: ${{ secrets.DISCORD_CLIENT_ID }}
+  VITE_API_BASE_URL: ${{ secrets.API_BASE_URL }}
+  VITE_WEBSITE_BASE_URL: ${{ secrets.WEBSITE_BASE_URL }}
 
 jobs:
   build_and_push:
@@ -56,11 +66,14 @@ jobs:
               -e DATABASE_URL=${{ env.DATABASE_URL }} \
               -e DATABASE_PROXY_URL=${{ env.DATABASE_PROXY_URL }} \
               -e BOT_TOKEN=${{ env.BOT_TOKEN }} \
-              -e DISCORD_CLIENT_ID=${{ secrets.DISCORD_CLIENT_ID }} \
-              -e DISCORD_CLIENT_SECRET=${{ secrets.DISCORD_CLIENT_SECRET }} \
-              -e DISCORD_API_ENDPOINT=${{ secrets.DISCORD_API_ENDPOINT }} \
-              -e WEBSITE_BASE_URL=${{ secrets.WEBSITE_BASE_URL }} \
-              -e API_BASE_URL=${{ secrets.API_BASE_URL }} \
+              -e DISCORD_CLIENT_ID=${{ env.DISCORD_CLIENT_ID }} \
+              -e DISCORD_CLIENT_SECRET=${{ env.DISCORD_CLIENT_SECRET }} \
+              -e DISCORD_API_ENDPOINT=${{ env.DISCORD_API_ENDPOINT }} \
+              -e WEBSITE_BASE_URL=${{ env.WEBSITE_BASE_URL }} \
+              -e API_BASE_URL=${{ env.API_BASE_URL }} \
+              -e VITE_DISCORD_CLIENT_ID=${{ env.DISCORD_CLIENT_ID }} \
+              -e VITE_API_BASE_URL=${{ env.API_BASE_URL }} \
+              -e VITE_WEBSITE_BASE_URL=${{ env.WEBSITE_BASE_URL }} \
               --restart unless-stopped \
               -v $HOME/prisma-data:/app/prisma \
               -v $HOME/cache:/app/cache \

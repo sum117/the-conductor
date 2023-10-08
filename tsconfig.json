@@ -2,7 +2,6 @@
   "compilerOptions": {
     "types": ["bun-types"],
     "lib": ["esnext"],
-    "outDir": "build",
     "module": "esnext",
     "target": "esnext",
     "moduleResolution": "bundler",
@@ -15,14 +14,7 @@
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "jsx": "react",
-    "baseUrl": ".",
-    "paths": {
-      "@kitajs/html/register": ["src/index.d.ts"],
-      "@kitajs/html": ["src/index.d.ts"],
-      "@/*": ["./*"]
-    }
+    "jsx": "react"
   },
-  "exclude": ["prisma/seed.ts", "./tailwind.config.js"],
-  "include": ["./src/**/*"]
+  "exclude": ["node_modules"],
 }

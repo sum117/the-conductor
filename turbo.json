@@ -1,0 +1,23 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalDotEnv": [".env"],
+  "pipeline": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["./website/**", "build/**"],
+      "cache": false
+    },
+    "lint": {
+      "outputs": []
+    },
+    "dev": {
+      "cache": false
+    },
+    "dev:website": {
+      "env": ["VITE_WEBSITE_BASE_URL", "VITE_DISCORD_CLIENT_ID", "VITE_API_BASE_URL"]
+    },
+    "dev:bot": {
+      "env": ["BOT_TOKEN", "DATABASE_URL", "DATABASE_PROXY_URL", "DISCORD_API_ENDPOINT", "DISCORD_CLIENT_ID", "DISCORD_CLIENT_SECRET", "WEBSITE_BASE_URL"]
+    }
+  }
+}
