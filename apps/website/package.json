@@ -4,7 +4,7 @@
   "private": true,
   "license": "MIT",
   "type": "module",
-  "main": "src/index.tsx",
+  "main": "./index.tsx",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
@@ -32,9 +32,6 @@
     "utilities": "workspace:*",
     "translations": "workspace:*"
   },
-  "trustedDependencies": [
-    "sharp"
-  ],
   "devDependencies": {
     "@types/react": "^18.2.15",
     "@types/react-dom": "^18.2.7",

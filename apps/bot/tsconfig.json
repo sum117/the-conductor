@@ -7,4 +7,5 @@
       "@kitajs/html": ["./index.d.ts"]    
     }
   },
+  "exclude": ["build"]
 }

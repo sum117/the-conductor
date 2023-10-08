@@ -10,6 +10,8 @@ WORKDIR /tmp/app
 # Copy node binary
 COPY --from=node:lts-slim /usr/local/bin/node /usr/local/bin/node
 
+COPY bun.lockb /tmp/app/
+
 # Copy necessary package.json files
 COPY package.json ./ 
 COPY apps/bot/package.json ./apps/bot/ 
