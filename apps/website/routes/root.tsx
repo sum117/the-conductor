@@ -46,7 +46,7 @@ export default function Root() {
 
   return (
     <React.Fragment>
-      <nav className="mb-4 flex items-center justify-between border-b border-border px-4 py-2">
+      <nav className="border-border mb-4 flex items-center justify-between border-b px-4 py-2">
         <ul>
           <li className="inline-flex items-center gap-x-2">
             <Music4 className="h-8 w-8" />

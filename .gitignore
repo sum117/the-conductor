@@ -12,6 +12,7 @@ public
 cache
 dist
 .turbo
+out
 
 # DB
 *.db

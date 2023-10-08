@@ -54,6 +54,8 @@ elysiaServer.get("/api/image-gen/profile/:id", async ({params, set}) => {
   }
 });
 
+const WEBSITE_PATH = path.resolve(import.meta.dir, "../website");
+
 elysiaServer
   .use(html())
   .onError((context) => {
@@ -69,9 +71,10 @@ elysiaServer
     if (assetsRegex.test(context.request.url)) {
       const fileName = new URL(context.request.url).pathname.split("/").pop();
       if (!fileName) throw new Error("Not Found");
-      return Bun.file(path.resolve(import.meta.dir, "../dist", fileName));
+
+      return Bun.file(path.join(WEBSITE_PATH, fileName));
     }
-    return Bun.file(path.resolve(import.meta.dir, "website/index.html"));
+    return Bun.file(path.join(WEBSITE_PATH, "index.html"));
   });
 
 elysiaServer.get("/api/discord/callback", async ({query, set, cookie: {token}}) => {

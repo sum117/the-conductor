@@ -1,6 +1,6 @@
 import {ChannelType, Message} from "discord.js";
 import {ArgsOf, GuardFunction} from "discordx";
-import {credentials} from "~/data/credentials";
+import {credentials} from "utilities";
 
 export const isValidRoleplayMessage: GuardFunction<ArgsOf<"messageCreate" | "messageReactionAdd">> = async ([messageOrReaction], _client, next) => {
   const channel = messageOrReaction instanceof Message ? messageOrReaction.channel : messageOrReaction.message.channel;

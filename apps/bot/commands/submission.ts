@@ -19,9 +19,8 @@ import {
 } from "discord.js";
 import {ButtonComponent, Discord, SelectMenuComponent, Slash} from "discordx";
 import ptBr from "translations";
-import {cleanImageUrl} from "utilities";
+import {cleanImageUrl, credentials} from "utilities";
 import {imageLinks} from "../data/assets";
-import {credentials} from "../data/credentials";
 import {prisma} from "../db";
 import {submissionAppearanceModal, submissionEssentialsModal} from "../lib/components/modals";
 import {awaitSubmitModal, getUserLevelDetails} from "../lib/util/helpers";

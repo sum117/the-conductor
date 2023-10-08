@@ -13,9 +13,9 @@ import lodash from "lodash";
 import {DateTime, Duration} from "luxon";
 import sharp from "sharp";
 import ptBr from "translations";
-import {MUDAE_IMAGE_HEIGHT, MUDAE_IMAGE_WIDTH} from "~/data/constants";
-import {credentials} from "~/data/credentials";
-import {prisma} from "~/db";
+import {credentials} from "utilities";
+import {MUDAE_IMAGE_HEIGHT, MUDAE_IMAGE_WIDTH} from "../../data/constants";
+import {prisma} from "../../db";
 import {makeRoleplayingPlaceholderPayload} from "../components/messagePayloads";
 
 /**

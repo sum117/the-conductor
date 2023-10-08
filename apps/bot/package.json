@@ -6,7 +6,7 @@
   "module": "build/main.js",
   "main": "build/main.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && cp -r ./fonts ./build/fonts",
     "dev": "bun run main.ts",
     "start": "bun run build/main.js",
     "watch": "bun --hot run main.ts"
@@ -25,9 +25,9 @@
     "node-cron": "^3.0.2",
     "react": "^18.2.0",
     "satori": "^0.10.8",
+    "sharp": "^0.32.6",
     "translations": "workspace:*",
-    "utilities": "workspace:*",
-    "sharp": "^0.32.6"
+    "utilities": "workspace:*"
   },
   "trustedDependencies": [
     "sharp"

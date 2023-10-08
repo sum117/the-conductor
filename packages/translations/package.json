@@ -2,5 +2,11 @@
   "name": "translations",
   "module": "index.ts",
   "types": "index.ts",
-  "type": "module"
+  "type": "module",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "utilities": "workspace:*"
+  }
 }

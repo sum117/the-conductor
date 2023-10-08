@@ -1,0 +1,9 @@
+node_modules
+.husky
+.github
+.env
+.env.example
+.prettierrc.json
+docker-compose.yml
+dockerfile
+README.md

@@ -1,4 +1,4 @@
-import {credentials} from "../../apps/bot/data/credentials";
+import {credentials} from "utilities";
 
 export default {
   login: "Login com Discord",

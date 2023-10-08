@@ -3,7 +3,7 @@ import {ChannelType, GuildTextBasedChannel, IntentsBitField, Interaction, Messag
 import {Client} from "discordx";
 import cron from "node-cron";
 import ptBr from "translations";
-import {credentials} from "./data/credentials";
+import {credentials} from "utilities";
 import {prisma} from "./db";
 import {processInstruments, processRoleplayChannel, recursivelyDelete} from "./lib/util/helpers";
 import elysiaServer from "./server";
