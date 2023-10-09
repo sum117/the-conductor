@@ -42,7 +42,7 @@ export class Profile {
     }
     try {
       await interaction.deferReply();
-      const response = await fetch(`http://localhost:8080/profile/${member!.id}`);
+      const response = await fetch(`http://localhost:8080/api/image-gen/profile/${member!.id}`);
       if (!response.ok) {
         interaction.editReply(ptBr.errors.generatingProfile);
         return;

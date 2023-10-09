@@ -168,8 +168,8 @@ export class Character {
       .setFooter({
         text: ptBr.embeds.characterList.footer.replace("{currentIndex}", currentIndex.toString()).replace("{characterCount}", characterCount.toString()),
       })
-      .setFields([{name: ptBr.character.faction, value: `${character.faction?.emoji} ${character.faction?.name}` || "Nenhuma"}])
       .setColor("Random");
+    if (character.faction) displayEmbed.addFields([{name: ptBr.character.faction, value: `${character.faction?.emoji} ${character.faction?.name}`}]);
 
     if (character.instruments.length)
       displayEmbed.addFields([
