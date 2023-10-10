@@ -11,7 +11,7 @@
   ],
   "scripts": {
     "start": "bun apps/bot/main.js",
-    "build": "turbo run build",
+    "build": "dotenv -- turbo run build",
     "dev": "dotenv -- turbo run dev --parallel",
     "prisma:generate": "bunx prisma generate",
     "prisma:studio": "bunx prisma studio",
