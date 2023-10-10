@@ -58,7 +58,7 @@ export class ChannelEditor {
   }
 
   private isEditableChannel(channel: GuildTextBasedChannel): boolean {
-    return channel.isTextBased() && !channel.parent?.name.startsWith("RP") && credentials.channels.randomRoleplay === channel.id;
+    return channel.isTextBased() && (channel.parent?.name.startsWith("RP") || credentials.channels.randomRoleplay === channel.id);
   }
 
   private async getChannelDataOrCreate(channel: GuildTextBasedChannel, name: string): Promise<Channel | null> {
