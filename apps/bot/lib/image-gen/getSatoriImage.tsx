@@ -8,7 +8,7 @@ export async function getSatoriImage(props: UserCardProps, options: SatoriOption
     <UserCard
       userLevel={props.userLevel}
       levelEmoji={props.levelEmoji}
-      allCharacters={props.allCharacters}
+      topFiveCharacters={props.topFiveCharacters.slice(0, 5)}
       progressBarWidth={props.progressBarWidth}
       counters={props.counters}
       mainCharacterWithUser={props.mainCharacterWithUser}
@@ -16,7 +16,10 @@ export async function getSatoriImage(props: UserCardProps, options: SatoriOption
     />,
     options,
   );
-
-  const png = await sharp(Buffer.from(svg)).png().toBuffer();
+  const png = await sharp(Buffer.from(svg), {
+    unlimited: true,
+  })
+    .png()
+    .toBuffer();
   return png;
 }

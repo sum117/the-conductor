@@ -44,7 +44,10 @@ elysiaServer.get("/api/image-gen/profile/:id", async ({params, set}) => {
     const levelEmoji = bot.guilds.cache.first()?.emojis.cache.find((emoji) => emoji.id === emojiId);
     const progressBarWidth = -0.16 * percentageToNextLevel + 16;
 
-    const png = await getSatoriImage({userLevel, levelEmoji, allCharacters, progressBarWidth, counters, mainCharacterWithUser, user}, options);
+    const png = await getSatoriImage(
+      {userLevel, levelEmoji, topFiveCharacters: allCharacters, progressBarWidth, counters, mainCharacterWithUser, user},
+      options,
+    );
 
     return new Response(png, {headers: {"content-type": "image/png"}, status: 200});
   } catch (error) {

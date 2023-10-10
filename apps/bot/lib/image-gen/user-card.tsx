@@ -9,13 +9,13 @@ export type UserCardProps = {
   user: User;
   userLevel: number;
   levelEmoji: GuildEmoji | undefined;
-  allCharacters: Prisma.CharacterGetPayload<{include: {messages: true}}>[];
+  topFiveCharacters: Prisma.CharacterGetPayload<{include: {messages: true}}>[];
   progressBarWidth: number;
   counters: {totalMessages: number; totalCharacters: number};
   mainCharacterWithUser: Prisma.CharacterGetPayload<{include: {user: true; messages: {select: {id: true}}}}>;
 };
 
-export function UserCard({userLevel, levelEmoji, allCharacters, progressBarWidth, mainCharacterWithUser, counters, user}: UserCardProps) {
+export function UserCard({userLevel, levelEmoji, topFiveCharacters: allCharacters, progressBarWidth, mainCharacterWithUser, counters, user}: UserCardProps) {
   return (
     <main style={mainStyle}>
       <LevelHeader userLevel={userLevel} />
