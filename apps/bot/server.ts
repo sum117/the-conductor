@@ -25,7 +25,7 @@ elysiaServer.get("/api/image-gen/profile/:id", async ({params, set}) => {
       include: {user: true, messages: {select: {id: true}}},
     });
     if (!mainCharacterWithUser || !mainCharacterWithUser.imageUrl) {
-      set.status = 404;
+      set.status = "Not Found";
       return "Character Not Found";
     }
     const allCharacters = await prisma.character.findMany({where: {userId: id}, orderBy: {messages: {_count: "desc"}}, include: {messages: true}});
@@ -41,7 +41,7 @@ elysiaServer.get("/api/image-gen/profile/:id", async ({params, set}) => {
 
     const user = await bot.users.fetch(id);
     if (!user) {
-      set.status = 404;
+      set.status = "Not Found";
       return "User Not Found in Bot Cache";
     }
 
@@ -56,7 +56,7 @@ elysiaServer.get("/api/image-gen/profile/:id", async ({params, set}) => {
 
     return new Response(png, {headers: {"content-type": "image/png"}, status: 200});
   } catch (error) {
-    set.status = 500;
+    set.status = "Internal Server Error";
     console.error(error);
     return error;
   }
@@ -68,10 +68,10 @@ elysiaServer
   .use(html())
   .onError((context) => {
     if (context.code === "NOT_FOUND") {
-      context.set.status = 404;
+      context.set.status = "Not Found";
       return "Not Found";
     }
-    context.set.status = 500;
+    context.set.status = "Internal Server Error";
     return "Internal Server Error";
   })
   .get("/website/*", async (context) => {
@@ -89,7 +89,7 @@ let DEVELOPER_TOKEN: string | undefined;
 elysiaServer.get("/api/discord/callback", async ({query, set, cookie: {token}}) => {
   const {code} = query;
   if (!code) {
-    set.status = 400;
+    set.status = "Unauthorized";
     return "Missing Code";
   }
   const response = await fetch(`${Bun.env.DISCORD_API_ENDPOINT}/oauth2/token`, {
@@ -109,7 +109,7 @@ elysiaServer.get("/api/discord/callback", async ({query, set, cookie: {token}}) 
   const json = (await response.json()) as {access_token?: string};
   const {access_token} = json;
   if (!access_token) {
-    set.status = 400;
+    set.status = "Unauthorized";
     return "Missing Access Token";
   }
   const userResponse = await fetch(`${Bun.env.DISCORD_API_ENDPOINT}/users/@me`, {
@@ -120,20 +120,21 @@ elysiaServer.get("/api/discord/callback", async ({query, set, cookie: {token}}) 
   const userJson = (await userResponse.json()) as {id?: string};
   const {id} = userJson;
   if (!id) {
-    set.status = 400;
+    set.status = "Unauthorized";
     return "Missing User ID";
   }
   const discordUser = await bot.users.fetch(id);
   if (!discordUser) {
-    set.status = 404;
+    set.status = "Not Found";
     return "User Not Found in Bot Cache";
   }
   const userData = await prisma.user.findFirst({where: {id}, include: {characters: true}});
   if (!userData) {
-    set.status = 404;
+    set.status = "Not Found";
     return "Character Not Found";
   }
-  set.status = 200;
+  set.status = "OK";
+
   token.path = "/";
   token.value = access_token;
   if (Bun.env.NODE_ENV === "development") DEVELOPER_TOKEN = access_token;
@@ -151,67 +152,68 @@ elysiaServer
       const json = (await response.json()) as {id?: string};
       const {id} = json;
       if (!id) {
-        context.set.status = 400;
+        context.set.status = "Unauthorized";
         return "Missing User ID";
       }
       const discordUser = await bot.users.fetch(id);
       if (!discordUser) {
-        context.set.status = 404;
+        context.set.status = "Not Found";
         return "User Not Found in Bot Cache";
       }
 
-      const userData = await prisma.user.findFirst({where: {id}, include: {characters: true}});
-      if (!userData) {
-        context.set.status = 404;
-        return "Character Not Found";
-      }
+      return id;
     };
 
     return {isSignedIn, cookie: {token: {value: context.cookie.token.value}}};
   })
-  .get(
-    "/api/discord/check",
-    async (context) => {
-      const token = context.cookie.token.value ?? DEVELOPER_TOKEN;
-      if (!token) {
-        context.set.status = 400;
+  .get("/api/discord/check", async (context) => {
+    const query = context.query as {q?: string};
+    const id = await context.isSignedIn();
+    const token = context.cookie.token.value ?? DEVELOPER_TOKEN;
+    if (!token) {
+      context.set.status = "Unauthorized";
+      return "Missing Access Token";
+    }
+    const userData = await prisma.user.findFirst({where: {id}, include: {characters: {take: 15, where: {name: {contains: query.q ?? ""}}}}});
+    if (!userData) {
+      context.set.status = "Not Found";
+      return "Character Not Found";
+    }
+
+    return userData;
+  })
+  .get("/api/races", async (context) => {
+    try {
+      const isSignedIn = await context.isSignedIn();
+      if (!isSignedIn) {
+        context.set.status = "Unauthorized";
         return "Missing Access Token";
       }
-    },
-    {beforeHandle: async ({isSignedIn}) => await isSignedIn()},
-  )
-  .get(
-    "/api/races",
-    async (context) => {
-      try {
-        const allRaces = await prisma.race.findMany();
-        context.set.status = 200;
-        return allRaces;
-      } catch (error) {
-        context.set.status = 500;
-        console.error(error);
-        return error;
+      const allRaces = await prisma.race.findMany();
+      context.set.status = "OK";
+      return allRaces;
+    } catch (error) {
+      context.set.status = "Internal Server Error";
+      console.error(error);
+      return error;
+    }
+  })
+  .get("/api/factions", async (context) => {
+    try {
+      const isSignedIn = await context.isSignedIn();
+      if (!isSignedIn) {
+        context.set.status = "Unauthorized";
+        return "Missing Access Token";
       }
-    },
-    {beforeHandle: async ({isSignedIn}) => await isSignedIn()},
-  )
-  .get(
-    "/api/factions",
-    async (context) => {
-      try {
-        const allFactions = await prisma.faction.findMany();
-        context.set.status = 200;
-        return allFactions;
-      } catch (error) {
-        context.set.status = 500;
-        console.error(error);
-        return error;
-      }
-    },
-    {
-      beforeHandle: async ({isSignedIn}) => await isSignedIn(),
-    },
-  )
+      const allFactions = await prisma.faction.findMany();
+      context.set.status = "OK";
+      return allFactions;
+    } catch (error) {
+      context.set.status = "Internal Server Error";
+      console.error(error);
+      return error;
+    }
+  })
   .post(
     "/api/characters/create",
     async (context) => {
@@ -223,6 +225,11 @@ elysiaServer
       characterData.userId = context.body.userId;
       characterData.isPending = true;
       try {
+        const isSignedIn = await context.isSignedIn();
+        if (!isSignedIn) {
+          context.set.status = "Unauthorized";
+          return "Missing Access Token";
+        }
         const user = await prisma.user.create({data: {id: context.body.userId}}).catch((error) => {
           if (error.code === "P2002") return prisma.user.findUnique({where: {id: context.body.userId}}) as Promise<User>;
           throw error;
@@ -243,7 +250,7 @@ elysiaServer
 
         return {...character, messageLink: message.url};
       } catch (error) {
-        context.set.status = 500;
+        context.set.status = "Internal Server Error";
         console.error(error);
         return error;
       }
@@ -265,6 +272,13 @@ elysiaServer
         faction: t.String(),
       }),
     },
-  );
+  )
+  .delete("/api/characters/delete/:id", async (context) => {
+    const userId = await context.isSignedIn();
+    const {id} = context.params;
+    const character = await prisma.character.delete({where: {id: parseInt(id), AND: {userId}}});
+    context.set.status = "OK";
+    return character;
+  });
 
 export default elysiaServer;

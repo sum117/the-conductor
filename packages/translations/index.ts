@@ -10,6 +10,9 @@ export default {
   login: "Login",
   npc: {prefix: "Prefixo", rarity: {common: "NPC Comum", uncommon: "NPC Incomum", rare: "NPC Raro", epic: "NPC Épico", legendary: "NPC Lendário"}},
   form: {
+    delete: {
+      confirmation: "Tem certeza que deseja deletar esse personagem?",
+    },
     searchChar: "Pesquisar personagem",
     createCharDescription: "Crie seu novo personagem aqui e pressione enviar quando terminar.",
     createChar: "Criar personagem",

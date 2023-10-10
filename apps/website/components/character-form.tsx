@@ -1,7 +1,8 @@
 import {zodResolver} from "@hookform/resolvers/zod";
 import {Faction, Race} from "@prisma/client";
-import React, {useEffect, useState} from "react";
+import React from "react";
 import {useForm} from "react-hook-form";
+import {useQuery} from "react-query";
 import ptBr from "translations";
 import {getSafeKeys} from "utilities";
 import {z} from "zod";
@@ -15,57 +16,47 @@ import {Textarea} from "./ui/textarea";
 
 export type CharacterFormValues = z.infer<typeof characterSchema>;
 
+const racesQuery = () => ({
+  queryKey: "races",
+  queryFn: async () => {
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/races`);
+    const races = await response.json();
+    return races as Array<Race>;
+  },
+});
+
+const factionsQuery = () => ({
+  queryKey: "factions",
+  queryFn: async () => {
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/factions`);
+    const factions = await response.json();
+    return factions as Array<Faction>;
+  },
+});
+
 export function CharacterForm({submit, onSubmit}: {submit: React.ReactNode; onSubmit: (values: CharacterFormValues) => void}) {
-  const [raceOptions, setRaceOptions] = useState<Race[] | null>([]);
-  const [factionOptions, setFactionOptions] = useState<Faction[] | null>([]);
-  const [error, setError] = useState<string | null>(null);
-  useEffect(() => {
-    const abortController = new AbortController();
-    const signal = abortController.signal;
+  const {data: factions, error: factionsFetchError} = useQuery(factionsQuery());
+  const {data: races, error: racesFetchError} = useQuery(racesQuery());
 
-    async function fetchSelectOptions() {
-      try {
-        const racesResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/races`, {
-          signal,
-        });
-        const factionsResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/factions`, {
-          signal,
-        });
-        if (signal.aborted) return;
-        const racesJson = racesResponse.ok ? await racesResponse.json() : null;
-        const factionsJson = factionsResponse.ok ? await factionsResponse.json() : null;
-        setRaceOptions(racesJson as Race[]);
-        setFactionOptions(factionsJson as Faction[]);
-      } catch (error) {
-        if (error instanceof Error) setError(error.message);
-        else setError(ptBr.errors.somethingWentWrong);
-      }
-    }
-
-    fetchSelectOptions();
-    return () => {
-      abortController.abort();
-    };
-  }, []);
   const form = useForm<CharacterFormValues>({
     resolver: zodResolver(characterSchema),
     defaultValues: {
-      name: "Anastasia",
-      age: "Romanov",
-      appearance: "Appearance",
-      backstory: "Backstory",
-      faction: "3",
-      gender: "Feminino",
-      height: "170",
-      imageUrl: "https://i.imgur.com/KAk1CL7.png",
-      personality: "Personalidade",
-      race: "1",
-      surname: "Moe",
-      weight: "50kg",
+      name: "",
+      age: "",
+      appearance: "",
+      backstory: "",
+      faction: "",
+      gender: "",
+      height: "",
+      imageUrl: "",
+      personality: "",
+      race: "",
+      surname: "",
+      weight: "",
     },
   });
 
-  if (error) return <p>{error}</p>;
+  if (racesFetchError || factionsFetchError) return <p>{ptBr.errors.somethingWentWrong}</p>;
 
   return (
     <Form {...form}>
@@ -86,7 +77,7 @@ export function CharacterForm({submit, onSubmit}: {submit: React.ReactNode; onSu
                           <SelectPrimitive.SelectValue placeholder={ptBr.character[key]} />
                         </SelectPrimitive.SelectTrigger>
                         <SelectPrimitive.SelectContent>
-                          {(key === "faction" ? factionOptions : raceOptions)?.map((option) => (
+                          {(key === "faction" ? factions : races)?.map((option) => (
                             <SelectPrimitive.SelectItem key={option.id} value={option.id.toString()}>
                               {option.name}
                             </SelectPrimitive.SelectItem>

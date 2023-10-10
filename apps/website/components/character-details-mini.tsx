@@ -1,19 +1,31 @@
 import {Character} from "@prisma/client";
+import {Trash} from "lucide-react";
+import {FormEvent} from "react";
+import {Form} from "react-router-dom";
 import ptBr from "translations";
 import {hasKey} from "utilities";
 import {INFO_BOX_FIELDS} from "../data/constants";
+import {Button} from "./ui/button";
 
-export function CharacterDetailsMini({character}: {character: Character}) {
+export function CharacterDetailsMini({character, onDeleteSubmit}: {character: Character; onDeleteSubmit: (event: FormEvent) => void}) {
   return (
     <section className="border-border rounded-sm border max-sm:mx-auto">
       {character?.imageUrl && character?.name && (
-        <img
-          src={character.imageUrl}
-          alt={character.name}
-          className=" aspect-square h-64 w-full rounded-md object-cover object-top shadow-sm shadow-neutral-100 max-sm:w-full"
-        />
+        <div className="relative">
+          <img
+            src={character.imageUrl}
+            alt={character.name}
+            className="aspect-square h-64 w-full rounded-md object-cover object-top shadow-sm shadow-neutral-100 max-sm:w-full"
+          />
+          <Form action="delete" method="POST" onSubmit={onDeleteSubmit}>
+            <input type="hidden" name="id" value={character.id} />
+            <Button type="submit" className="absolute right-0 top-0 m-2" size="icon" variant="destructive">
+              <Trash className="h-4 w-4" />
+            </Button>
+          </Form>
+        </div>
       )}
-      <ul className="grid px-8 py-4">
+      <ul className="py- 4 grid  px-8">
         {INFO_BOX_FIELDS.map((key) => {
           if (!hasKey(ptBr.character, key)) return null;
           return (

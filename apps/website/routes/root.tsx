@@ -2,6 +2,7 @@ import {Prisma} from "@prisma/client";
 import useEmblaCarousel from "embla-carousel-react";
 import {Dot, Lightbulb, LogIn, LogOut, Moon, MoveLeft, MoveRight, Music4, Sun} from "lucide-react";
 import React, {useEffect, useMemo, useState} from "react";
+import {useQuery, type QueryClient} from "react-query";
 import {LoaderFunctionArgs, Form as RRDForm, useLoaderData, useSubmit} from "react-router-dom";
 import ptBr from "translations";
 import {getSafeKeys, hasKey} from "utilities";
@@ -21,35 +22,47 @@ import {cn, removeCookie} from "../lib/utils";
 
 export type UserPrisma = Prisma.UserGetPayload<{include: {characters: true}}>;
 
-export async function loader({request}: LoaderFunctionArgs) {
-  try {
-    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/discord/check`);
+const userQuery = (q?: string) => ({
+  queryKey: "user",
+  queryFn: async () => {
+    const url = new URL(`${import.meta.env.VITE_API_BASE_URL}/discord/check`);
+    if (q) url.searchParams.set("q", q);
+
+    const response = await fetch(url.toString());
     if (!response.ok) return null;
 
-    const localStorageData = localStorage.getItem("user");
-    if (!localStorageData) {
-      removeCookie("token", "/", new URL(import.meta.env.VITE_WEBSITE_BASE_URL).hostname);
+    const user = await response.json();
+    return user as UserPrisma;
+  },
+});
+
+export const loader =
+  (queryClient: QueryClient) =>
+  async ({request}: LoaderFunctionArgs) => {
+    try {
+      const url = new URL(request.url);
+      const q = url.searchParams.get("q");
+      const query = userQuery(q ?? "");
+
+      const user = await queryClient.fetchQuery(query);
+      if (!user) {
+        removeCookie("token", "/", new URL(import.meta.env.VITE_WEBSITE_BASE_URL).hostname);
+        return null;
+      }
+
+      return {
+        user,
+        q,
+      };
+    } catch {
       return null;
     }
-
-    const url = new URL(request.url);
-    const q = url.searchParams.get("q");
-
-    const user = JSON.parse(localStorageData) as UserPrisma;
-    user.characters = user.characters.filter((character) => character.name?.toLowerCase().includes(q?.toLowerCase() ?? ""));
-    return {
-      user,
-      q,
-    };
-  } catch {
-    return null;
-  }
-}
+  };
 
 export default function Root() {
   const data = useLoaderData() as {user: UserPrisma; q: string} | null;
-  const user = data?.user;
   const q = data?.q;
+  const {data: user} = useQuery({...userQuery(q), initialData: data?.user});
 
   const [selectedCharacterId, setSelectedCharacterId] = useState<number | null>(null);
   const handleCharacterClick = (id: number) => {
@@ -73,6 +86,13 @@ export default function Root() {
   const character = useMemo(() => user?.characters?.find((character) => character.id === selectedCharacterId), [user, selectedCharacterId]);
   const characterFullName = useMemo(() => `${character?.name} ${character?.surname}`, [character]);
   const submit = useSubmit();
+
+  const onDeleteSubmit = async (event: React.FormEvent) => {
+    if (!confirm(ptBr.form.delete.confirmation)) {
+      event.preventDefault();
+    }
+    setSelectedCharacterId(null);
+  };
 
   return (
     <React.Fragment>
@@ -184,7 +204,7 @@ export default function Root() {
           <article className="flex items-start gap-x-4 max-sm:flex-col max-sm:gap-x-0 max-sm:gap-y-4 max-sm:text-start">
             {character && (
               <React.Fragment>
-                <CharacterDetailsMini character={character} />
+                <CharacterDetailsMini onDeleteSubmit={onDeleteSubmit} character={character} />
                 {getSafeKeys(character).map((key) => {
                   if (!hasKey(ptBr.character, key) || INFO_BOX_FIELDS.includes(key) || key === "imageUrl" || key === "surname" || key === "name") return null;
                   return (

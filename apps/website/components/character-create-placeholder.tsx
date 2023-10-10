@@ -2,6 +2,7 @@ import {Character} from "@prisma/client";
 import {ToastAction} from "@radix-ui/react-toast";
 import {Plus} from "lucide-react";
 import React from "react";
+import {useQueryClient} from "react-query";
 import {useLoaderData} from "react-router-dom";
 import ptBr from "translations";
 import useSwipe from "../hooks/useSwipe";
@@ -15,6 +16,7 @@ export function CharacterCreatePlaceholder() {
   const [isOpen, setIsOpen] = React.useState(false);
   const swipeHandlers = useSwipe({onSwipedLeft: () => setIsOpen(false)});
   const {toast} = useToast();
+  const queryClient = useQueryClient();
   const rootData = useLoaderData() as {user: UserPrisma; q: string} | null;
   async function onSubmit(values: CharacterFormValues) {
     const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/characters/create`, {
@@ -44,6 +46,7 @@ export function CharacterCreatePlaceholder() {
         </ToastAction>
       ),
     });
+    await queryClient.invalidateQueries({queryKey: ["user"]});
     setIsOpen(false);
   }
 
@@ -59,14 +62,16 @@ export function CharacterCreatePlaceholder() {
           <DialogTitle className="">{ptBr.form.createChar}</DialogTitle>
           <DialogDescription>{ptBr.form.createCharDescription}</DialogDescription>
         </DialogHeader>
-        <CharacterForm
-          onSubmit={onSubmit}
-          submit={
-            <DialogFooter className="col-span-full mt-2">
-              <Button type="submit">{ptBr.form.sendChar}</Button>
-            </DialogFooter>
-          }
-        />
+        {isOpen && (
+          <CharacterForm
+            onSubmit={onSubmit}
+            submit={
+              <DialogFooter className="col-span-full mt-2">
+                <Button type="submit">{ptBr.form.sendChar}</Button>
+              </DialogFooter>
+            }
+          />
+        )}
       </DialogContent>
     </Dialog>
   );
