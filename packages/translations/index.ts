@@ -1,9 +1,16 @@
 import {credentials} from "utilities";
 
 export default {
-  login: "Login com Discord",
+  welcomeCard: {
+    title: "Bem vindo ao Website do Maestro Obscuro!",
+    description: "Você só pode acessar esse website se estiver dentro do servidor e ele não tem muita utilidade até o momento se você não possuir personagens.",
+    loginHelp: "Para fazer login utilize o botão de login no canto superior direito da tela, na barra de navegação.",
+    tip: "Clique na Siih para entrar no servidor!",
+  },
+  login: "Login",
   npc: {prefix: "Prefixo", rarity: {common: "NPC Comum", uncommon: "NPC Incomum", rare: "NPC Raro", epic: "NPC Épico", legendary: "NPC Lendário"}},
   form: {
+    searchChar: "Pesquisar personagem",
     createCharDescription: "Crie seu novo personagem aqui e pressione enviar quando terminar.",
     createChar: "Criar personagem",
     sendChar: "Enviar personagem",
@@ -56,6 +63,7 @@ export default {
     title: "Você está criando seu personagem!",
     description: "Preencha as seções clicando nos botões abaixo.\n\nQuando terminar, clique em **ENVIAR**.",
     footerText: "É comum que hajam erros nessa etapa,\nentão não se contenha em pedir ajuda.",
+    websiteCharFooterText: "Esse personagem foi criado através do website, que legal!",
   },
   buttons: {
     dismiss: "Descartar",
@@ -325,6 +333,7 @@ export default {
     setCharacter: "Erro ao definir personagem. Tente novamente mais tarde.",
     noCharacters: "Esse usuário não tem nenhum personagem.",
     somethingWentWrong: "Algo deu errado, tente novamente.",
+    somethingWentWrongDescription: "Se o erro persistir, entre em contato com um moderador.",
     aboutMe: "Erro ao definir sobre mim. Tente novamente.",
     entityCreationError: "Erro ao criar entidade. Tente novamente.",
     tooManyInstruments: "Você já escolheu um instrumento. Estamos resetando para que você possa escolher outro.",
@@ -381,7 +390,10 @@ export default {
       submitted: "Aparência enviada. Se não houver mais nenhuma mudança, clique em **ENVIAR**.",
     },
     send: {
-      submitted: "✅ Personagem enviado para aprovação.",
+      submitted: "Personagem enviado para aprovação.",
+      submittedDescription: "Você pode clicar no botão ao lado para ser redirecionado para o canal de aprovação.",
+      submittedAction: "Ir",
+      alt: "Ir para o canal de aprovação",
     },
     evaluation: {
       waiting: "Ficha de {user} está aguardando aprovação, {mention}!",

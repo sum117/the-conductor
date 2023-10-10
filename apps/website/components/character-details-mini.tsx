@@ -1,5 +1,4 @@
 import {Character} from "@prisma/client";
-import React from "react";
 import ptBr from "translations";
 import {hasKey} from "utilities";
 import {INFO_BOX_FIELDS} from "../data/constants";
@@ -11,7 +10,7 @@ export function CharacterDetailsMini({character}: {character: Character}) {
         <img
           src={character.imageUrl}
           alt={character.name}
-          className="h-64 w-full rounded-md object-cover object-top shadow-sm shadow-neutral-100 max-sm:w-full"
+          className=" aspect-square h-64 w-full rounded-md object-cover object-top shadow-sm shadow-neutral-100 max-sm:w-full"
         />
       )}
       <ul className="grid px-8 py-4">

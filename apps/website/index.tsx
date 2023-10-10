@@ -1,6 +1,5 @@
 /// <reference lib="dom" />
 /// <reference lib="dom.iterable" />
-import React from "react";
 import {createRoot} from "react-dom/client";
 import {Route, RouterProvider, createBrowserRouter, createRoutesFromElements} from "react-router-dom";
 import "./globals.css";

@@ -13,7 +13,9 @@ import {Input} from "./ui/input";
 import * as SelectPrimitive from "./ui/select";
 import {Textarea} from "./ui/textarea";
 
-export function CharacterForm({submit}: {submit: React.ReactNode}) {
+export type CharacterFormValues = z.infer<typeof characterSchema>;
+
+export function CharacterForm({submit, onSubmit}: {submit: React.ReactNode; onSubmit: (values: CharacterFormValues) => void}) {
   const [raceOptions, setRaceOptions] = useState<Race[] | null>([]);
   const [factionOptions, setFactionOptions] = useState<Faction[] | null>([]);
   const [error, setError] = useState<string | null>(null);
@@ -45,15 +47,26 @@ export function CharacterForm({submit}: {submit: React.ReactNode}) {
       abortController.abort();
     };
   }, []);
-  const form = useForm<z.infer<typeof characterSchema>>({
+  const form = useForm<CharacterFormValues>({
     resolver: zodResolver(characterSchema),
+    defaultValues: {
+      name: "Anastasia",
+      age: "Romanov",
+      appearance: "Appearance",
+      backstory: "Backstory",
+      faction: "3",
+      gender: "Feminino",
+      height: "170",
+      imageUrl: "https://i.imgur.com/KAk1CL7.png",
+      personality: "Personalidade",
+      race: "1",
+      surname: "Moe",
+      weight: "50kg",
+    },
   });
 
-  function onSubmit(values: z.infer<typeof characterSchema>) {
-    console.log(values);
-  }
-
   if (error) return <p>{error}</p>;
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-2 gap-2 px-4 max-sm:grid-cols-1">
