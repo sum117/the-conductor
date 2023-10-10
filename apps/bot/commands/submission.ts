@@ -194,7 +194,6 @@ export class Submission {
       });
 
       await prisma.character.deleteMany({where: {userId: user.id, AND: {isPending: true}}});
-      await prisma.character.create({data: {userId: user.id, isPending: true}});
 
       await interaction.editReply({
         embeds: [this.createCharacterEmbed()],
@@ -288,7 +287,7 @@ export class Submission {
             content: ptBr.feedback.essentials.submitted,
           });
 
-          await prisma.character.update({data: {name, surname, personality, backstory, age}, where: {id: character.id}});
+          await prisma.character.create({data: {name, surname, personality, backstory, age, userId: user.id, isPending: true}});
 
           break;
 
