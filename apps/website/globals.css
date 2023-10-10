@@ -92,6 +92,29 @@
     @apply bg-border relative rounded-full;
   }
 
-  /* Nota: A pseudoclasse 'scrollbar' para Firefox não é padrão e pode não funcionar em todas as versões. 
-  Você pode precisar de soluções alternativas ou plugins para estilizar barras de rolagem no Firefox. */
+  .embla {
+    @apply relative;
+  }
+  .embla__viewport {
+    @apply overflow-hidden;
+  }
+  .embla__container {
+    @apply grid auto-cols-max grid-flow-col gap-x-4;
+  }
+
+  .embla__prev {
+    @apply absolute left-0 top-1/2 mx-4 -translate-y-1/2 transform;
+  }
+
+  .embla__next {
+    @apply absolute right-0 top-1/2 mx-4 -translate-y-1/2 transform;
+  }
+
+  .card__description > p > svg {
+    @apply fill-transparent transition-colors;
+  }
+
+  .card:has(.card__link:hover) .card__description > p > svg {
+    @apply fill-yellow-200;
+  }
 }

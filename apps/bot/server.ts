@@ -1,14 +1,19 @@
+import {cors} from "@elysiajs/cors";
 import {html} from "@elysiajs/html";
-import {Elysia} from "elysia";
+import {Prisma, User} from "@prisma/client";
+import {Elysia, t} from "elysia";
 import path from "path";
 import {SatoriOptions} from "satori";
+import {credentials} from "utilities";
 import {prisma} from "./db";
+import {CharacterPayload} from "./lib/components/CharacterEmbed";
 import {getSatoriImage} from "./lib/image-gen/getSatoriImage";
 import {getSatoriOptions} from "./lib/image-gen/getSatoriOptions";
 import {getUserLevelDetails} from "./lib/util/helpers";
 import {bot} from "./main";
 
 const elysiaServer = new Elysia();
+if (Bun.env.NODE_ENV === "development") elysiaServer.use(cors());
 
 const options: SatoriOptions = await getSatoriOptions();
 
@@ -80,6 +85,7 @@ elysiaServer
     return Bun.file(path.join(WEBSITE_PATH, "index.html"));
   });
 
+let DEVELOPER_TOKEN: string | undefined;
 elysiaServer.get("/api/discord/callback", async ({query, set, cookie: {token}}) => {
   const {code} = query;
   if (!code) {
@@ -130,6 +136,7 @@ elysiaServer.get("/api/discord/callback", async ({query, set, cookie: {token}}) 
   set.status = 200;
   token.path = "/";
   token.value = access_token;
+  if (Bun.env.NODE_ENV === "development") DEVELOPER_TOKEN = access_token;
   return userData;
 });
 
@@ -138,7 +145,7 @@ elysiaServer
     const isSignedIn = async () => {
       const response = await fetch(`${Bun.env.DISCORD_API_ENDPOINT}/users/@me`, {
         headers: {
-          authorization: `Bearer ${context.cookie.token.value}`,
+          authorization: `Bearer ${context.cookie.token.value ?? DEVELOPER_TOKEN}`,
         },
       });
       const json = (await response.json()) as {id?: string};
@@ -165,7 +172,8 @@ elysiaServer
   .get(
     "/api/discord/check",
     async (context) => {
-      if (!context.cookie.token.value) {
+      const token = context.cookie.token.value ?? DEVELOPER_TOKEN;
+      if (!token) {
         context.set.status = 400;
         return "Missing Access Token";
       }
@@ -202,6 +210,60 @@ elysiaServer
     },
     {
       beforeHandle: async ({isSignedIn}) => await isSignedIn(),
+    },
+  )
+  .post(
+    "/api/characters/create",
+    async (context) => {
+      const characterData: Prisma.CharacterUncheckedCreateInput = context.body;
+      characterData.raceId = parseInt(context.body.race);
+      characterData.factionId = parseInt(context.body.faction);
+      "race" in characterData && delete characterData.race;
+      "faction" in characterData && delete characterData.faction;
+      characterData.userId = context.body.userId;
+      characterData.isPending = true;
+      try {
+        const user = await prisma.user.create({data: {id: context.body.userId}}).catch((error) => {
+          if (error.code === "P2002") return prisma.user.findUnique({where: {id: context.body.userId}}) as Promise<User>;
+          throw error;
+        });
+
+        if (!user) {
+          context.set.status = "Not Found";
+          return "User Not Found";
+        }
+
+        const character = await prisma.character.create({data: characterData});
+        const characterPayload = new CharacterPayload({character});
+        const evaluationChannel = await bot.channels.fetch(credentials.channels.evaluationChannel);
+        if (!evaluationChannel?.isTextBased()) throw new Error("Evaluation Channel is not a Text Channel");
+        const message = await evaluationChannel.send(characterPayload);
+
+        context.set.status = "Created";
+
+        return {...character, messageLink: message.url};
+      } catch (error) {
+        context.set.status = 500;
+        console.error(error);
+        return error;
+      }
+    },
+    {
+      body: t.Object({
+        userId: t.String(),
+        name: t.String(),
+        surname: t.String(),
+        personality: t.String(),
+        appearance: t.String(),
+        backstory: t.String(),
+        imageUrl: t.String(),
+        age: t.String(),
+        height: t.String(),
+        gender: t.String(),
+        weight: t.String(),
+        race: t.String(),
+        faction: t.String(),
+      }),
     },
   );
 

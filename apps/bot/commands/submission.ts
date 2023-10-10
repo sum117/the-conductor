@@ -34,9 +34,16 @@ const createCharacterFactionSelectMenuId = "createCharacterFactionSelectMenu";
 const createCharacterInstrumentSelectMenuId = "createCharacterInstrumentSelectMenu";
 const createCharacterApproveButtonIdPrefix = "createCharacterApprove-";
 const createCharacterRejectButtonIdPrefix = "createCharacterReject-";
+
 const createCharacterApproveButtonId = (characterId: number) => createCharacterApproveButtonIdPrefix + characterId;
 const createCharacterRejectButtonId = (characterId: number) => createCharacterRejectButtonIdPrefix + characterId;
 
+export function createCharacterEvaluationButtonRow(characterId: number): ActionRowBuilder<ButtonBuilder> {
+  return new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder().setCustomId(createCharacterApproveButtonId(characterId)).setLabel(ptBr.buttons.approve).setStyle(ButtonStyle.Success),
+    new ButtonBuilder().setCustomId(createCharacterRejectButtonId(characterId)).setLabel(ptBr.buttons.reject).setStyle(ButtonStyle.Danger),
+  );
+}
 @Discord()
 export class Submission {
   // Admin
@@ -441,7 +448,7 @@ export class Submission {
           }
           const characterToEvaluateMessage = await approvalChannel.send({
             embeds: [popupEmbed],
-            components: [this.createCharacterEvaluationButtonRow(character.id)],
+            components: [createCharacterEvaluationButtonRow(character.id)],
             content: ptBr.feedback.evaluation.waiting
               .replace("{user}", interaction.user.toString())
               .replace("{mention}", roleMention(credentials.roles.adminRole)),
@@ -545,13 +552,6 @@ export class Submission {
               return option;
             }),
         ),
-    );
-  }
-
-  private createCharacterEvaluationButtonRow(characterId: number): ActionRowBuilder<ButtonBuilder> {
-    return new ActionRowBuilder<ButtonBuilder>().addComponents(
-      new ButtonBuilder().setCustomId(createCharacterApproveButtonId(characterId)).setLabel(ptBr.buttons.approve).setStyle(ButtonStyle.Success),
-      new ButtonBuilder().setCustomId(createCharacterRejectButtonId(characterId)).setLabel(ptBr.buttons.reject).setStyle(ButtonStyle.Danger),
     );
   }
 
