@@ -64,7 +64,7 @@ elysiaServer.get("/api/image-gen/profile/:id", async ({params, set}) => {
   }
 });
 
-const WEBSITE_PATH = path.resolve(import.meta.dir, "../website/build");
+const WEBSITE_PATH = path.resolve(import.meta.dir, "../website");
 type MetaTags = {
   title?: string;
   description?: string;
