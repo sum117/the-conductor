@@ -4,6 +4,7 @@ import {removeCookie} from "../lib/utils";
 
 export const action = (queryClient: QueryClient) => () => {
   queryClient.setQueryData("user", null);
+  queryClient.invalidateQueries("user");
   removeCookie("token", "/", new URL(import.meta.env.VITE_WEBSITE_BASE_URL).hostname);
   throw redirect("/");
 };

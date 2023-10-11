@@ -1,10 +1,9 @@
 import {CheckCircle, Lightbulb} from "lucide-react";
-import {useQueryClient} from "react-query";
+import {useRouteLoaderData} from "react-router-dom";
 import ptBr from "translations";
 import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from "../components/ui/card";
 export default function Index() {
-  const queryClient = useQueryClient();
-  const user = queryClient.getQueryData("user");
+  const user = useRouteLoaderData("root");
 
   return (
     <div className="rounded-lg bg-red-200 bg-[url(https://i.imgur.com/CObehuI.jpg)] bg-cover bg-no-repeat p-2">

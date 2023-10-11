@@ -19,7 +19,7 @@ const queryClient = new QueryClient();
 
 const router = createBrowserRouter(
   createRoutesFromElements(
-    <Route path="/" element={<Root />} loader={rootLoader(queryClient)} errorElement={<ErrorPage />}>
+    <Route id="root" path="/" element={<Root />} loader={rootLoader(queryClient)} errorElement={<ErrorPage />}>
       <Route errorElement={<ErrorPage />}>
         <Route index element={<Index />} />
         <Route path="login" loader={loginLoader} />

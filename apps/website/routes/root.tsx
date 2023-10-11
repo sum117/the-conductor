@@ -74,7 +74,7 @@ export default function Root() {
               ) : (
                 <React.Fragment>
                   <RRDForm method="post" action="logout">
-                    <Button variant="destructive" size="icon" type="submit" onClick={(event) => submit(event.currentTarget.form)}>
+                    <Button variant="destructive" size="icon" type="button" onClick={(event) => submit(event.currentTarget.form)}>
                       <LogOut className="h-4 w-4" />
                     </Button>
                   </RRDForm>
