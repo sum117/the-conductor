@@ -1,8 +1,9 @@
+import {QueryClient} from "react-query";
 import {redirect} from "react-router-dom";
 import {removeCookie} from "../lib/utils";
 
-export async function action() {
-  localStorage.removeItem("user");
+export const action = (queryClient: QueryClient) => () => {
+  queryClient.setQueryData("user", null);
   removeCookie("token", "/", new URL(import.meta.env.VITE_WEBSITE_BASE_URL).hostname);
-  return redirect("/");
-}
+  throw redirect("/");
+};

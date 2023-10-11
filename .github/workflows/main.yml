@@ -62,6 +62,7 @@ jobs:
             docker rm app || true
             docker run -d \
               --name app \
+              --network the_conductor_network \
               -p 8080:8080 \
               -e DATABASE_URL=${{ env.DATABASE_URL }} \
               -e DATABASE_PROXY_URL=${{ env.DATABASE_PROXY_URL }} \

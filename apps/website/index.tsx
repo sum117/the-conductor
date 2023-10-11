@@ -23,7 +23,7 @@ const router = createBrowserRouter(
       <Route errorElement={<ErrorPage />}>
         <Route index element={<Index />} />
         <Route path="login" loader={loginLoader} />
-        <Route path="logout" action={logoutAction} />
+        <Route path="logout" action={logoutAction(queryClient)} />
         <Route element={<ProtectedRoute />} loader={protectedRouteLoader(queryClient)}>
           <Route path="characters" element={<Characters />} loader={charactersLoader(queryClient)}>
             <Route path=":characterId" element={<Character />} loader={characterLoader(queryClient)} />

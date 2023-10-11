@@ -33,7 +33,6 @@ export const loader = (queryClient: QueryClient) => async () => {
       removeCookie("token", "/", new URL(import.meta.env.VITE_WEBSITE_BASE_URL).hostname);
       return null;
     }
-
     return {
       user,
     };
@@ -74,7 +73,7 @@ export default function Root() {
                 </a>
               ) : (
                 <React.Fragment>
-                  <RRDForm method="post" action="logout" onSubmit={(event) => event?.preventDefault()}>
+                  <RRDForm method="post" action="logout">
                     <Button variant="destructive" size="icon" type="submit" onClick={(event) => submit(event.currentTarget.form)}>
                       <LogOut className="h-4 w-4" />
                     </Button>
