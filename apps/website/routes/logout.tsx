@@ -1,10 +1,9 @@
 import {QueryClient} from "react-query";
 import {redirect} from "react-router-dom";
-import {removeCookie} from "../lib/utils";
 
-export const action = (queryClient: QueryClient) => () => {
+export const action = (queryClient: QueryClient) => async () => {
   queryClient.setQueryData("user", null);
-  queryClient.invalidateQueries("user");
-  removeCookie("token", "/", new URL(import.meta.env.VITE_WEBSITE_BASE_URL).hostname);
+  await fetch(`${import.meta.env.VITE_API_BASE_URL}/discord/logout`);
+  await queryClient.invalidateQueries("user");
   throw redirect("/");
 };

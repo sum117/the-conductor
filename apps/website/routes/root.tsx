@@ -9,7 +9,7 @@ import {Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTri
 import {Toaster} from "../components/ui/toaster";
 import {DISCORD_OAUTH_URL} from "../data/constants";
 import useDarkMode from "../hooks/useDarkMode";
-import {cn, removeCookie} from "../lib/utils";
+import {cn} from "../lib/utils";
 
 const userQuery = () => ({
   queryKey: "user",
@@ -30,7 +30,7 @@ export const loader = (queryClient: QueryClient) => async () => {
 
     const user = await queryClient.fetchQuery(query);
     if (!user) {
-      removeCookie("token", "/", new URL(import.meta.env.VITE_WEBSITE_BASE_URL).hostname);
+      await fetch(`${import.meta.env.VITE_API_BASE_URL}/discord/logout`);
       return null;
     }
     return {

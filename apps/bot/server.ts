@@ -64,7 +64,7 @@ elysiaServer.get("/api/image-gen/profile/:id", async ({params, set}) => {
   }
 });
 
-const WEBSITE_PATH = path.resolve(import.meta.dir, "../website");
+const WEBSITE_PATH = path.resolve(import.meta.dir, "../website/build");
 type MetaTags = {
   title?: string;
   description?: string;
@@ -123,60 +123,68 @@ elysiaServer
   });
 
 let DEVELOPER_TOKEN: string | undefined;
-elysiaServer.get("/api/discord/callback", async ({query, set, cookie: {token}}) => {
-  const {code} = query;
-  if (!code) {
-    set.status = "Unauthorized";
-    return "Missing Code";
-  }
-  const response = await fetch(`${Bun.env.DISCORD_API_ENDPOINT}/oauth2/token`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: new URLSearchParams({
-      client_id: Bun.env.DISCORD_CLIENT_ID,
-      client_secret: Bun.env.DISCORD_CLIENT_SECRET,
-      grant_type: "authorization_code",
-      code,
-      redirect_uri: Bun.env.WEBSITE_BASE_URL + "/login",
-      scope: "identify",
-    }),
-  });
-  const json = (await response.json()) as {access_token?: string};
-  const {access_token} = json;
-  if (!access_token) {
-    set.status = "Unauthorized";
-    return "Missing Access Token";
-  }
-  const userResponse = await fetch(`${Bun.env.DISCORD_API_ENDPOINT}/users/@me`, {
-    headers: {
-      authorization: `Bearer ${access_token}`,
-    },
-  });
-  const userJson = (await userResponse.json()) as {id?: string};
-  const {id} = userJson;
-  if (!id) {
-    set.status = "Unauthorized";
-    return "Missing User ID";
-  }
-  const discordUser = await bot.users.fetch(id);
-  if (!discordUser) {
-    set.status = "Not Found";
-    return "User Not Found in Bot Cache";
-  }
-  const userData = await prisma.user.findFirst({where: {id}});
-  if (!userData) {
-    set.status = "Not Found";
-    return "Character Not Found";
-  }
-  set.status = "OK";
+elysiaServer
+  .get("/api/discord/callback", async ({query, set, cookie: {token}}) => {
+    const {code} = query;
+    if (!code) {
+      set.status = "Unauthorized";
+      return "Missing Code";
+    }
+    const response = await fetch(`${Bun.env.DISCORD_API_ENDPOINT}/oauth2/token`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        client_id: Bun.env.DISCORD_CLIENT_ID,
+        client_secret: Bun.env.DISCORD_CLIENT_SECRET,
+        grant_type: "authorization_code",
+        code,
+        redirect_uri: Bun.env.WEBSITE_BASE_URL + "/login",
+        scope: "identify",
+      }),
+    });
+    const json = (await response.json()) as {access_token?: string};
+    const {access_token} = json;
+    if (!access_token) {
+      set.status = "Unauthorized";
+      return "Missing Access Token";
+    }
+    const userResponse = await fetch(`${Bun.env.DISCORD_API_ENDPOINT}/users/@me`, {
+      headers: {
+        authorization: `Bearer ${access_token}`,
+      },
+    });
+    const userJson = (await userResponse.json()) as {id?: string};
+    const {id} = userJson;
+    if (!id) {
+      set.status = "Unauthorized";
+      return "Missing User ID";
+    }
+    const discordUser = await bot.users.fetch(id);
+    if (!discordUser) {
+      set.status = "Not Found";
+      return "User Not Found in Bot Cache";
+    }
+    const userData = await prisma.user.findFirst({where: {id}});
+    if (!userData) {
+      set.status = "Not Found";
+      return "Character Not Found";
+    }
+    set.status = "OK";
 
-  token.path = "/";
-  token.value = access_token;
-  if (Bun.env.NODE_ENV === "development") DEVELOPER_TOKEN = access_token;
-  return userData;
-});
+    token.path = "/";
+    token.value = access_token;
+    if (Bun.env.NODE_ENV === "development") DEVELOPER_TOKEN = access_token;
+    return userData;
+  })
+  .get("/api/discord/logout", async ({set, cookie: {token}}) => {
+    set.status = "OK";
+    token.path = "/";
+    token.value = "";
+    token.maxAge = 0;
+    return {message: "Logged Out"};
+  });
 
 elysiaServer
   .derive((context) => {
