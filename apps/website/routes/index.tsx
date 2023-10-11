@@ -27,7 +27,7 @@ export default function Index() {
           />
         </CardContent>
         <CardFooter>
-          {user ? (
+          {!user ? (
             <p>{ptBr.welcomeCard.loginHelp}</p>
           ) : (
             <p className="inline-flex w-full items-center justify-center gap-x-2 stroke-green-600 text-green-600">

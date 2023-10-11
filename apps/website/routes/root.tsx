@@ -2,7 +2,7 @@ import {User} from "@prisma/client";
 import {LogIn, LogOut, Menu, Moon, Music4, Sun} from "lucide-react";
 import React from "react";
 import {useQuery, type QueryClient} from "react-query";
-import {LoaderFunctionArgs, NavLink, Outlet, Form as RRDForm, useLoaderData, useSubmit} from "react-router-dom";
+import {NavLink, Outlet, Form as RRDForm, useLoaderData, useSubmit} from "react-router-dom";
 import ptBr from "translations";
 import {Button, buttonVariants} from "../components/ui/button";
 import {Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger} from "../components/ui/sheet";
@@ -24,28 +24,23 @@ const userQuery = () => ({
   },
 });
 
-export const loader =
-  (queryClient: QueryClient) =>
-  async ({request}: LoaderFunctionArgs) => {
-    try {
-      const url = new URL(request.url);
-      const q = url.searchParams.get("q");
-      const query = userQuery();
+export const loader = (queryClient: QueryClient) => async () => {
+  try {
+    const query = userQuery();
 
-      const user = await queryClient.fetchQuery(query);
-      if (!user) {
-        removeCookie("token", "/", new URL(import.meta.env.VITE_WEBSITE_BASE_URL).hostname);
-        return null;
-      }
-
-      return {
-        user,
-        q,
-      };
-    } catch {
+    const user = await queryClient.fetchQuery(query);
+    if (!user) {
+      removeCookie("token", "/", new URL(import.meta.env.VITE_WEBSITE_BASE_URL).hostname);
       return null;
     }
-  };
+
+    return {
+      user,
+    };
+  } catch {
+    return null;
+  }
+};
 
 export default function Root() {
   const {colorTheme, toggleTheme} = useDarkMode();
@@ -113,20 +108,22 @@ export default function Root() {
                   {ptBr.routes.home}
                 </NavLink>
               </li>
-              <li>
-                <NavLink
-                  to="/characters"
-                  className={({isActive, isPending}) =>
-                    cn(
-                      "w-full",
-                      isActive ? buttonVariants({variant: "default", size: "lg"}) : buttonVariants({variant: "outline", size: "lg"}),
-                      isPending ? "opacity-50" : "",
-                    )
-                  }
-                >
-                  {ptBr.routes.characters}
-                </NavLink>
-              </li>
+              {user && (
+                <li>
+                  <NavLink
+                    to="/characters"
+                    className={({isActive, isPending}) =>
+                      cn(
+                        "w-full",
+                        isActive ? buttonVariants({variant: "default", size: "lg"}) : buttonVariants({variant: "outline", size: "lg"}),
+                        isPending ? "opacity-50" : "",
+                      )
+                    }
+                  >
+                    {ptBr.routes.characters}
+                  </NavLink>
+                </li>
+              )}
             </ul>
           </SheetContent>
         </Sheet>

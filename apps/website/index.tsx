@@ -12,6 +12,7 @@ import Characters, {loader as charactersLoader} from "./routes/characters";
 import {action as deleteAction} from "./routes/delete";
 import {loader as loginLoader} from "./routes/login";
 import {action as logoutAction} from "./routes/logout";
+import ProtectedRoute, {loader as protectedRouteLoader} from "./routes/protected-route";
 import Root, {loader as rootLoader} from "./routes/root";
 
 const queryClient = new QueryClient();
@@ -23,9 +24,11 @@ const router = createBrowserRouter(
         <Route index element={<Index />} />
         <Route path="login" loader={loginLoader} />
         <Route path="logout" action={logoutAction} />
-        <Route path="characters" element={<Characters />} loader={charactersLoader(queryClient)}>
-          <Route path=":characterId" element={<Character />} loader={characterLoader(queryClient)} />
-          <Route path=":characterId/delete" action={deleteAction(queryClient)} />
+        <Route element={<ProtectedRoute />} loader={protectedRouteLoader(queryClient)}>
+          <Route path="characters" element={<Characters />} loader={charactersLoader(queryClient)}>
+            <Route path=":characterId" element={<Character />} loader={characterLoader(queryClient)} />
+            <Route path=":characterId/delete" action={deleteAction(queryClient)} />
+          </Route>
         </Route>
       </Route>
     </Route>,
