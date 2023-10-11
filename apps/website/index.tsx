@@ -4,19 +4,30 @@ import React from "react";
 import {createRoot} from "react-dom/client";
 import {QueryClient, QueryClientProvider} from "react-query";
 import {Route, RouterProvider, createBrowserRouter, createRoutesFromElements} from "react-router-dom";
+import ErrorPage from "./error-page";
 import "./globals.css";
+import Index from "./routes";
+import Character, {loader as characterLoader} from "./routes/character";
+import Characters, {loader as charactersLoader} from "./routes/characters";
 import {action as deleteAction} from "./routes/delete";
 import {loader as loginLoader} from "./routes/login";
 import {action as logoutAction} from "./routes/logout";
 import Root, {loader as rootLoader} from "./routes/root";
+
 const queryClient = new QueryClient();
 
 const router = createBrowserRouter(
   createRoutesFromElements(
-    <Route path="/website" element={<Root />} loader={rootLoader(queryClient)}>
-      <Route path="login" loader={loginLoader} />
-      <Route path="logout" action={logoutAction} />
-      <Route path="delete" action={deleteAction(queryClient)} />
+    <Route path="/" element={<Root />} loader={rootLoader(queryClient)} errorElement={<ErrorPage />}>
+      <Route errorElement={<ErrorPage />}>
+        <Route index element={<Index />} />
+        <Route path="login" loader={loginLoader} />
+        <Route path="logout" action={logoutAction} />
+        <Route path="characters" element={<Characters />} loader={charactersLoader(queryClient)}>
+          <Route path=":characterId" element={<Character />} loader={characterLoader(queryClient)} />
+          <Route path=":characterId/delete" action={deleteAction(queryClient)} />
+        </Route>
+      </Route>
     </Route>,
   ),
 );

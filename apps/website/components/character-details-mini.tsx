@@ -1,13 +1,12 @@
 import {Character} from "@prisma/client";
 import {Trash} from "lucide-react";
-import {FormEvent} from "react";
 import {Form} from "react-router-dom";
 import ptBr from "translations";
 import {hasKey} from "utilities";
 import {INFO_BOX_FIELDS} from "../data/constants";
 import {Button} from "./ui/button";
 
-export function CharacterDetailsMini({character, onDeleteSubmit}: {character: Character; onDeleteSubmit: (event: FormEvent) => void}) {
+export function CharacterDetailsMini({character}: {character: Character}) {
   return (
     <section className="border-border rounded-sm border max-sm:mx-auto">
       {character?.imageUrl && character?.name && (
@@ -17,8 +16,15 @@ export function CharacterDetailsMini({character, onDeleteSubmit}: {character: Ch
             alt={character.name}
             className="aspect-square h-64 w-full rounded-md object-cover object-top shadow-sm shadow-neutral-100 max-sm:w-full"
           />
-          <Form action="delete" method="POST" onSubmit={onDeleteSubmit}>
-            <input type="hidden" name="id" value={character.id} />
+          <Form
+            action="delete"
+            method="POST"
+            onSubmit={(event) => {
+              if (!confirm(ptBr.form.delete.confirmation)) {
+                event.preventDefault();
+              }
+            }}
+          >
             <Button type="submit" className="absolute right-0 top-0 m-2" size="icon" variant="destructive">
               <Trash className="h-4 w-4" />
             </Button>

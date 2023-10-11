@@ -1,7 +1,19 @@
 import {credentials} from "utilities";
 
 export default {
+  routes: {
+    home: "Início",
+    characters: "Personagens",
+  },
+  website: {
+    title: "Maestro Obscuro",
+    description: "Um servidor de RP de música.",
+    image: "https://i.imgur.com/eXZ4n76.png",
+    url: "https://maestro-obscuro.com.br",
+    navigation: "Navegue entre as páginas do servidor.",
+  },
   welcomeCard: {
+    loggedIn: "Você está logado no website, use o menu para navegar!",
     title: "Bem vindo ao Website do Maestro Obscuro!",
     description: "Você só pode acessar esse website se estiver dentro do servidor e ele não tem muita utilidade até o momento se você não possuir personagens.",
     loginHelp: "Para fazer login utilize o botão de login no canto superior direito da tela, na barra de navegação.",

@@ -9,6 +9,6 @@ export async function loader({request}: LoaderFunctionArgs) {
 
     throw null;
   } catch {
-    throw redirect("/website/");
+    throw redirect("/");
   }
 }

@@ -2,8 +2,10 @@ import {cors} from "@elysiajs/cors";
 import {html} from "@elysiajs/html";
 import {Prisma, User} from "@prisma/client";
 import {Elysia, t} from "elysia";
+import lodash from "lodash";
 import path from "path";
 import {SatoriOptions} from "satori";
+import ptBr from "translations";
 import {credentials} from "utilities";
 import {prisma} from "./db";
 import {CharacterPayload} from "./lib/components/CharacterEmbed";
@@ -63,6 +65,25 @@ elysiaServer.get("/api/image-gen/profile/:id", async ({params, set}) => {
 });
 
 const WEBSITE_PATH = path.resolve(import.meta.dir, "../website");
+type MetaTags = {
+  title?: string;
+  description?: string;
+  image?: string;
+  url?: string;
+  color?: string;
+};
+
+function replaceMetaTags(html: string, tags?: MetaTags) {
+  const randomColor = Math.floor(Math.random() * 16777215).toString(16);
+  const image = tags?.image ?? ptBr.website.image;
+  return html
+    .replaceAll("<!--META_TITLE-->", lodash.unescape(tags?.title ?? ptBr.website.title))
+    .replaceAll("<!--META_DESCRIPTION-->", lodash.unescape(tags?.description ?? ptBr.website.description))
+    .replaceAll("<!--META_IMAGE-->", image)
+    .replaceAll("<!--META_URL-->", lodash.unescape(tags?.url ?? ptBr.website.url))
+    .replaceAll("<!--META_IMAGE_TYPE-->", image.includes("jpeg") ? "image/jpeg" : "image/png")
+    .replaceAll("<!--META_COLOR-->", lodash.unescape(tags?.color ? `#${tags?.color}` : `#${randomColor}`));
+}
 
 elysiaServer
   .use(html())
@@ -74,7 +95,7 @@ elysiaServer
     context.set.status = "Internal Server Error";
     return "Internal Server Error";
   })
-  .get("/website/*", async (context) => {
+  .get("*", async (context) => {
     const assetsRegex = /\.(js|css|png|jpg|jpeg)$/;
     if (assetsRegex.test(context.request.url)) {
       const fileName = new URL(context.request.url).pathname.split("/").pop();
@@ -82,7 +103,23 @@ elysiaServer
 
       return Bun.file(path.join(WEBSITE_PATH, fileName));
     }
-    return Bun.file(path.join(WEBSITE_PATH, "index.html"));
+    const html = await Bun.file(path.join(WEBSITE_PATH, "index.html")).text();
+    const htmlToSend = await context.html(replaceMetaTags(html));
+
+    if (context.request.url.includes("wiki/characters")) {
+      const query = context.query as {character?: string};
+      const character = await prisma.character.findFirst({where: {name: {contains: query.character}}});
+      if (!character) return htmlToSend;
+      return context.html(
+        replaceMetaTags(html, {
+          title: `${character.name} ${character.surname}`,
+          description: character.backstory ?? ptBr.website.description,
+          image: character.imageUrl ?? ptBr.website.image,
+          url: `${Bun.env.WEBSITE_BASE_URL}/characters/${character.id}`,
+        }),
+      );
+    }
+    return htmlToSend;
   });
 
 let DEVELOPER_TOKEN: string | undefined;
@@ -128,7 +165,7 @@ elysiaServer.get("/api/discord/callback", async ({query, set, cookie: {token}}) 
     set.status = "Not Found";
     return "User Not Found in Bot Cache";
   }
-  const userData = await prisma.user.findFirst({where: {id}, include: {characters: true}});
+  const userData = await prisma.user.findFirst({where: {id}});
   if (!userData) {
     set.status = "Not Found";
     return "Character Not Found";
@@ -273,6 +310,19 @@ elysiaServer
       }),
     },
   )
+  .get("/api/characters", async (context) => {
+    const userId = await context.isSignedIn();
+    const characters = await prisma.character.findMany({where: {userId, AND: {name: {contains: context.query.q ?? ""}}}});
+    context.set.status = "OK";
+    return characters;
+  })
+  .get("/api/characters/:id", async (context) => {
+    const userId = await context.isSignedIn();
+    const {id} = context.params;
+    const character = await prisma.character.findFirst({where: {id: parseInt(id), AND: {userId}}});
+    context.set.status = "OK";
+    return character;
+  })
   .delete("/api/characters/delete/:id", async (context) => {
     const userId = await context.isSignedIn();
     const {id} = context.params;
