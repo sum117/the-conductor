@@ -63,7 +63,7 @@ export default function LazyImage({
         className={cn(
           rounded ? "rounded-md" : "",
           loaded ? "opacity-100" : "opacity-0",
-          "transition-opacity",
+          "transition-opacity duration-1000",
           cover ? "h-full w-full object-cover object-center" : "",
         )}
         loading="lazy"

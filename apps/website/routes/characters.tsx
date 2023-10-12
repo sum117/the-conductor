@@ -41,7 +41,7 @@ export default function Characters() {
     <div className="container py-8">
       <section className="embla">
         <header className="mb-2 flex justify-between">
-          <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">Seus Personagens</h1>
+          <h1 className="mb-4 scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">Seus Personagens</h1>
           <Form id="search-form" role="search">
             <Input
               id="q"
@@ -64,10 +64,10 @@ export default function Characters() {
             {characters?.map((character) => <CharacterCard className="embla__slide" character={character} key={character.id} />)}
             <CharacterCreatePlaceholder />
           </div>
-          <Button className="embla__prev" variant="outline" size="icon" onClick={onPrevButtonClick} disabled={prevBtnDisabled}>
+          <Button className="embla__prev max-sm:hidden" variant="outline" size="icon" onClick={onPrevButtonClick} disabled={prevBtnDisabled}>
             <MoveLeft className="h-4 w-4" />
           </Button>
-          <Button className="embla__next" variant="outline" size="icon" onClick={onNextButtonClick} disabled={nextBtnDisabled}>
+          <Button className="embla__next max-sm:hidden" variant="outline" size="icon" onClick={onNextButtonClick} disabled={nextBtnDisabled}>
             <MoveRight className="h-4 w-4" />
           </Button>
           <div className="inline-flex w-full justify-center">

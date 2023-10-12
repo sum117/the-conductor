@@ -1,7 +1,7 @@
 import {LogIn, LogOut, Menu, Moon, Music4, Sun} from "lucide-react";
-import React, {useEffect} from "react";
+import React from "react";
 import {useQuery, type QueryClient} from "react-query";
-import {NavLink, Outlet, Form as RRDForm, useLoaderData, useLocation, useSubmit} from "react-router-dom";
+import {NavLink, Outlet, Form as RRDForm, useLoaderData, useSubmit} from "react-router-dom";
 import ptBr from "translations";
 import LazyImage from "../components/lazy-image";
 import {Button, buttonVariants} from "../components/ui/button";
@@ -36,29 +36,9 @@ export default function Root() {
   const initialData = useLoaderData() as Awaited<ReturnType<ReturnType<typeof loader>>>;
   const {data: user} = useQuery({...userQuery(), initialData: initialData?.user});
 
-  const navBarRef = React.useRef<HTMLDivElement>(null);
-  const bgRef = React.useRef<HTMLDivElement>(null);
-  const location = useLocation();
-
-  useEffect(() => {
-    const resizeObserver = new ResizeObserver(() => {
-      const mainHeight =
-        location.pathname === "/" ||
-        location.pathname === "/wiki/characters" ||
-        location.pathname === "/wiki/characters/" ||
-        location.pathname.startsWith("/characters")
-          ? "100svh"
-          : "100%";
-      const navBarHeight = navBarRef.current?.getBoundingClientRect().height ?? 0;
-      bgRef.current!.style.setProperty("--bg-height", `calc(${mainHeight} - ${navBarHeight}px)`);
-    });
-    resizeObserver.observe(navBarRef.current!);
-    return () => resizeObserver.disconnect();
-  }, [location.pathname]);
-
   return (
     <React.Fragment>
-      <nav ref={navBarRef} className="border-border flex items-center justify-between border-b px-4 py-2">
+      <nav className="border-border bg-background flex items-center justify-between border-b px-4 py-2">
         <Sheet>
           <ul>
             <li className="inline-flex items-center gap-x-2">
@@ -163,13 +143,13 @@ export default function Root() {
           </SheetContent>
         </Sheet>
       </nav>
-      <main ref={bgRef} className={`relative h-[var(--bg-height)]`}>
+      <main className="relative">
         <LazyImage
           placeholderSrc="/website-bg-placeholder.jpg"
           src="/website-bg.jpg"
           alt="Website background"
           cover
-          className={cn("absolute inset-0 -z-10", colorTheme === "dark" ? "opacity-30" : "opacity-100")}
+          className={cn("fixed inset-0 -z-10 opacity-30")}
         />
         <Outlet />
         <Toaster />

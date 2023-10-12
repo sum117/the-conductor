@@ -148,7 +148,7 @@ export default function Wiki() {
               </div>
             ))}
           </CardContent>
-          <CardFooter className="flex gap-x-2">
+          <CardFooter className="flex justify-between gap-x-2">
             <small className="text-muted-foreground">Não há motivo para esperar mais...</small>
             <a target="_blank" className={buttonVariants()} href={widgetData?.instant_invite}>
               Conectar
