@@ -7,16 +7,7 @@ import {getSafeKeys, hasKey} from "utilities";
 import {CharacterDetailsMini} from "../components/character-details-mini";
 import {InfoSheet} from "../components/info-sheet";
 import {INFO_BOX_FIELDS} from "../data/constants";
-
-const characterQuery = (characterId?: number) => ({
-  queryKey: ["character", characterId],
-  queryFn: async () => {
-    const url = new URL(`${import.meta.env.VITE_API_BASE_URL}/characters/${characterId}`);
-    const response = await fetch(url.toString());
-    const data = await response.json();
-    return data as TCharacter;
-  },
-});
+import {characterQuery} from "../lib/queries";
 
 export const loader =
   (queryClient: QueryClient) =>

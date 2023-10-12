@@ -6,7 +6,8 @@ import lodash from "lodash";
 import path from "path";
 import {SatoriOptions} from "satori";
 import ptBr from "translations";
-import {credentials} from "utilities";
+import {credentials, hasKey} from "utilities";
+import {WIKI_CHARACTER_DETAILS_FIELDS} from "./data/constants";
 import {prisma} from "./db";
 import {CharacterPayload} from "./lib/components/CharacterEmbed";
 import {getSatoriImage} from "./lib/image-gen/getSatoriImage";
@@ -107,13 +108,29 @@ elysiaServer
     const htmlToSend = await context.html(replaceMetaTags(html));
 
     if (context.request.url.includes("wiki/characters")) {
-      const query = context.query as {character?: string};
-      const character = await prisma.character.findFirst({where: {name: {contains: query.character}}});
+      const characterName = context.request.url.split("/").pop();
+      const character = await prisma.character.findFirst({include: {race: true, faction: true}, where: {name: {contains: characterName}}});
       if (!character) return htmlToSend;
+
+      const makeCharacterDescription = () => {
+        type KeyOfWikiChar = keyof typeof WIKI_CHARACTER_DETAILS_FIELDS;
+        let description = "";
+        for (const field in WIKI_CHARACTER_DETAILS_FIELDS) {
+          const subFields = WIKI_CHARACTER_DETAILS_FIELDS[field as KeyOfWikiChar];
+          description += `## ${ptBr.characterDetails[field as KeyOfWikiChar]}\n`;
+          for (const subField of subFields) {
+            const isNested = subField === "faction" || subField === "race";
+            if (hasKey(character, subField) && !isNested) description += `**${ptBr.character[subField]}:** ${character[subField]}\n`;
+            else if (hasKey(character, subField) && isNested) description += `**${ptBr.character[subField]}:** ${character[subField]?.name}\n`;
+          }
+        }
+        return description;
+      };
+
       return context.html(
         replaceMetaTags(html, {
           title: `${character.name} ${character.surname}`,
-          description: character.backstory ?? ptBr.website.description,
+          description: makeCharacterDescription() ?? ptBr.website.description,
           image: character.imageUrl ?? ptBr.website.image,
           url: `${Bun.env.WEBSITE_BASE_URL}/characters/${character.id}`,
         }),
@@ -337,6 +354,71 @@ elysiaServer
     const character = await prisma.character.delete({where: {id: parseInt(id), AND: {userId}}});
     context.set.status = "OK";
     return character;
+  });
+
+elysiaServer
+  .get("/api/wiki/characters", async (context) => {
+    const pageSize = context.query.pageSize ? parseInt(context.query.pageSize) : 10;
+    const page = context.query.page ? parseInt(context.query.page) : 1;
+    const expanded = context.query.expanded ? Boolean(context.query.expanded) : false;
+
+    type WikiCharacterLink = Prisma.CharacterGetPayload<{select: {name: true; id: true; imageUrl: true}}>;
+    type WikiCharacter = Prisma.CharacterGetPayload<{include: {faction: true; instruments: true; race: true}}>;
+
+    let characters: WikiCharacter[] | WikiCharacterLink[] = [];
+
+    if (expanded) {
+      characters = await prisma.character.findMany({
+        include: {faction: true, instruments: true, race: true},
+        take: pageSize,
+        skip: (page - 1) * pageSize,
+      });
+    } else {
+      characters = await prisma.character.findMany({
+        select: {name: true, id: true, imageUrl: true},
+        take: pageSize,
+        skip: (page - 1) * pageSize,
+      });
+    }
+    const totalPages = Math.ceil((await prisma.character.count()) / pageSize);
+
+    context.set.status = "OK";
+    return !expanded
+      ? {
+          characters: characters
+            .filter(
+              (character): character is WikiCharacterLink & {link: string; name: string; imageUrl: string} =>
+                Boolean(character.name) && Boolean(character.imageUrl) && Boolean(character.id),
+            )
+            .map((character) => ({...character, link: lodash.kebabCase(character.name!)})),
+          totalPages,
+        }
+      : {characters: characters, totalPages};
+  })
+
+  .get("/api/wiki/characters/:name", async (context) => {
+    const {name} = context.params;
+    const character = await prisma.character.findFirst({where: {name: {contains: name}}, include: {faction: true, instruments: true, race: true}});
+    if (!character) {
+      context.set.status = "Not Found";
+      return "Character Not Found";
+    }
+    context.set.status = "OK";
+    return character;
+  })
+
+  .get("/api/wiki/announcements", async (context) => {
+    const announcementsChannel = await bot.channels.fetch(credentials.channels.announcementsChannel);
+    if (!announcementsChannel?.isTextBased() || !announcementsChannel.lastMessageId) {
+      context.set.status = "Not Found";
+      return "Announcements Channel Not Found";
+    }
+    const messages = await announcementsChannel.messages.fetch({limit: 10});
+    context.set.status = "OK";
+    return messages.map((message) => ({
+      content: message.content,
+      attachments: message.attachments.filter((attachment) => Boolean(attachment.url)).map((attachment) => attachment.url),
+    }));
   });
 
 export default elysiaServer;

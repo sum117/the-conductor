@@ -3,6 +3,11 @@ import {ButtonStyle} from "discord.js";
 import {Duration} from "luxon";
 import ptBr from "translations";
 
+export const WIKI_CHARACTER_DETAILS_FIELDS = {
+  characteristics: ["gender", "age", "weight", "height", "race"],
+  affiliations: ["surname", "faction"],
+} as const;
+
 export const NPC_RARITY = {
   common: "common",
   uncommon: "uncommon",

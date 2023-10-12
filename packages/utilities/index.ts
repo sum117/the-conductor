@@ -15,6 +15,9 @@ export function cleanImageUrl(url: string) {
   }
 }
 
-export * from "./credentials";
+export function getSafeEntries<T extends object>(obj: T) {
+  return Object.entries(obj) as [keyof T, T[keyof T]][];
+}
 
+export * from "./credentials";
 export {};

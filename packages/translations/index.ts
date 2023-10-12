@@ -4,8 +4,12 @@ export default {
   routes: {
     home: "Início",
     characters: "Personagens",
+    wiki: "Wiki",
+    wikiCharacters: "Wiki/Personagens",
   },
   website: {
+    back: "Voltar",
+    summary: "Sumário",
     title: "Maestro Obscuro",
     description: "Um servidor de RP de música.",
     image: "https://i.imgur.com/eXZ4n76.png",
@@ -21,6 +25,11 @@ export default {
   },
   login: "Login",
   npc: {prefix: "Prefixo", rarity: {common: "NPC Comum", uncommon: "NPC Incomum", rare: "NPC Raro", epic: "NPC Épico", legendary: "NPC Lendário"}},
+  characterDetails: {
+    playerMade: "Feito por Jogador",
+    characteristics: "Características",
+    affiliations: "Afiliações",
+  },
   form: {
     delete: {
       confirmation: "Tem certeza que deseja deletar esse personagem?",

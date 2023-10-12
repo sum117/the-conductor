@@ -70,6 +70,7 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -117,4 +118,8 @@
   .card:has(.card__link:hover) .card__description > p > svg {
     @apply fill-yellow-200;
   }
+}
+
+img:not([src]):not([srcset]) {
+  visibility: hidden;
 }

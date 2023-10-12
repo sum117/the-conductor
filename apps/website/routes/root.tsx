@@ -1,28 +1,16 @@
-import {User} from "@prisma/client";
 import {LogIn, LogOut, Menu, Moon, Music4, Sun} from "lucide-react";
-import React from "react";
+import React, {useEffect} from "react";
 import {useQuery, type QueryClient} from "react-query";
-import {NavLink, Outlet, Form as RRDForm, useLoaderData, useSubmit} from "react-router-dom";
+import {NavLink, Outlet, Form as RRDForm, useLoaderData, useLocation, useSubmit} from "react-router-dom";
 import ptBr from "translations";
+import LazyImage from "../components/lazy-image";
 import {Button, buttonVariants} from "../components/ui/button";
 import {Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger} from "../components/ui/sheet";
 import {Toaster} from "../components/ui/toaster";
 import {DISCORD_OAUTH_URL} from "../data/constants";
 import useDarkMode from "../hooks/useDarkMode";
+import {userQuery} from "../lib/queries";
 import {cn} from "../lib/utils";
-
-const userQuery = () => ({
-  queryKey: "user",
-  queryFn: async () => {
-    const url = new URL(`${import.meta.env.VITE_API_BASE_URL}/discord/check`);
-
-    const response = await fetch(url.toString());
-    if (!response.ok) return null;
-
-    const user = await response.json();
-    return user as User;
-  },
-});
 
 export const loader = (queryClient: QueryClient) => async () => {
   try {
@@ -48,9 +36,29 @@ export default function Root() {
   const initialData = useLoaderData() as Awaited<ReturnType<ReturnType<typeof loader>>>;
   const {data: user} = useQuery({...userQuery(), initialData: initialData?.user});
 
+  const navBarRef = React.useRef<HTMLDivElement>(null);
+  const bgRef = React.useRef<HTMLDivElement>(null);
+  const location = useLocation();
+
+  useEffect(() => {
+    const resizeObserver = new ResizeObserver(() => {
+      const mainHeight =
+        location.pathname === "/" ||
+        location.pathname === "/wiki/characters" ||
+        location.pathname === "/wiki/characters/" ||
+        location.pathname.startsWith("/characters")
+          ? "100svh"
+          : "100%";
+      const navBarHeight = navBarRef.current?.getBoundingClientRect().height ?? 0;
+      bgRef.current!.style.setProperty("--bg-height", `calc(${mainHeight} - ${navBarHeight}px)`);
+    });
+    resizeObserver.observe(navBarRef.current!);
+    return () => resizeObserver.disconnect();
+  }, [location.pathname]);
+
   return (
     <React.Fragment>
-      <nav className="border-border mb-4 flex items-center justify-between border-b px-4 py-2">
+      <nav ref={navBarRef} className="border-border flex items-center justify-between border-b px-4 py-2">
         <Sheet>
           <ul>
             <li className="inline-flex items-center gap-x-2">
@@ -123,11 +131,46 @@ export default function Root() {
                   </NavLink>
                 </li>
               )}
+              <li>
+                <NavLink
+                  to="/wiki"
+                  className={({isActive, isPending}) =>
+                    cn(
+                      "w-full",
+                      isActive ? buttonVariants({variant: "default", size: "lg"}) : buttonVariants({variant: "outline", size: "lg"}),
+                      isPending ? "opacity-50" : "",
+                    )
+                  }
+                >
+                  {ptBr.routes.wiki}
+                </NavLink>
+              </li>
+              <li>
+                <NavLink
+                  to="/wiki/characters"
+                  className={({isActive, isPending}) =>
+                    cn(
+                      "w-full",
+                      isActive ? buttonVariants({variant: "default", size: "lg"}) : buttonVariants({variant: "outline", size: "lg"}),
+                      isPending ? "opacity-50" : "",
+                    )
+                  }
+                >
+                  {ptBr.routes.wikiCharacters}
+                </NavLink>
+              </li>
             </ul>
           </SheetContent>
         </Sheet>
       </nav>
-      <main className="container">
+      <main ref={bgRef} className={`relative h-[var(--bg-height)]`}>
+        <LazyImage
+          placeholderSrc="/website-bg-placeholder.jpg"
+          src="/website-bg.jpg"
+          alt="Website background"
+          cover
+          className={cn("absolute inset-0 -z-10", colorTheme === "dark" ? "opacity-30" : "opacity-100")}
+        />
         <Outlet />
         <Toaster />
       </main>

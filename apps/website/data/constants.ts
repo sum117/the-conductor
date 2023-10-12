@@ -7,3 +7,10 @@ export const DISCORD_OAUTH_URL = `https://discord.com/api/oauth2/authorize?clien
 export const SELECT_FIELDS = ["race", "faction"] as const;
 
 export const TEXT_AREA_FIELDS = ["personality", "appearance", "backstory"] as const;
+
+export const WIKI_CHARACTER_FIELDS = ["personality", "appearance", "backstory"] as const;
+
+export const WIKI_CHARACTER_DETAILS_FIELDS = {
+  characteristics: ["gender", "age", "weight", "height", "race"],
+  affiliations: ["surname", "faction"],
+} as const;

@@ -1,7 +1,6 @@
-import {Character} from "@prisma/client";
 import useEmblaCarousel from "embla-carousel-react";
 import {Dot, MoveLeft, MoveRight} from "lucide-react";
-import React, {useEffect} from "react";
+import {useEffect} from "react";
 import {QueryClient, useQuery} from "react-query";
 import {Form, LoaderFunctionArgs, Outlet, useLoaderData, useSubmit} from "react-router-dom";
 import ptBr from "translations";
@@ -11,18 +10,8 @@ import {Button} from "../components/ui/button";
 import {Input} from "../components/ui/input";
 import useCarouselDotButtons from "../hooks/useCarouselDotButtons";
 import useCarouselPrevNextButtons from "../hooks/useCarouselPrevNextButtons";
+import {charactersQuery} from "../lib/queries";
 import {cn} from "../lib/utils";
-
-const charactersQuery = (q?: string | null) => ({
-  queryKey: "characters",
-  queryFn: async () => {
-    const url = new URL(`${import.meta.env.VITE_API_BASE_URL}/characters`);
-    if (q) url.searchParams.set("q", q);
-    const response = await fetch(url.toString());
-    const data = await response.json();
-    return data as Character[];
-  },
-});
 
 export const loader =
   (queryClient: QueryClient) =>
@@ -49,10 +38,10 @@ export default function Characters() {
   }, [initialData?.q]);
 
   return (
-    <React.Fragment>
+    <div className="container py-8">
       <section className="embla">
         <header className="mb-2 flex justify-between">
-          <h1 className="text-primary text-2xl">Seus Personagens</h1>
+          <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">Seus Personagens</h1>
           <Form id="search-form" role="search">
             <Input
               id="q"
@@ -93,6 +82,6 @@ export default function Characters() {
         </div>
       </section>
       <Outlet />
-    </React.Fragment>
+    </div>
   );
 }

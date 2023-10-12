@@ -6,8 +6,8 @@ export default function Index() {
   const user = useRouteLoaderData("root");
 
   return (
-    <div className="rounded-lg bg-red-200 bg-[url(https://i.imgur.com/CObehuI.jpg)] bg-cover bg-no-repeat p-2">
-      <Card className="card sm:mx-auto sm:max-w-lg ">
+    <div className="p-2">
+      <Card className="card sm:mx-auto sm:max-w-lg">
         <CardHeader>
           <CardTitle>{ptBr.welcomeCard.title}</CardTitle>
           <CardDescription className="card__description sm:flex sm:flex-col sm:gap-y-2 sm:py-2">

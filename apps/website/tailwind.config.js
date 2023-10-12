@@ -1,7 +1,7 @@
 /** @type {import('tailwindcss').Config} */
-module.exports = {
+export default {
   darkMode: ["class"],
-  content: ["./**/*.{ts,tsx}", "./index.html"],
+  content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./**/*.{ts,tsx}"],
   theme: {
     container: {
       center: true,
@@ -52,6 +52,11 @@ module.exports = {
         sm: "calc(var(--radius) - 4px)",
       },
       keyframes: {
+        pulse2: {
+          "0%": {opacity: 0},
+          "50%": {opacity: 0.25},
+          "100%": {opacity: 0},
+        },
         "accordion-down": {
           from: {height: 0},
           to: {height: "var(--radix-accordion-content-height)"},
@@ -62,10 +67,11 @@ module.exports = {
         },
       },
       animation: {
+        pulse2: "pulse2 2s ease-out infinite",
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
 };

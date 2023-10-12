@@ -3,10 +3,9 @@
   "style": "default",
   "rsc": false,
   "tsx": true,
-
   "tailwind": {
     "config": "tailwind.config.js",
-    "css": "src/react/globals.css",
+    "css": "globals.css",
     "baseColor": "slate",
     "cssVariables": true
   },
