@@ -236,7 +236,7 @@ export class Submission {
   ) {
     try {
       const character = await prisma.character.findFirst({where: {userId: user.id, isPending: true}, include: {instruments: true}});
-      if (!character) {
+      if (!character && type !== "essentials") {
         console.warn(`Character not found for user ${user.id}`);
         return;
       }
@@ -248,7 +248,7 @@ export class Submission {
 
       switch (type) {
         case "essentials":
-          await interaction.showModal(submissionEssentialsModal(character));
+          await interaction.showModal(submissionEssentialsModal(character || undefined));
           const essentialsSubmitted = await awaitSubmitModal(interaction);
 
           const [name, surname, personality, backstory, age] = ["name", "surname", "personality", "backstory", "age"].map((key) =>
@@ -299,7 +299,7 @@ export class Submission {
           break;
 
         case "appearance":
-          await interaction.showModal(submissionAppearanceModal(character));
+          await interaction.showModal(submissionAppearanceModal(character || undefined));
           const appearanceSubmitted = await awaitSubmitModal(interaction);
           const [appearance, height, gender, weight, imageUrl] = ["appearance", "height", "gender", "weight", "imageUrl"].map((key) =>
             appearanceSubmitted.fields.getTextInputValue(key),
@@ -329,20 +329,20 @@ export class Submission {
             embeds: [popupEmbed],
           });
 
-          await prisma.character.update({data: {appearance, height, gender, weight, imageUrl: sanitizedImageUrl}, where: {id: character.id}});
+          await prisma.character.update({data: {appearance, height, gender, weight, imageUrl: sanitizedImageUrl}, where: {id: character!.id}});
           break;
 
         case "race":
           if (!interaction.isStringSelectMenu()) return;
           await interaction.deferUpdate();
-          if (character.raceId) {
+          if (character?.raceId) {
             await interaction.followUp({content: ptBr.errors.raceAlreadySelected, ephemeral: true});
-            await prisma.character.update({data: {raceId: null}, where: {id: character.id}});
+            await prisma.character.update({data: {raceId: null}, where: {id: character!.id}});
             popupEmbed.data.fields = popupEmbed.data.fields?.filter((field) => field.name !== ptBr.character.race);
           }
           const raceId = parseInt(interaction.values[0]);
 
-          const {race} = await prisma.character.update({data: {raceId}, where: {id: character.id}, select: {race: {select: {name: true}}}});
+          const {race} = await prisma.character.update({data: {raceId}, where: {id: character!.id}, select: {race: {select: {name: true}}}});
           if (!race?.name) {
             await interaction.followUp({content: ptBr.errors.somethingWentWrong, ephemeral: true});
             return;
@@ -366,16 +366,16 @@ export class Submission {
         case "instrument":
           if (!interaction.isStringSelectMenu()) return;
           await interaction.deferUpdate();
-          if (character.instruments.length > 0) {
+          if (character!.instruments.length > 0) {
             await interaction.followUp({content: ptBr.errors.tooManyInstruments, ephemeral: true});
-            await prisma.character.update({data: {instruments: {deleteMany: {}}}, where: {id: character.id}});
+            await prisma.character.update({data: {instruments: {deleteMany: {}}}, where: {id: character!.id}});
             popupEmbed.data.fields = popupEmbed.data.fields?.filter((field) => field.name !== ptBr.character.instrument);
           }
 
           const instrumentId = parseInt(interaction.values[0]);
 
           const {instrument} = await prisma.instrumentCharacter.create({
-            data: {characterId: character.id, instrumentId},
+            data: {characterId: character!.id, instrumentId},
             select: {instrument: {select: {name: true}}},
           });
 
@@ -403,7 +403,7 @@ export class Submission {
         case "faction":
           if (!interaction.isStringSelectMenu()) return;
           await interaction.deferUpdate();
-          if (character.factionId) {
+          if (character?.factionId) {
             await interaction.followUp({content: ptBr.errors.factionAlreadySelected, ephemeral: true});
             await prisma.character.update({data: {factionId: null}, where: {id: character.id}});
             popupEmbed.data.fields = popupEmbed.data.fields?.filter((field) => field.name !== ptBr.character.faction);
@@ -412,7 +412,7 @@ export class Submission {
 
           const {faction} = await prisma.character.update({
             data: {factionId},
-            where: {id: character.id},
+            where: {id: character!.id},
             select: {faction: {select: {name: true, emoji: true}}},
           });
           if (!faction?.name) {
@@ -448,14 +448,14 @@ export class Submission {
           }
           const characterToEvaluateMessage = await approvalChannel.send({
             embeds: [popupEmbed],
-            components: [createCharacterEvaluationButtonRow(character.id)],
+            components: [createCharacterEvaluationButtonRow(character!.id)],
             content: ptBr.feedback.evaluation.waiting
               .replace("{user}", interaction.user.toString())
               .replace("{mention}", roleMention(credentials.roles.adminRole)),
           });
 
           const evaluationThread = await characterToEvaluateMessage.startThread({
-            name: ptBr.feedback.evaluation.threadName.replace("{characterName}", `${character.name} ${character.surname}`),
+            name: ptBr.feedback.evaluation.threadName.replace("{characterName}", `${character!.name} ${character!.surname}`),
           });
           evaluationThread.permissionsFor(interaction.user.id)?.add(PermissionFlagsBits.ViewChannel).add(PermissionFlagsBits.SendMessages);
           evaluationThread.send({
@@ -464,7 +464,7 @@ export class Submission {
               .replace("{mention}", roleMention(credentials.roles.adminRole)),
           });
           await prisma.character.updateMany({where: {userId: user.id}, data: {isBeingUsed: false}});
-          await prisma.character.update({data: {isPending: false, isBeingUsed: true}, where: {id: character.id}});
+          await prisma.character.update({data: {isPending: false, isBeingUsed: true}, where: {id: character!.id}});
           break;
 
         default:
