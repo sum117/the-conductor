@@ -120,8 +120,8 @@ elysiaServer
           description += `## ${ptBr.characterDetails[field as KeyOfWikiChar]}\n`;
           for (const subField of subFields) {
             const isNested = subField === "faction" || subField === "race";
-            if (hasKey(character, subField) && !isNested) description += `**${ptBr.character[subField]}:** ${character[subField]}\n`;
-            else if (hasKey(character, subField) && isNested) description += `**${ptBr.character[subField]}:** ${character[subField]?.name}\n`;
+            if (hasKey(character, subField) && !isNested) description += `${ptBr.character[subField]}: ${character[subField]}\n`;
+            else if (hasKey(character, subField) && isNested) description += `${ptBr.character[subField]}: ${character[subField]?.name}\n`;
           }
         }
         return description;
@@ -132,7 +132,7 @@ elysiaServer
           title: `${character.name} ${character.surname}`,
           description: makeCharacterDescription() ?? ptBr.website.description,
           image: character.imageUrl ?? ptBr.website.image,
-          url: `${Bun.env.WEBSITE_BASE_URL}/characters/${character.id}`,
+          url: `${Bun.env.WEBSITE_BASE_URL}/wiki/characters/${lodash.kebabCase(character.name ?? "")}`,
         }),
       );
     }

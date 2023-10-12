@@ -27,14 +27,14 @@ export default function WikiCharacter() {
   const [open, setOpen] = useState(true);
   const navigate = useNavigate();
   return (
-    <div className="bg-background flex py-4 max-sm:flex-col sm:mx-auto sm:max-w-4xl">
-      <article className="relative px-8 sm:max-w-prose sm:px-12">
+    <div className="bg-background flex py-4 max-sm:flex-col sm:mx-auto sm:max-w-4xl ">
+      <article className="sm:w-prose relative px-8 sm:flex-1">
         <Button variant="ghost" className="absolute left-0 top-2 max-sm:top-0" onClick={() => navigate(-1)}>
           <ArrowLeft className="h-8 w-8" />
           <span className="sr-only">{ptBr.website.back}</span>
         </Button>
         <header>
-          <h1 className="scroll-m-20 pl-5 text-4xl font-extrabold tracking-tight max-sm:text-center lg:text-5xl">{character?.name}</h1>
+          <h1 className="scroll-m-20 pl-10 text-4xl font-extrabold tracking-tight max-sm:text-center lg:text-5xl">{character?.name}</h1>
         </header>
         <Collapsible open={open} onOpenChange={setOpen} className="bg-primary-foreground my-8 mb-8 max-w-fit max-sm:mx-auto">
           <CollapsibleTrigger asChild>
@@ -80,9 +80,9 @@ export default function WikiCharacter() {
           })}
         </section>
       </article>
-      <article className="bg-primary-foreground flex max-h-min max-w-xs flex-col gap-y-2 max-sm:mx-auto">
+      <article className="bg-primary-foreground mx-4 flex h-min max-w-xs flex-col gap-y-2 max-sm:mx-auto">
         <span className="text-center text-2xl font-semibold tracking-tight">{ptBr.characterDetails.playerMade}</span>
-        {character?.imageUrl && character?.name && <LazyImage src={character.imageUrl} alt={character?.name} />}
+        {character?.imageUrl && character?.name && <LazyImage src={character.imageUrl} alt={character?.name} cover className="h-72 w-72" />}
         <h2 className="scroll-m-20 text-center text-3xl font-semibold tracking-tight transition-colors first:mt-0">{character?.name}</h2>
         {getSafeEntries(WIKI_CHARACTER_DETAILS_FIELDS).map(([label, entries]) => (
           <React.Fragment key={label}>
