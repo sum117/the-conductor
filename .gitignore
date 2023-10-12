@@ -8,7 +8,6 @@ yarn.lock
 # folders
 build
 node_modules
-public
 cache
 dist
 .turbo
