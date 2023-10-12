@@ -117,7 +117,7 @@ elysiaServer
         let description = "";
         for (const field in WIKI_CHARACTER_DETAILS_FIELDS) {
           const subFields = WIKI_CHARACTER_DETAILS_FIELDS[field as KeyOfWikiChar];
-          description += `## ${ptBr.characterDetails[field as KeyOfWikiChar]}\n`;
+          description += `${ptBr.characterDetails[field as KeyOfWikiChar]}\n`;
           for (const subField of subFields) {
             const isNested = subField === "faction" || subField === "race";
             if (hasKey(character, subField) && !isNested) description += `${ptBr.character[subField]}: ${character[subField]}\n`;
