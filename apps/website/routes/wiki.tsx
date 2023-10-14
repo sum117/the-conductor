@@ -85,7 +85,7 @@ export default function Wiki() {
           </CardHeader>
           <CardContent className="flex max-h-96 flex-col gap-y-2 overflow-auto">
             {announcements?.map((announcement) => (
-              <div className="border-border flex flex-col gap-y-2 border p-2" key={announcement.content}>
+              <div className="border-border flex flex-col gap-y-2 break-words border p-2" key={announcement.content}>
                 {announcement.content.split("\n").map((paragraph) => {
                   const linkRegex = /\[(?<text>.*?)\]\((?<url>https?:\/\/[^)]+)\)/g;
                   const matches = [...paragraph.matchAll(linkRegex)];
@@ -122,7 +122,7 @@ export default function Wiki() {
               <Link
                 to={`characters/${character.link}`}
                 key={character.id}
-                className="bg-primary-foreground border-border hover:bg-secondary group inline-flex w-full max-w-xs flex-1 items-center gap-x-4 rounded-sm border px-1 py-2 transition-colors"
+                className="bg-primary-foreground border-border hover:bg-secondary group inline-flex w-full flex-1 items-center gap-x-4 rounded-sm border px-1 py-2 transition-colors sm:max-w-xs"
               >
                 <LazyImage rounded src={character.imageUrl} alt={character.name} cover className="aspect-square h-16 w-16 shadow-sm shadow-black" />
                 <p className="text-lg group-hover:underline">{character.name}</p>

@@ -38,7 +38,7 @@ export default function Root() {
 
   return (
     <React.Fragment>
-      <nav className="border-border bg-background flex items-center justify-between border-b px-4 py-2">
+      <nav id="navbar" className="border-border bg-background flex items-center justify-between border-b px-4 py-2">
         <Sheet modal={false}>
           <ul>
             <li className="inline-flex items-center gap-x-2">
