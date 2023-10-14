@@ -245,7 +245,7 @@ export class Events {
             max: 1,
           });
 
-          editMessageCollector.on("collect", async (collectorMessage) => {
+          const handleCollectedMessage = async (collectorMessage: Message<boolean>) => {
             try {
               const messageEmbed = EmbedBuilder.from(reaction.message.embeds[0]);
               messageEmbed.setDescription(collectorMessage.content);
@@ -266,9 +266,12 @@ export class Events {
                 .then((message) => this.scheduleToDelete(message))
                 .catch((error) => console.error("Failed to send error message", error));
             }
-          });
+          };
 
-          editMessageCollector.on("end", async () => {
+          editMessageCollector.on("end", async (collectedMessages) => {
+            const firstMessage = collectedMessages.first();
+            if (!firstMessage) return;
+            await handleCollectedMessage(firstMessage);
             await prisma.user.update({where: {id: user.id}, data: {isEditing: false}});
           });
           break;
