@@ -310,6 +310,7 @@ export class Events {
 
       const newAttachment = new AttachmentBuilder(cleanedUrl).setName(fileName);
       embed.setImage("attachment://" + fileName);
+      embed.setDescription(message.content);
       messagePayload.files = [newAttachment];
     }
     messagePayload.embeds = [embed];
