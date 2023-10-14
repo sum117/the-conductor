@@ -196,3 +196,18 @@ export async function changeImageResolution(imageUrl: string, width: number, hei
 
   return resizedBuffer;
 }
+
+export async function sendToImgur(image: Buffer | string) {
+  const response = await fetch("https://api.imgur.com/3/image", {
+    method: "POST",
+    headers: {
+      Authorization: `Client-ID ${Bun.env.IMGUR_CLIENT_ID}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      image: image.toString("base64"),
+    }),
+  });
+  const data = (await response.json()) as {data: {link: string}};
+  return data.data.link;
+}

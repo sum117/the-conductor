@@ -16,6 +16,7 @@ env:
   DISCORD_CLIENT_SECRET: ${{ secrets.DISCORD_CLIENT_SECRET }}
   DISCORD_API_ENDPOINT: ${{ secrets.DISCORD_API_ENDPOINT }}
   WEBSITE_BASE_URL: ${{ secrets.WEBSITE_BASE_URL }}
+  IMGUR_CLIENT_ID: ${{ secrets.IMGUR_CLIENT_ID }}
   API_BASE_URL: ${{ secrets.API_BASE_URL }}
 
   VITE_DISCORD_CLIENT_ID: ${{ secrets.DISCORD_CLIENT_ID }}
@@ -71,6 +72,7 @@ jobs:
               -e DISCORD_CLIENT_SECRET=${{ env.DISCORD_CLIENT_SECRET }} \
               -e DISCORD_API_ENDPOINT=${{ env.DISCORD_API_ENDPOINT }} \
               -e WEBSITE_BASE_URL=${{ env.WEBSITE_BASE_URL }} \
+              -e IMGUR_CLIENT_ID=${{ env.IMGUR_CLIENT_ID }} \
               -e API_BASE_URL=${{ env.API_BASE_URL }} \
               -e VITE_DISCORD_CLIENT_ID=${{ env.VITE_DISCORD_CLIENT_ID }} \
               -e VITE_API_BASE_URL=${{ env.VITE_API_BASE_URL }} \

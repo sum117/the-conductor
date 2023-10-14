@@ -1,6 +1,6 @@
 import {Prisma} from "@prisma/client";
 import {spawn} from "child_process";
-import {AttachmentBuilder, BaseMessageOptions, ButtonInteraction, Colors, EmbedBuilder, Message, PartialMessage, channelMention, userMention} from "discord.js";
+import {BaseMessageOptions, ButtonInteraction, Colors, EmbedBuilder, Message, PartialMessage, channelMention, userMention} from "discord.js";
 import {ArgsOf, ButtonComponent, Discord, Guard, On} from "discordx";
 import {exists, mkdir, unlink} from "fs/promises";
 import lodash from "lodash";
@@ -11,7 +11,7 @@ import {cleanImageUrl, credentials} from "utilities";
 import {prisma} from "../db";
 import {dismissButtonCustomId} from "../lib/components/messagePayloads";
 import {isValidRoleplayMessage} from "../lib/guards";
-import {getNPCDetails, getUserLevelDetails} from "../lib/util/helpers";
+import {getNPCDetails, getUserLevelDetails, sendToImgur} from "../lib/util/helpers";
 
 @Discord()
 export class Events {
@@ -96,10 +96,9 @@ export class Events {
               .setThumbnail(npcData.imageUrl);
             if (npcData.title) npcEmbed.setAuthor({name: npcData.title, iconURL: npcData.iconUrl ?? undefined});
 
-            const messagePayload = this.createMessagePayload(npcEmbed, message);
+            const messagePayload = await this.createMessagePayload(npcEmbed, message, npcMatchIndex);
             if (!messagePayload) continue;
-            if (!messagePayload.files?.[npcMatchIndex]) {
-              messagePayload.files = [];
+            if (!message.attachments?.at(npcMatchIndex)) {
               const embed = messagePayload.embeds?.at(0);
               if (embed) messagePayload.embeds = [EmbedBuilder.from(embed).setImage(null)];
             }
@@ -137,7 +136,7 @@ export class Events {
         characterEmbed.setFooter({text: `${character.faction.name}`, iconURL: emojiUrl});
       }
 
-      const messagePayload = this.createMessagePayload(characterEmbed, message);
+      const messagePayload = await this.createMessagePayload(characterEmbed, message);
       if (!messagePayload) return;
 
       const characterPost = await message.channel.send(messagePayload);
@@ -250,7 +249,7 @@ export class Events {
               const messageEmbed = EmbedBuilder.from(reaction.message.embeds[0]);
               messageEmbed.setDescription(collectorMessage.content);
 
-              const messagePayload = this.createMessagePayload(messageEmbed, collectorMessage);
+              const messagePayload = await this.createMessagePayload(messageEmbed, collectorMessage);
               if (!messagePayload) return;
 
               await reaction.message.edit(messagePayload);
@@ -300,18 +299,13 @@ export class Events {
     );
   }
 
-  private createMessagePayload(embed: EmbedBuilder, message: Message | PartialMessage) {
+  private async createMessagePayload(embed: EmbedBuilder, message: Message | PartialMessage, attachmentIndex?: number) {
     let messagePayload: BaseMessageOptions = {};
-    const attachment = message.attachments.first();
+    const attachment = attachmentIndex ? message.attachments.at(attachmentIndex) : message.attachments.first();
     if (attachment?.url) {
       const cleanedUrl = cleanImageUrl(attachment.url);
-      const fileName = cleanedUrl?.split("/").pop();
-      if (!fileName || !cleanedUrl) return;
-
-      const newAttachment = new AttachmentBuilder(cleanedUrl).setName(fileName);
-      embed.setImage("attachment://" + fileName);
-      embed.setDescription(message.content);
-      messagePayload.files = [newAttachment];
+      const imageLink = await sendToImgur(cleanedUrl!);
+      embed.setImage(imageLink);
     }
     messagePayload.embeds = [embed];
     return messagePayload;
