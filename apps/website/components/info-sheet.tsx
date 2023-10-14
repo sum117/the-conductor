@@ -10,7 +10,7 @@ type InfoSheetProps = {
 };
 export function InfoSheet({onOpenChange, open, children, title, description}: InfoSheetProps) {
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet open={open} onOpenChange={onOpenChange} modal={false}>
       <SheetContent side="bottom" className="max-h-[100dvh] overflow-y-scroll">
         <SheetHeader>
           <SheetTitle className="text-center text-3xl">{title}</SheetTitle>
