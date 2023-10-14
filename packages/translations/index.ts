@@ -430,8 +430,7 @@ export default {
       instrument: "Instrumento {name} criado com sucesso!",
       faction: "Facção {name} criada com sucesso!",
     },
-    editingNotice:
-      "{user}, você tem 30 minutos para editar sua mensagem. Qualquer mensagem que você enviar editará a mensagem com a reação de edição. Para cancelar a edição, remova a reação de edição.",
+    editingNotice: "{user}, você tem 30 minutos para editar sua mensagem. Qualquer mensagem que você enviar editará a mensagem com a reação de edição.",
     editingCancelled: "Edição cancelada.",
   },
 };
