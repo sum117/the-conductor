@@ -389,6 +389,8 @@ export default {
     },
   },
   feedback: {
+    mentorRequest:
+      "Seja bem vindo, {user}! Você foi atribuido a(o) mentor(a) {mentor}. Entre em contato com ela(a) sempre que tiver uma dúvida. Ele(a) irá se apresentar para você em breve. Agradecemos a paciência! 💗",
     helpMessage: `# Ajuda do {botName}:\n⚠️ Você só está vendo comandos que tem permissão para utilizar.\n\n## Comandos de Slash\n{commands}\n\n## Comandos de Chat\n{simpleCommands}\n\n## Extras: \n\n**{botName}** tem funcionalidades de reação também:\n- 😍 para enviar uma mensagem para o <#${credentials.channels.roleplayStarboard}>\n- ❌ para deletar uma mensagem que você enviou com seu personagem ou ✏️ para editá-la.\n\n## Observações\nMensagens de RP só se tornam mensagens de personagens dentro das categorias de RP ou no canal <#${credentials.channels.randomRoleplay}>.`,
     deleteBulkLimit: "Você só pode deletar até 100 mensagens por vez.",
     assignedNPC: "✅ NPC {name} atribuído com sucesso para {user}!",

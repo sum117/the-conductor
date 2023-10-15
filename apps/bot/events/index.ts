@@ -53,6 +53,34 @@ export class Events {
     }
   }
 
+  @On({event: "guildMemberUpdate"})
+  async onMentorRequest([_oldMember, newMember]: ArgsOf<"guildMemberUpdate">) {
+    try {
+      await newMember.fetch(true);
+      await newMember.guild.roles.fetch(undefined, {cache: true, force: true});
+      await newMember.guild.members.fetch();
+      if (!newMember.roles.cache.has(credentials.roles.pupilRole)) return;
+
+      const mentorRole = newMember.guild.roles.cache.get(credentials.roles.mentorRole);
+      const adminRole = newMember.guild.roles.cache.get(credentials.roles.adminRole);
+      if (!mentorRole || !adminRole) return;
+
+      const mentors = mentorRole.members.filter((member) => !member.roles.cache.has(credentials.roles.pupilRole));
+      const admins = adminRole.members.filter((member) => !member.roles.cache.has(credentials.roles.pupilRole));
+      const possibleMentors = new Set([...mentors.values(), ...admins.values()]);
+
+      const randomMentor = lodash.sample(Array.from(possibleMentors));
+      if (!randomMentor) return;
+
+      const mentorChannel = newMember.guild.channels.cache.get(credentials.channels.mentorChannel);
+      if (!mentorChannel || !mentorChannel.isTextBased()) return;
+
+      await mentorChannel.send(ptBr.feedback.mentorRequest.replace("{user}", newMember.toString()).replace("{mentor}", randomMentor.toString()));
+    } catch (error) {
+      console.error("Failed to listen to mentor request", error);
+    }
+  }
+
   @On({event: "messageCreate"})
   @Guard(isValidRoleplayMessage)
   async onRoleplayMessage([message]: ArgsOf<"messageCreate">) {

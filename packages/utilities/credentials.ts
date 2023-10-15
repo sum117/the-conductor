@@ -7,9 +7,12 @@ export const credentials = {
     clubChat: "1155735837410078770",
     instrumentsChannel: "1149940155004768316",
     roleplayStarboard: "1158743170948005978",
+    mentorChannel: "1162990546978091059",
   },
   roles: {
     adminRole: "1150149645692047492",
+    pupilRole: "1162988363922546739",
+    mentorRole: "1162989308068778054",
     levels: {
       studentRole: "1157545264358371369",
       tunerRole: "1157545264358371369",
