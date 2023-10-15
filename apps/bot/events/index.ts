@@ -106,7 +106,7 @@ export class Events {
       const invites = await member.guild.invites.fetch();
       const invite = invites.find((guildInvite) => {
         const cachedInvite = this.guildInvites.get(guildInvite.code);
-        if (!cachedInvite || !cachedInvite.uses || !guildInvite.uses) return false;
+        if (!cachedInvite || typeof cachedInvite.uses !== "number" || !guildInvite.uses) return false;
         return cachedInvite.uses < guildInvite.uses;
       });
       if (!invite) return;
