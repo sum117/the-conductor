@@ -141,7 +141,7 @@ async function run() {
     async () => {
       for (const [_channelId, channel] of bot.channels.cache.entries()) {
         if (channel.type !== ChannelType.GuildText) continue;
-        const isFirstInCategory = channel.parent?.children.cache.at(0)?.id === channel.id;
+        const isFirstInCategory = channel.name.includes("📖");
         if ((channel.parent?.name.startsWith("RP") && !isFirstInCategory) || channel.id === credentials.channels.randomRoleplay)
           await processRoleplayChannel(channel);
       }

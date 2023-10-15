@@ -1,15 +1,20 @@
+import {Pagination} from "@discordx/pagination";
+import {Prisma} from "@prisma/client";
 import {
   ApplicationCommandOptionType,
   AttachmentBuilder,
   AutocompleteInteraction,
   ChatInputCommandInteraction,
+  ColorResolvable,
   EmbedBuilder,
   GuildMember,
   PermissionFlagsBits,
+  userMention,
 } from "discord.js";
 import {Discord, Slash, SlashChoice, SlashOption} from "discordx";
 import lodash from "lodash";
 import ptBr from "translations";
+import {PAGINATION_DEFAULT_OPTIONS} from "../data/constants";
 import {prisma} from "../db";
 import {getNPCDetails} from "../lib/util/helpers";
 
@@ -76,7 +81,7 @@ export class NPC {
       await interaction.editReply(ptBr.feedback.assignedNPC.replace("{name}", npc.name).replace("{user}", user.toString()));
     } catch (assignNPCError) {
       console.log("Error assigning NPC:", assignNPCError);
-      await interaction.reply(ptBr.errors.assignNPC).catch((error) => "Error sending error feedback: " + error);
+      await interaction.editReply(ptBr.errors.assignNPC).catch((error) => "Error sending error feedback: " + error);
     }
   }
 
@@ -94,7 +99,7 @@ export class NPC {
       required: true,
       nameLocalizations: {"pt-BR": ptBr.commands.deleteNPC.options.name.name},
       descriptionLocalizations: {"pt-BR": ptBr.commands.deleteNPC.options.name.description},
-      type: ApplicationCommandOptionType.String,
+      type: ApplicationCommandOptionType.Number,
       autocomplete: getNPCAautocomplete,
     })
     id: number,
@@ -208,7 +213,61 @@ export class NPC {
       await interaction.editReply({content: ptBr.feedback.createNPC.replace("{name}", npc.name), embeds: [embed], files: [payload]});
     } catch (createNPCErrors) {
       console.log("Error creating NPC:", createNPCErrors);
-      await interaction.reply(ptBr.errors.createNPC).catch((error) => "Error sending error feedback: " + error);
+      await interaction.editReply(ptBr.errors.createNPC).catch((error) => "Error sending error feedback: " + error);
+    }
+  }
+
+  @Slash({
+    name: "list-npcs",
+    description: "List all NPCs.",
+    descriptionLocalizations: {"pt-BR": ptBr.commands.listNPCs.description},
+    nameLocalizations: {"pt-BR": ptBr.commands.listNPCs.name},
+  })
+  async listNPCs(interaction: ChatInputCommandInteraction) {
+    try {
+      await interaction.deferReply();
+      const npcs = await prisma.nPC.findMany({include: {usersWhoOwn: true}});
+
+      const generatePages = async (npcs: Prisma.NPCGetPayload<{include: {usersWhoOwn: true}}>[]) => {
+        return Promise.all(
+          npcs.map(async (npc) => {
+            const npcDetails = await getNPCDetails(npc);
+            if (!npcDetails) return;
+            const npcName = lodash.kebabCase(npc.name);
+            const attachment = new AttachmentBuilder(npcDetails.npcImage).setName(`${npcName}.png`);
+            const embed = new EmbedBuilder()
+              .setTitle(npc.name)
+              .setFields({name: ptBr.npc.prefix, value: npc.prefix, inline: true})
+              .setFields([
+                {
+                  name: ptBr.npc.owners,
+                  value:
+                    npc.usersWhoOwn
+                      .map((user) => userMention(user.id))
+                      .filter(Boolean)
+                      .join("\n") ?? ptBr.none,
+                  inline: true,
+                },
+              ])
+              .setColor(npcDetails?.rarityColor as ColorResolvable)
+              .setDescription(npc.description)
+              .setImage(`attachment://${npcName}.png`)
+              .setFooter({text: npcDetails.footerText});
+            if (npc.title) embed.setAuthor({name: npc.title, iconURL: npc.iconUrl ?? undefined});
+            return {embeds: [embed], files: [attachment]};
+          }),
+        );
+      };
+
+      const pagination = new Pagination(interaction, (await generatePages(npcs)).filter(Boolean), {
+        ...PAGINATION_DEFAULT_OPTIONS,
+        onTimeout: () => interaction.deleteReply().catch((error) => "Error deleting pagination reply: " + error),
+      });
+
+      await pagination.send();
+    } catch (listNPCsErrors) {
+      console.log("Error listing NPCs:", listNPCsErrors);
+      interaction.editReply(ptBr.errors.listNPCs).catch((error) => "Error sending error feedback: " + error);
     }
   }
 }

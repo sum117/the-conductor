@@ -24,7 +24,13 @@ export default {
     tip: "Clique na Siih para entrar no servidor!",
   },
   login: "Login",
-  npc: {prefix: "Prefixo", rarity: {common: "NPC Comum", uncommon: "NPC Incomum", rare: "NPC Raro", epic: "NPC Épico", legendary: "NPC Lendário"}},
+  npc: {
+    prefix: "Prefixo",
+    owners: "Usuários com Acesso",
+    rarity: {common: "NPC Comum", uncommon: "NPC Incomum", rare: "NPC Raro", epic: "NPC Épico", legendary: "NPC Lendário"},
+  },
+  none: "Nenhum",
+  noneF: "Nenhuma",
   characterDetails: {
     playerMade: "Feito por Jogador",
     characteristics: "Características",
@@ -231,6 +237,7 @@ export default {
     },
   },
   commands: {
+    listNPCs: {name: "listar-npcs", description: "Lista todos os NPCs do servidor."},
     help: {
       name: "ajuda",
       description: "Mostra todos os comandos.",
@@ -346,6 +353,7 @@ export default {
     },
   },
   errors: {
+    listNPCs: "Erro ao listar NPCs. Tente novamente mais tarde.",
     helpMessage: "Erro ao enviar mensagem de ajuda. Tente novamente mais tarde.",
     assignNPC: "Erro ao atribuir NPC. Tente novamente mais tarde.",
     createNPC: "Erro ao criar NPC. Tente novamente mais tarde.",

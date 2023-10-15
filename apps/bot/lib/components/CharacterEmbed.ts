@@ -33,7 +33,7 @@ export class CharacterPayload {
       characterEmbed.setFooter({text: ptBr.createCharacter.websiteCharFooterText});
       getSafeKeys(this.payload.character).forEach((key) => {
         if (!hasKey(ptBr.character, key)) return;
-        characterEmbed.addFields([{name: ptBr.character[key], value: this.payload.character?.[key] ?? "Nenhuma"}]);
+        characterEmbed.addFields([{name: ptBr.character[key], value: this.payload.character?.[key] ?? ptBr.noneF}]);
       });
       this.payload.embeds.push(characterEmbed);
 

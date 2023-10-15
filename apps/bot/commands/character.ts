@@ -91,13 +91,13 @@ export class Character {
             .setDescription(character?.backstory ?? null)
             .setColor((sentPagination.message.embeds[0].hexColor as ColorResolvable) ?? "Random")
             .setFields([
-              {name: ptBr.character.personality, value: character?.personality ?? "Nenhuma"},
-              {name: ptBr.character.appearance, value: character?.appearance ?? "Nenhuma"},
-              {name: ptBr.character.race, value: character?.race?.name ?? "Nenhuma", inline: true},
-              {name: ptBr.character.age, value: character?.age ?? "Nenhuma", inline: true},
-              {name: ptBr.character.height, value: character?.height ?? "Nenhuma", inline: true},
-              {name: ptBr.character.weight, value: character?.weight ?? "Nenhuma", inline: true},
-              {name: ptBr.character.imageUrl, value: character?.imageUrl ?? "Nenhuma", inline: true},
+              {name: ptBr.character.personality, value: character?.personality ?? ptBr.noneF},
+              {name: ptBr.character.appearance, value: character?.appearance ?? ptBr.noneF},
+              {name: ptBr.character.race, value: character?.race?.name ?? ptBr.noneF, inline: true},
+              {name: ptBr.character.age, value: character?.age ?? ptBr.noneF, inline: true},
+              {name: ptBr.character.height, value: character?.height ?? ptBr.noneF, inline: true},
+              {name: ptBr.character.weight, value: character?.weight ?? ptBr.noneF, inline: true},
+              {name: ptBr.character.imageUrl, value: character?.imageUrl ?? ptBr.noneF, inline: true},
             ]);
 
           interaction.reply({ephemeral: true, embeds: [embed]}).catch((error) => "Error sending character detailed profile: " + error);
