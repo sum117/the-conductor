@@ -353,6 +353,8 @@ export default {
     },
   },
   errors: {
+    inviteMaxUses:
+      "Criar convites com apenas **1** uso é proibido, {user}. Nós fazemos isso para evitar raids, portanto, o convite que você gerou com código `{code}` foi deletado.",
     listNPCs: "Erro ao listar NPCs. Tente novamente mais tarde.",
     helpMessage: "Erro ao enviar mensagem de ajuda. Tente novamente mais tarde.",
     assignNPC: "Erro ao atribuir NPC. Tente novamente mais tarde.",
@@ -389,6 +391,10 @@ export default {
     },
   },
   feedback: {
+    inviteCreated: "👀 Convite `{invite}` criado por {user} com `{uses}` usos.",
+    reputationGainedInvite:
+      "Obrigado por fazer nossa comunidade crescer! Você ganhou **{amount}** de reputação pois seu convite `{code}` foi usado por `{username}`.",
+    inviteUsed: "🎼 Convite `{code}` criado por {inviter} foi usado por `{username}`. Seja bem vindo(a)!",
     mentorRequest:
       "Seja bem vindo, {user}! Você foi atribuido a(o) mentor(a) {mentor}. Entre em contato com ela(a) sempre que tiver uma dúvida. Ele(a) irá se apresentar para você em breve. Agradecemos a paciência! 💗",
     helpMessage: `# Ajuda do {botName}:\n⚠️ Você só está vendo comandos que tem permissão para utilizar.\n\n## Comandos de Slash\n{commands}\n\n## Comandos de Chat\n{simpleCommands}\n\n## Extras: \n\n**{botName}** tem funcionalidades de reação também:\n- 😍 para enviar uma mensagem para o <#${credentials.channels.roleplayStarboard}>\n- ❌ para deletar uma mensagem que você enviou com seu personagem ou ✏️ para editá-la.\n\n## Observações\nMensagens de RP só se tornam mensagens de personagens dentro das categorias de RP ou no canal <#${credentials.channels.randomRoleplay}>.`,

@@ -8,6 +8,7 @@ export const credentials = {
     instrumentsChannel: "1149940155004768316",
     roleplayStarboard: "1158743170948005978",
     mentorChannel: "1162990546978091059",
+    logChannel: "1163012383128698900",
   },
   roles: {
     adminRole: "1150149645692047492",

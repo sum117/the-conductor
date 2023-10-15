@@ -20,6 +20,7 @@ export const bot = new Client({
     IntentsBitField.Flags.GuildMessageReactions,
     IntentsBitField.Flags.GuildVoiceStates,
     IntentsBitField.Flags.MessageContent,
+    IntentsBitField.Flags.GuildInvites,
   ],
   partials: [Partials.Message, Partials.Channel, Partials.Reaction],
   // Debug logs are disabled in silent mode

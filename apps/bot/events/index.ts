@@ -1,7 +1,7 @@
 import {Prisma} from "@prisma/client";
 import {spawn} from "child_process";
 import {BaseMessageOptions, ButtonInteraction, Colors, EmbedBuilder, Message, PartialMessage, channelMention, userMention} from "discord.js";
-import {ArgsOf, ButtonComponent, Discord, Guard, On} from "discordx";
+import {ArgsOf, ButtonComponent, Discord, Guard, On, Once} from "discordx";
 import {exists, mkdir, unlink} from "fs/promises";
 import lodash from "lodash";
 import {DateTime, Duration} from "luxon";
@@ -15,10 +15,12 @@ import {getNPCDetails, getUserLevelDetails, sendToImgur} from "../lib/util/helpe
 
 @Discord()
 export class Events {
+  private guildInvites: Map<string, {uses: number; maxUses: number | null}>;
   private timeOuts: Map<string, NodeJS.Timeout>;
 
   constructor() {
     this.timeOuts = new Map();
+    this.guildInvites = new Map();
     this.scheduleToDelete = this.scheduleToDelete.bind(this);
   }
 
@@ -50,6 +52,90 @@ export class Events {
         .reply(ptBr.errors.somethingWentWrong)
         .then(this.scheduleToDelete)
         .catch((error) => console.error("Failed to send error message", error));
+    }
+  }
+
+  @Once({event: "ready"})
+  async fetchInvites([client]: ArgsOf<"ready">) {
+    try {
+      const guild = client.guilds.cache.first();
+      if (!guild) return;
+      const invites = await guild.invites.fetch({cache: true});
+      invites.each((invite) => this.guildInvites.set(invite.code, {uses: invite.uses ?? 0, maxUses: invite.maxUses ?? null}));
+    } catch (error) {
+      console.error("Failed to fetch invites", error);
+    }
+  }
+
+  @On({event: "inviteCreate"})
+  async inviteCreate([invite]: ArgsOf<"inviteCreate">) {
+    try {
+      this.guildInvites.set(invite.code, {uses: invite.uses ?? 0, maxUses: invite.maxUses ?? null});
+      const inviteGuild = await invite.guild?.fetch();
+      const logChannel = inviteGuild?.channels.cache.get(credentials.channels.logChannel);
+      if (invite.maxUses && invite.maxUses <= 1) {
+        await invite.delete();
+        const mentorChannel = inviteGuild?.channels.cache.get(credentials.channels.mentorChannel);
+        if (!mentorChannel || !mentorChannel.isTextBased()) return;
+        await mentorChannel.send(ptBr.errors.inviteMaxUses.replace("{user}", invite.inviter?.toString() ?? "Unknown").replace("{code}", invite.code));
+        return;
+      }
+
+      if (!logChannel || !logChannel.isTextBased()) return;
+      if (!invite.inviter) return;
+
+      await logChannel.send(
+        ptBr.feedback.inviteCreated
+          .replace("{user}", invite.inviter.toString())
+          .replace("{invite}", invite.code)
+          .replace("{uses}", invite.maxUses === 0 ? "∞" : String(invite.maxUses)),
+      );
+    } catch (error) {
+      console.error("Failed to listen to invite create", error);
+    }
+  }
+
+  @On({event: "inviteDelete"})
+  async inviteDelete([invite]: ArgsOf<"inviteDelete">) {
+    this.guildInvites.delete(invite.code);
+  }
+
+  @On({event: "guildMemberAdd"})
+  async guildMemberAdd([member]: ArgsOf<"guildMemberAdd">) {
+    try {
+      const invites = await member.guild.invites.fetch();
+      const invite = invites.find((guildInvite) => {
+        const cachedInvite = this.guildInvites.get(guildInvite.code);
+        if (!cachedInvite || !cachedInvite.uses || !guildInvite.uses) return false;
+        return cachedInvite.uses < guildInvite.uses;
+      });
+      if (!invite) return;
+
+      const logChannel = member.guild.channels.cache.get(credentials.channels.logChannel);
+      if (!logChannel || !logChannel.isTextBased()) return;
+
+      this.guildInvites.set(invite.code, {uses: invite.uses ?? 0, maxUses: invite.maxUses ?? null});
+
+      await logChannel.send(
+        ptBr.feedback.inviteUsed
+          .replace("{username}", member.user.username)
+          .replace("{code}", invite.code)
+          .replace("{inviter}", invite.inviter?.toString() ?? "Unknown"),
+      );
+
+      if (!invite.inviter) return;
+
+      const inviterRep = await prisma.user
+        .update({where: {id: invite.inviter.id}, data: {reputation: {increment: 1}}})
+        .catch((error) => console.error("Failed to update reputation", error));
+
+      if (!inviterRep) return;
+
+      await invite.inviter
+        .send(ptBr.feedback.reputationGainedInvite.replace("{amount}", "1").replace("{code}", invite.code).replace("{username}", member.user.username))
+        .catch((error) => console.error("Failed to send reputation gained message", error));
+    } catch (error) {
+      console.error("Failed to listen to guild member add", error);
     }
   }
 
