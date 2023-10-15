@@ -145,7 +145,7 @@ export class Events {
       await newMember.fetch(true);
       await newMember.guild.roles.fetch(undefined, {cache: true, force: true});
       await newMember.guild.members.fetch();
-      if (!newMember.roles.cache.has(credentials.roles.pupilRole)) return;
+      if (!newMember.roles.cache.has(credentials.roles.pupilRole) || _oldMember.roles.cache.has(credentials.roles.pupilRole)) return;
 
       const mentorRole = newMember.guild.roles.cache.get(credentials.roles.mentorRole);
       const adminRole = newMember.guild.roles.cache.get(credentials.roles.adminRole);
