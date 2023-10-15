@@ -174,7 +174,10 @@ export async function processRoleplayChannel(channel: GuildTextBasedChannel) {
       const hasBeenTwoHoursInactive = DateTime.now().diff(DateTime.fromJSDate(channelData.lastTimeActive)).as("hours") >= 2;
       if (hasBeenTwoHoursInactive) {
         const placeholderMessage = channelData.placeholderMessageId ? await channel.messages.fetch(channelData.placeholderMessageId).catch(() => null) : null;
-        if (placeholderMessage) await placeholderMessage.delete().catch((error) => console.error("Error deleting placeholder message", error));
+        if (placeholderMessage) {
+          if (placeholderMessage.id === channel.lastMessageId) return;
+          await placeholderMessage.delete().catch((error) => console.error("Error deleting placeholder message", error));
+        }
 
         const newPlaceholderMessage = await channel.send(makeRoleplayingPlaceholderPayload(channel, channelData));
         await prisma.channel.update({
