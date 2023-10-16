@@ -1,14 +1,5 @@
 import {Instrument, NPC, User} from "@prisma/client";
-import {
-  ButtonInteraction,
-  Colors,
-  CommandInteraction,
-  EmbedBuilder,
-  GuildTextBasedChannel,
-  StringSelectMenuInteraction,
-  TextBasedChannel,
-  TextChannel,
-} from "discord.js";
+import {ButtonInteraction, Colors, CommandInteraction, GuildTextBasedChannel, StringSelectMenuInteraction, TextBasedChannel, TextChannel} from "discord.js";
 import lodash from "lodash";
 import {DateTime, Duration} from "luxon";
 import sharp from "sharp";
@@ -16,6 +7,7 @@ import ptBr from "translations";
 import {credentials} from "utilities";
 import {MUDAE_IMAGE_HEIGHT, MUDAE_IMAGE_WIDTH} from "../../data/constants";
 import {prisma} from "../../db";
+import {makeInstrumentEmbed} from "../components/instrumentEmbed";
 import {makeRoleplayingPlaceholderPayload} from "../components/messagePayloads";
 
 /**
@@ -129,19 +121,8 @@ export async function recursivelyDelete(channel: TextChannel) {
 }
 
 export async function processInstruments(instrumentsChannel: TextBasedChannel) {
-  const instrumentEmbed = (instrument: Instrument) => {
-    const embed = new EmbedBuilder()
-      .setTitle(instrument.name)
-      .setDescription(instrument.description)
-      .setThumbnail(instrument.imageUrl)
-      .setColor("Random")
-      .setFields([{name: ptBr.embeds.beginnerInstrument, value: instrument.isBeginner ? "✅" : "❌"}]);
-
-    return embed;
-  };
-
   const sendMessageAndUpdateInstrument = async (instrument: Instrument, instrumentsChannel: TextBasedChannel) => {
-    const message = await instrumentsChannel.send({embeds: [instrumentEmbed(instrument)]});
+    const message = await instrumentsChannel.send({embeds: [makeInstrumentEmbed(instrument)]});
     await prisma.instrument.update({where: {id: instrument.id}, data: {messageId: message.id}});
   };
 

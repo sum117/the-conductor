@@ -220,6 +220,10 @@ export default {
         },
       },
       instrument: {
+        isBeginner: {
+          label: "É um instrumento iniciante?",
+          placeholder: "RESPONDA APENAS COM SIM OU NÃO",
+        },
         title: "Criador de Instrumentos",
         name: {
           label: "Nome do Instrumento",
@@ -237,6 +241,19 @@ export default {
     },
   },
   commands: {
+    deleteInstrument: {
+      name: "deletar-instrumento",
+      description: "Deleta um instrumento.",
+      options: {instrument: {name: "instrumento", description: "O instrumento para deletar."}},
+    },
+    assignInstrument: {
+      name: "atribuir-instrumento",
+      description: "Atribui um instrumento para um personagem.",
+      options: {
+        character: {name: "personagem", description: "O personagem para atribuir o instrumento."},
+        instrument: {name: "instrumento", description: "O instrumento para atribuir ao personagem."},
+      },
+    },
     listNPCs: {name: "listar-npcs", description: "Lista todos os NPCs do servidor."},
     help: {
       name: "ajuda",
@@ -353,6 +370,7 @@ export default {
     },
   },
   errors: {
+    assignInstrument: "Erro ao atribuir instrumento. Tente novamente mais tarde.",
     inviteMaxUses:
       "Criar convites com apenas **1** uso é proibido, {user}. Nós fazemos isso para evitar raids, portanto, o convite que você gerou com código `{code}` foi deletado.",
     listNPCs: "Erro ao listar NPCs. Tente novamente mais tarde.",
@@ -391,6 +409,12 @@ export default {
     },
   },
   feedback: {
+    deleteInstrument: {
+      submitted: "✅ Instrumento {instrument} deletado com sucesso!",
+    },
+    assignInstrument: {
+      submitted: "✅ Instrumento atribuído com sucesso para {character}, de {user}!",
+    },
     inviteCreated: "👀 Convite `{invite}` criado por {user} com `{uses}` usos.",
     reputationGainedInvite:
       "Obrigado por fazer nossa comunidade crescer! Você ganhou **{amount}** de reputação pois seu convite `{code}` foi usado por `{username}`.",

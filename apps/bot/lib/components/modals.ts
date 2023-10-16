@@ -262,10 +262,11 @@ export const entityCreatorFactionModal = () => {
 };
 
 export const entityCreatorInstrumentModalId = "entityCreatorInstrumentModal";
-export const entityCreatorInstrumentFields: Omit<Instrument, "id" | "isBeginner" | "messageId"> = {
+export const entityCreatorInstrumentFields: Omit<Instrument, "id" | "isBeginner" | "messageId"> & {isBeginner: "isBeginner"} = {
   name: "name",
   description: "description",
   imageUrl: "imageUrl",
+  isBeginner: "isBeginner",
 };
 
 export const entityCreatorInstrumentModal = () => {
@@ -299,10 +300,20 @@ export const entityCreatorInstrumentModal = () => {
       .setMaxLength(256),
   );
 
+  const isBeginnerField = new ActionRowBuilder<TextInputBuilder>().addComponents(
+    new TextInputBuilder()
+      .setLabel(ptBr.modals.entityCreator.instrument.isBeginner.label)
+      .setPlaceholder(ptBr.modals.entityCreator.instrument.isBeginner.placeholder)
+      .setCustomId(entityCreatorInstrumentFields.isBeginner)
+      .setMinLength(3)
+      .setStyle(TextInputStyle.Short)
+      .setMaxLength(3),
+  );
+
   return new ModalBuilder()
     .setCustomId(entityCreatorInstrumentModalId)
     .setTitle(ptBr.modals.entityCreator.instrument.title)
-    .addComponents(nameField, descriptionField, imageUrlField);
+    .addComponents(nameField, descriptionField, imageUrlField, isBeginnerField);
 };
 
 type ChannelFields = Pick<Channel, "name" | "description" | "imageUrl">;

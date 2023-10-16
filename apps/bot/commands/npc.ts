@@ -18,7 +18,7 @@ import {PAGINATION_DEFAULT_OPTIONS} from "../data/constants";
 import {prisma} from "../db";
 import {getNPCDetails} from "../lib/util/helpers";
 
-const getNPCAautocomplete = async (interaction: AutocompleteInteraction) => {
+const getNPCAutocomplete = async (interaction: AutocompleteInteraction) => {
   const npcs = await prisma.nPC
     .findMany({where: {name: {contains: interaction.options.getFocused()}}})
     .catch((error) => console.log("Error fetching NPC list:", error));
@@ -61,7 +61,7 @@ export class NPC {
       nameLocalizations: {"pt-BR": ptBr.commands.assignNPC.options.npc.name},
       descriptionLocalizations: {"pt-BR": ptBr.commands.assignNPC.options.npc.description},
       type: ApplicationCommandOptionType.Number,
-      autocomplete: getNPCAautocomplete,
+      autocomplete: getNPCAutocomplete,
     })
     npcId: number,
     @SlashOption({
@@ -100,7 +100,7 @@ export class NPC {
       nameLocalizations: {"pt-BR": ptBr.commands.deleteNPC.options.name.name},
       descriptionLocalizations: {"pt-BR": ptBr.commands.deleteNPC.options.name.description},
       type: ApplicationCommandOptionType.Number,
-      autocomplete: getNPCAautocomplete,
+      autocomplete: getNPCAutocomplete,
     })
     id: number,
     interaction: ChatInputCommandInteraction,

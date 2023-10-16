@@ -95,12 +95,14 @@ model Faction {
 }
 
 model InstrumentCharacter {
-  id           Int         @id @default(autoincrement())
+  id           Int         @id @unique @default(autoincrement())
   quantity     Int         @default(0)
   character    Character?  @relation(fields: [characterId], references: [id], onDelete: Cascade)
   instrument   Instrument? @relation(fields: [instrumentId], references: [id], onDelete: Cascade)
   characterId  Int?
   instrumentId Int?
+
+  @@unique([characterId, instrumentId], name: "unique_character_instrument")
 }
 
 model Instrument {
