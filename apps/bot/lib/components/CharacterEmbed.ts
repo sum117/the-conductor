@@ -1,11 +1,11 @@
-import {Character} from "@prisma/client";
+import {Character, Prisma} from "@prisma/client";
 import {BaseMessageOptions, EmbedBuilder, roleMention, userMention} from "discord.js";
 import ptBr from "translations";
 import {credentials, getSafeKeys, hasKey} from "utilities";
 import {createCharacterEvaluationButtonRow} from "../../commands/submission";
 
 interface CharacterPayloadOptions extends BaseMessageOptions {
-  character?: Character;
+  character?: Prisma.CharacterGetPayload<{include: {faction: true}}>;
 }
 export class CharacterPayload {
   public embeds?: BaseMessageOptions["embeds"];
@@ -32,7 +32,12 @@ export class CharacterPayload {
       characterEmbed.setColor("Random");
       characterEmbed.setFooter({text: ptBr.createCharacter.websiteCharFooterText});
       getSafeKeys(this.payload.character).forEach((key) => {
-        if (!hasKey(ptBr.character, key)) return;
+        if (key === "factionId" && this.payload.character?.faction) {
+          characterEmbed.addFields([{name: ptBr.character.faction, value: `${this.payload.character.faction.emoji} ${this.payload.character?.faction?.name}`}]);
+          return;
+        }
+        if (!hasKey(ptBr.character, key) || key === "backstory" || key === "imageUrl" || key === "userId" || key === "faction") return;
+
         characterEmbed.addFields([{name: ptBr.character[key], value: this.payload.character?.[key] ?? ptBr.noneF}]);
       });
       this.payload.embeds.push(characterEmbed);
