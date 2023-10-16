@@ -183,7 +183,9 @@ elysiaServer
       set.status = "Not Found";
       return "User Not Found in Bot Cache";
     }
-    const userData = await prisma.user.findFirst({where: {id}});
+    const userData = await prisma.user.findUnique({where: {id}}).catch((error) => {
+      if (error.code === "P2002") prisma.user.create({data: {id}}).catch(console.error);
+    });
     if (!userData) {
       set.status = "Not Found";
       return "Character Not Found";
@@ -302,7 +304,7 @@ elysiaServer
           return "User Not Found";
         }
 
-        const character = await prisma.character.create({data: characterData});
+        const character = await prisma.character.create({data: characterData, include: {faction: true}});
         const characterPayload = new CharacterPayload({character});
         const evaluationChannel = await bot.channels.fetch(credentials.channels.evaluationChannel);
         if (!evaluationChannel?.isTextBased()) throw new Error("Evaluation Channel is not a Text Channel");
