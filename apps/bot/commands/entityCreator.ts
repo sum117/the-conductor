@@ -77,12 +77,18 @@ export class EntityCreator {
 
   private createEntity(
     entityType: "race" | "instrument" | "faction",
-    fields: Prisma.InstrumentCreateWithoutCharactersInput | Prisma.RaceCreateWithoutCharactersInput | Prisma.FactionCreateWithoutCharactersInput,
+    fields:
+      | (Prisma.InstrumentCreateWithoutCharactersInput & {isBeginner: string})
+      | Prisma.RaceCreateWithoutCharactersInput
+      | Prisma.FactionCreateWithoutCharactersInput,
   ) {
     switch (entityType) {
       case "race":
         return prisma.race.create({data: fields});
       case "instrument":
+        if ("isBeginner" in fields && typeof fields.isBeginner === "string") {
+          fields.isBeginner = fields.isBeginner?.toLowerCase() === ptBr.yes ? true : false;
+        }
         return prisma.instrument.create({data: fields});
       case "faction":
         if (!("emoji" in fields)) {

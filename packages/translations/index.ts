@@ -1,6 +1,7 @@
 import {credentials} from "utilities";
 
 export default {
+  yes: "sim",
   routes: {
     home: "Início",
     characters: "Personagens",
