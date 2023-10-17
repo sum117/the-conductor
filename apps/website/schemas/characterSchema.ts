@@ -13,4 +13,5 @@ export const characterSchema = z.object({
   weight: z.string({required_error: "O peso é obrigatório."}),
   race: z.string({required_error: "A raça é obrigatória."}),
   faction: z.string({required_error: "A facção é obrigatória."}),
+  instrument: z.string({required_error: "O instrumento é obrigatório."}),
 });

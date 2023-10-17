@@ -4,7 +4,7 @@ export const DISCORD_OAUTH_URL = `https://discord.com/api/oauth2/authorize?clien
   import.meta.env.VITE_DISCORD_CLIENT_ID
 }&redirect_uri=${encodeURIComponent(import.meta.env.VITE_WEBSITE_BASE_URL + "/login")}&response_type=code&scope=identify`;
 
-export const SELECT_FIELDS = ["race", "faction"] as const;
+export const SELECT_FIELDS = ["race", "faction", "instrument"] as const;
 
 export const TEXT_AREA_FIELDS = ["personality", "appearance", "backstory"] as const;
 

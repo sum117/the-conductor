@@ -278,6 +278,22 @@ elysiaServer
       return error;
     }
   })
+  .get("/api/instruments", async (context) => {
+    try {
+      const isSignedIn = await context.isSignedIn();
+      if (!isSignedIn) {
+        context.set.status = "Unauthorized";
+        return "Missing Access Token";
+      }
+      const allBeginnerInstruments = await prisma.instrument.findMany({where: {isBeginner: true}});
+      context.set.status = "OK";
+      return allBeginnerInstruments;
+    } catch (error) {
+      context.set.status = "Internal Server Error";
+      console.error(error);
+      return error;
+    }
+  })
   .post(
     "/api/characters/create",
     async (context) => {
@@ -303,8 +319,10 @@ elysiaServer
           context.set.status = "Not Found";
           return "User Not Found";
         }
-
-        const character = await prisma.character.create({data: characterData, include: {faction: true}});
+        const character = await prisma.character.create({
+          data: {...characterData, instruments: {create: {instrumentId: parseInt(context.body.instrument), quantity: 1}}},
+          include: {faction: true},
+        });
         const characterPayload = new CharacterPayload({character});
         const evaluationChannel = await bot.channels.fetch(credentials.channels.evaluationChannel);
         if (!evaluationChannel?.isTextBased()) throw new Error("Evaluation Channel is not a Text Channel");
@@ -332,6 +350,7 @@ elysiaServer
         height: t.String(),
         gender: t.String(),
         weight: t.String(),
+        instrument: t.String(),
         race: t.String(),
         faction: t.String(),
       }),
