@@ -183,8 +183,8 @@ elysiaServer
       set.status = "Not Found";
       return "User Not Found in Bot Cache";
     }
-    const userData = await prisma.user.findUnique({where: {id}}).catch((error) => {
-      if (error.code === "P2002") prisma.user.create({data: {id}}).catch(console.error);
+    const userData = await prisma.user.findUniqueOrThrow({where: {id}}).catch((error) => {
+      if (error.code === "P2025") return prisma.user.create({data: {id}}).catch(console.error) as Promise<User>;
     });
     if (!userData) {
       set.status = "Not Found";
