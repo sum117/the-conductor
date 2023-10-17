@@ -115,7 +115,7 @@
     @apply fill-transparent transition-colors;
   }
 
-  .card:has(.card__link:hover) .card__description > p > svg {
+  .card:has(.card__link:hover) .card__description > svg {
     @apply fill-yellow-200;
   }
 }

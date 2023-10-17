@@ -4,9 +4,9 @@ export default {
   yes: "sim",
   routes: {
     home: "Início",
-    characters: "Personagens",
+    characters: "Seus Personagens",
     wiki: "Wiki",
-    wikiCharacters: "Wiki/Personagens",
+    wikiCharacters: "Personagens",
   },
   website: {
     back: "Voltar",

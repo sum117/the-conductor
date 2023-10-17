@@ -1,10 +1,15 @@
-import {LogIn, LogOut, Menu, Moon, Music4, Sun} from "lucide-react";
+import {NAVBAR_DATA, NavbarProps} from "@/data/constants";
+import {User} from "@prisma/client";
+import {ChevronsUpDown, LogIn, LogOut, Menu, Moon, Music4, Sun} from "lucide-react";
 import React from "react";
 import {useQuery, type QueryClient} from "react-query";
 import {NavLink, Outlet, Form as RRDForm, useLoaderData, useSubmit} from "react-router-dom";
 import ptBr from "translations";
+import {getSafeKeys} from "utilities";
 import LazyImage from "../components/lazy-image";
 import {Button, buttonVariants} from "../components/ui/button";
+import {Collapsible, CollapsibleContent, CollapsibleTrigger} from "../components/ui/collapsible";
+import {HoverCard, HoverCardContent, HoverCardTrigger} from "../components/ui/hover-card";
 import {Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger} from "../components/ui/sheet";
 import {Toaster} from "../components/ui/toaster";
 import {DISCORD_OAUTH_URL} from "../data/constants";
@@ -29,27 +34,61 @@ export const loader = (queryClient: QueryClient) => async () => {
   }
 };
 
+const getNavLinkClass = ({isActive, isPending}: {isActive: boolean; isPending: boolean}) => {
+  if (isActive) return buttonVariants({variant: "link", className: "underline"});
+  if (isPending) return buttonVariants({variant: "link", className: "pointer-events-none opacity-50"});
+  return buttonVariants({variant: "link"});
+};
+
 export default function Root() {
   const {colorTheme, toggleTheme} = useDarkMode();
   const submit = useSubmit();
 
   const initialData = useLoaderData() as Awaited<ReturnType<ReturnType<typeof loader>>>;
   const {data: user} = useQuery({...userQuery(), initialData: initialData?.user});
-
   return (
     <React.Fragment>
       <nav id="navbar" className="border-border bg-background flex items-center justify-between border-b px-4 py-2">
         <Sheet modal={false}>
           <ul>
-            <li className="inline-flex items-center gap-x-2">
-              <Music4 className="h-8 w-8" />
-              <strong className="text-xl">{ptBr.website.title}</strong>
+            <li>
+              <NavLink to="/" className="inline-flex items-center gap-x-2">
+                <Music4 className="h-8 w-8" />
+                <strong className="text-xl">{ptBr.website.title}</strong>
+              </NavLink>
             </li>
           </ul>
           <ul className="grid grid-flow-col gap-x-2">
+            {getSafeKeys(NAVBAR_DATA).map((key) => {
+              if (key === "home") return null;
+              const {name, protected: isProtected, path, children} = NAVBAR_DATA[key];
+              if (isProtected && !user) return null;
+              if (!children) {
+                return (
+                  <li key={key} className="max-sm:hidden">
+                    <NavLink to={path} className={getNavLinkClass}>
+                      {name}
+                    </NavLink>
+                  </li>
+                );
+              }
+              return (
+                <DesktopNavItem key={key} path={path} name={name}>
+                  {getSafeKeys(children).map((childKey) => {
+                    const {name: childName, path: childPath} = children[childKey];
+                    return (
+                      <NavLink to={childPath} className={getNavLinkClass}>
+                        {childName}
+                      </NavLink>
+                    );
+                  })}
+                </DesktopNavItem>
+              );
+            })}
+
             <li>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" className="sm:hidden">
                   <Menu className="h-4 w-4" />
                 </Button>
               </SheetTrigger>
@@ -80,66 +119,7 @@ export default function Root() {
               <SheetTitle>{ptBr.website.title}</SheetTitle>
               <SheetDescription>{ptBr.website.navigation}</SheetDescription>
             </SheetHeader>
-            <ul className="mt-2 flex flex-col gap-y-2">
-              <li>
-                <NavLink
-                  to="/"
-                  className={({isActive, isPending}) =>
-                    cn(
-                      "w-full",
-                      isActive ? buttonVariants({variant: "default", size: "lg"}) : buttonVariants({variant: "outline", size: "lg"}),
-                      isPending ? "opacity-50" : "",
-                    )
-                  }
-                >
-                  {ptBr.routes.home}
-                </NavLink>
-              </li>
-              {user && (
-                <li>
-                  <NavLink
-                    to="/characters"
-                    className={({isActive, isPending}) =>
-                      cn(
-                        "w-full",
-                        isActive ? buttonVariants({variant: "default", size: "lg"}) : buttonVariants({variant: "outline", size: "lg"}),
-                        isPending ? "opacity-50" : "",
-                      )
-                    }
-                  >
-                    {ptBr.routes.characters}
-                  </NavLink>
-                </li>
-              )}
-              <li>
-                <NavLink
-                  to="/wiki"
-                  className={({isActive, isPending}) =>
-                    cn(
-                      "w-full",
-                      isActive ? buttonVariants({variant: "default", size: "lg"}) : buttonVariants({variant: "outline", size: "lg"}),
-                      isPending ? "opacity-50" : "",
-                    )
-                  }
-                >
-                  {ptBr.routes.wiki}
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  to="/wiki/characters"
-                  className={({isActive, isPending}) =>
-                    cn(
-                      "w-full",
-                      isActive ? buttonVariants({variant: "default", size: "lg"}) : buttonVariants({variant: "outline", size: "lg"}),
-                      isPending ? "opacity-50" : "",
-                    )
-                  }
-                >
-                  {ptBr.routes.wikiCharacters}
-                </NavLink>
-              </li>
-            </ul>
+            <ul className="mt-2 flex flex-col gap-y-2">{renderMobileNavItems(NAVBAR_DATA, user)}</ul>
           </SheetContent>
         </Sheet>
       </nav>
@@ -155,5 +135,71 @@ export default function Root() {
         <Toaster />
       </main>
     </React.Fragment>
+  );
+}
+
+function renderMobileNavItems(data: Record<string, NavbarProps>, user?: User, level = 0) {
+  return getSafeKeys(data).map((key) => {
+    if (key === "home") return null;
+    const {name, protected: isProtected, children, path} = data[key];
+    if (isProtected && !user) return null;
+    const style = level > 0 ? {paddingLeft: `${level * 1.5}rem`} : undefined;
+    if (children) {
+      return (
+        <MobileNavItem key={key} path={path} name={name} style={style}>
+          <ul className="flex flex-col gap-y-2">{renderMobileNavItems(children, user, level + 1)}</ul>
+        </MobileNavItem>
+      );
+    }
+
+    return <MobileNavItem key={key} path={path} name={name} style={style} />;
+  });
+}
+
+function MobileNavItem({path, name, children, style}: {path: string; name: string; children?: React.ReactNode; style?: React.CSSProperties}) {
+  const [isCollapsibleOpen, setIsCollapsibleOpen] = React.useState(true);
+
+  if (children) {
+    return (
+      <li style={style}>
+        <Collapsible open={isCollapsibleOpen} onOpenChange={setIsCollapsibleOpen}>
+          <div className="flex justify-between">
+            <NavLink to={path} className={getNavLinkClass}>
+              {name}
+            </NavLink>
+            <CollapsibleTrigger>
+              <Button variant="ghost" size="sm" className="w-9 p-0">
+                <ChevronsUpDown className="h-4 w-4" />
+                <span className="sr-only">Toggle</span>
+              </Button>
+            </CollapsibleTrigger>
+          </div>
+          <CollapsibleContent>{children}</CollapsibleContent>
+        </Collapsible>
+      </li>
+    );
+  }
+
+  return (
+    <li style={style}>
+      <NavLink to={path} className={getNavLinkClass}>
+        {name}
+      </NavLink>
+    </li>
+  );
+}
+
+function DesktopNavItem({name, path, children}: {name: string; path: string; children?: React.ReactNode}) {
+  return (
+    <li className="max-sm:hidden">
+      <HoverCard openDelay={0}>
+        <HoverCardTrigger>
+          <NavLink to={path} className={getNavLinkClass}>
+            {name}
+          </NavLink>
+        </HoverCardTrigger>
+        <HoverCardContent className="max-w-max">{children}</HoverCardContent>
+      </HoverCard>
+    </li>
   );
 }
