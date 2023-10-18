@@ -242,6 +242,10 @@ export default {
     },
   },
   commands: {
+    emoji: {
+      description: "Adiciona um emoji ao servidor.",
+      options: {link_or_id: {name: "link-ou-id", description: "O link ou id do emoji."}},
+    },
     deleteInstrument: {
       name: "deletar-instrumento",
       description: "Deleta um instrumento.",
@@ -371,6 +375,7 @@ export default {
     },
   },
   errors: {
+    emojiNotCreated: "O emoji não foi criado. Houve um erro. Tente novamente.",
     assignInstrument: "Erro ao atribuir instrumento. Tente novamente mais tarde.",
     inviteMaxUses:
       "Criar convites com apenas **1** uso é proibido, {user}. Nós fazemos isso para evitar raids, portanto, o convite que você gerou com código `{code}` foi deletado.",
@@ -410,6 +415,8 @@ export default {
     },
   },
   feedback: {
+    emojiCreated: "{emoji} Emoji criado com sucesso!",
+    wrongEmojiFormat: "O formato do emoji está errado. Tente novamente.",
     deleteInstrument: {
       submitted: "✅ Instrumento {instrument} deletado com sucesso!",
     },
