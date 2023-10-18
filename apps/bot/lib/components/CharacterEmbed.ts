@@ -5,7 +5,7 @@ import {credentials, getSafeKeys, hasKey} from "utilities";
 import {createCharacterEvaluationButtonRow} from "../../commands/submission";
 
 interface CharacterPayloadOptions extends BaseMessageOptions {
-  character?: Prisma.CharacterGetPayload<{include: {faction: true}}>;
+  character?: Prisma.CharacterGetPayload<{include: {faction: true; race: true}}>;
 }
 export class CharacterPayload {
   public embeds?: BaseMessageOptions["embeds"];
@@ -33,10 +33,15 @@ export class CharacterPayload {
       characterEmbed.setFooter({text: ptBr.createCharacter.websiteCharFooterText});
       getSafeKeys(this.payload.character).forEach((key) => {
         if (key === "factionId" && this.payload.character?.faction) {
-          characterEmbed.addFields([{name: ptBr.character.faction, value: `${this.payload.character.faction.emoji} ${this.payload.character?.faction?.name}`}]);
+          characterEmbed.addFields([
+            {name: ptBr.character.faction, value: `${this.payload.character.faction?.emoji} ${this.payload.character?.faction?.name}`},
+          ]);
+          return;
+        } else if (key === "raceId" && this.payload?.character?.race) {
+          characterEmbed.addFields([{name: ptBr.character.race, value: this.payload.character.race.name}]);
           return;
         }
-        if (!hasKey(ptBr.character, key) || key === "backstory" || key === "imageUrl" || key === "userId" || key === "faction") return;
+        if (!hasKey(ptBr.character, key) || key === "backstory" || key === "imageUrl" || key === "userId" || key === "faction" || key === "race") return;
 
         characterEmbed.addFields([{name: ptBr.character[key], value: this.payload.character?.[key] ?? ptBr.noneF}]);
       });

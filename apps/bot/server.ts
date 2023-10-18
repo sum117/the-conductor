@@ -1,6 +1,7 @@
 import {cors} from "@elysiajs/cors";
 import {html} from "@elysiajs/html";
 import {Prisma, User} from "@prisma/client";
+import {PermissionFlagsBits, roleMention, userMention} from "discord.js";
 import {Elysia, t} from "elysia";
 import lodash from "lodash";
 import path from "path";
@@ -322,12 +323,22 @@ elysiaServer
         }
         const character = await prisma.character.create({
           data: {...characterData, instruments: {create: {instrumentId: parseInt(context.body.instrument), quantity: 1}}},
-          include: {faction: true},
+          include: {faction: true, race: true},
         });
         const characterPayload = new CharacterPayload({character});
         const evaluationChannel = await bot.channels.fetch(credentials.channels.evaluationChannel);
         if (!evaluationChannel?.isTextBased()) throw new Error("Evaluation Channel is not a Text Channel");
         const message = await evaluationChannel.send(characterPayload);
+
+        const evaluationThread = await message.startThread({
+          name: ptBr.feedback.evaluation.threadName.replace("{characterName}", `${character!.name} ${character!.surname}`),
+        });
+        evaluationThread.permissionsFor(character.userId)?.add(PermissionFlagsBits.ViewChannel).add(PermissionFlagsBits.SendMessages);
+        evaluationThread.send({
+          content: ptBr.feedback.evaluation.waiting
+            .replace("{user}", userMention(character.userId))
+            .replace("{mention}", roleMention(credentials.roles.adminRole)),
+        });
 
         context.set.status = "Created";
 
