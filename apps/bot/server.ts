@@ -302,6 +302,7 @@ elysiaServer
       characterData.factionId = parseInt(context.body.faction);
       "race" in characterData && delete characterData.race;
       "faction" in characterData && delete characterData.faction;
+      "instrument" in characterData && delete characterData.instrument;
       characterData.userId = context.body.userId;
       characterData.isPending = true;
       try {
