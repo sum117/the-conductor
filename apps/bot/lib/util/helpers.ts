@@ -29,7 +29,7 @@ export function getSanitizedChannelName(channel: GuildTextBasedChannel): string 
 }
 
 export function getUserLevelDetails(user: User) {
-  const userLevel = Math.max(1, Math.floor(user.xp / 10000));
+  const userLevel = Math.max(1, Math.floor(user.xp / 10000)) + 1;
   const percentageToNextLevel = (user.xp % 10000) / 100;
   const xpToNextLevel = 10000 - (user.xp % 10000);
 

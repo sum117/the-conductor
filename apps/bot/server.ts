@@ -322,7 +322,7 @@ elysiaServer
           return "User Not Found";
         }
         const character = await prisma.character.create({
-          data: {...characterData, instruments: {create: {instrumentId: parseInt(context.body.instrument), quantity: 1}}},
+          data: {...characterData, isBeingUsed: true, isPending: true, instruments: {create: {instrumentId: parseInt(context.body.instrument), quantity: 1}}},
           include: {faction: true, race: true},
         });
         const characterPayload = new CharacterPayload({character});
