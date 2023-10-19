@@ -281,7 +281,7 @@ export class Events {
         await message.member?.roles.add(userLevelDetails.nextRoleId).catch((error) => console.error("Failed to add new role", error));
 
         const congratulationsMessage = await characterPost.channel.send(
-          ptBr.feedback.levelUp.replace("{user}", character.user.toString()).replace("{level}", userLevelDetails.nextLevel.toString()),
+          ptBr.feedback.levelUp.replace("{user}", userMention(character.userId)).replace("{level}", userLevelDetails.nextLevel.toString()),
         );
         musicalEmojis.forEach(
           async (emoji) => await congratulationsMessage.react(emoji).catch((error) => console.error("Failed to react to level up message", error)),
@@ -311,7 +311,8 @@ export class Events {
           let updateArgs: Prisma.MessageUpdateInput = {hearts: {connect: {id: user.id}}};
 
           const characterPost = await reaction.message.channel.messages.fetch(message.id);
-          const reactions = characterPost.reactions.cache.filter((reaction) => reaction.emoji.name === "😍");
+
+          const reactions = characterPost.reactions.cache.get("😍")?.count ?? 0;
 
           const starboardMessageContent = {
             content: ptBr.feedback.starboardMessage
@@ -320,7 +321,7 @@ export class Events {
               .replace("{channel}", channelMention(message.channelId)),
           };
 
-          if (!message.starboardMessageId && reactions.size > 2) {
+          if (!message.starboardMessageId && reactions > 2) {
             const characterPostEmbed = EmbedBuilder.from(characterPost.embeds[0]);
             const starboardMessage = await roleplayStarboardChannel.send({embeds: [characterPostEmbed], ...starboardMessageContent});
             characterPostEmbed.setColor(Colors.Gold);
