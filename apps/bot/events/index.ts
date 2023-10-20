@@ -277,8 +277,13 @@ export class Events {
 
       if (isLevelUp) {
         const previousRoles = Object.values(credentials.roles.levels).filter((roleId) => roleId !== userLevelDetails.nextRoleId);
-        await message.member?.roles.remove(previousRoles).catch((error) => console.error("Failed to remove previous roles", error));
-        await message.member?.roles.add(userLevelDetails.nextRoleId).catch((error) => console.error("Failed to add new role", error));
+        const messageMember = await message.member?.fetch(true);
+        if (!messageMember) {
+          await message.reply(ptBr.errors.levelUpError).then(this.scheduleToDelete);
+          return;
+        }
+        await messageMember.roles.remove(previousRoles).catch((error) => console.error("Failed to remove previous roles", error));
+        await messageMember.roles.add(userLevelDetails.nextRoleId).catch((error) => console.error("Failed to add new role", error));
 
         const congratulationsMessage = await characterPost.channel.send(
           ptBr.feedback.levelUp.replace("{user}", userMention(character.userId)).replace("{level}", userLevelDetails.nextLevel.toString()),

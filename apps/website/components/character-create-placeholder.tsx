@@ -4,7 +4,6 @@ import {Plus} from "lucide-react";
 import React from "react";
 import {useQueryClient} from "react-query";
 import ptBr from "translations";
-import useSwipe from "../hooks/useSwipe";
 import {CharacterForm, CharacterFormValues} from "./character-form";
 import {Button, buttonVariants} from "./ui/button";
 import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger} from "./ui/dialog";
@@ -12,7 +11,6 @@ import {useToast} from "./ui/use-toast";
 
 export function CharacterCreatePlaceholder() {
   const [isOpen, setIsOpen] = React.useState(false);
-  const swipeHandlers = useSwipe({onSwipedLeft: () => setIsOpen(false)});
   const {toast} = useToast();
   const queryClient = useQueryClient();
   const user = queryClient.getQueryData<User>("user");
@@ -56,7 +54,7 @@ export function CharacterCreatePlaceholder() {
           <Plus />
         </button>
       </DialogTrigger>
-      <DialogContent {...swipeHandlers} className="max-h-[90svh] overflow-y-scroll p-4 max-sm:max-h-[100svh] sm:max-w-[553px]">
+      <DialogContent className="max-h-[90svh] overflow-y-scroll p-4 max-sm:max-h-[100svh] sm:max-w-[553px]">
         <DialogHeader>
           <DialogTitle className="">{ptBr.form.createChar}</DialogTitle>
           <DialogDescription>{ptBr.form.createCharDescription}</DialogDescription>

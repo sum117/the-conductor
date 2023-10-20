@@ -375,6 +375,7 @@ export default {
     },
   },
   errors: {
+    levelUpError: "Erro ao fornecer o cargo do novo nível. Por favor entre em contato com um moderador.",
     emojiNotCreated: "O emoji não foi criado. Houve um erro. Tente novamente.",
     assignInstrument: "Erro ao atribuir instrumento. Tente novamente mais tarde.",
     inviteMaxUses:
