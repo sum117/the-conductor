@@ -375,6 +375,9 @@ export default {
     },
   },
   errors: {
+    imageGenerationNitro:
+      "❌ Sentimos muito, mas gerar imagens é uma funcionalidade exclusiva para os Nitro Boosters, contribuidores, ou jogadores de alto nível do servidor .",
+    imageGeneration: "❌ Erro ao gerar imagem. Tente novamente mais tarde.",
     levelUpError: "Erro ao fornecer o cargo do novo nível. Por favor entre em contato com um moderador.",
     emojiNotCreated: "O emoji não foi criado. Houve um erro. Tente novamente.",
     assignInstrument: "Erro ao atribuir instrumento. Tente novamente mais tarde.",
@@ -416,6 +419,8 @@ export default {
     },
   },
   feedback: {
+    imageGenerationQueue:
+      "⏲️ Você já está na fila de geração de imagem. Aguarde sua vez.\nSua posição na fila é: {position}\nO tempo de espera aproximado é: {time}.",
     emojiCreated: "{emoji} Emoji criado com sucesso!",
     wrongEmojiFormat: "O formato do emoji está errado. Tente novamente.",
     deleteInstrument: {
@@ -441,6 +446,7 @@ export default {
     channelNotFound: "Canal não encontrado no banco de dados.",
     notAnEditableChannel: "Esse canal não pode ser editado.",
     loadingDone: "✅ Carregado, {user}!",
+    imageGenerationDone: "✅ Imagem gerada, {user}!\nPrompt: {prompt}",
     loading: "⏲️ Carregando...",
     levelUp: "🎉 {user} subiu para o nível **{level}**, parabéns!",
     clubChatCleared:

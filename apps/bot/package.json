@@ -21,6 +21,7 @@
     "discord.js": "^14.13.0",
     "discordx": "^11.7.6",
     "elysia": "^0.7.15",
+    "jszip": "^3.10.1",
     "lodash": "^4.17.21",
     "luxon": "^3.4.3",
     "node-cron": "^3.0.2",

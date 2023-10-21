@@ -1,26 +1,41 @@
 import {Prisma} from "@prisma/client";
 import {spawn} from "child_process";
-import {BaseMessageOptions, ButtonInteraction, Colors, EmbedBuilder, Message, PartialMessage, channelMention, userMention} from "discord.js";
+import {
+  AttachmentBuilder,
+  BaseMessageOptions,
+  ButtonInteraction,
+  Colors,
+  EmbedBuilder,
+  Message,
+  PartialMessage,
+  channelMention,
+  codeBlock,
+  userMention,
+} from "discord.js";
 import {ArgsOf, ButtonComponent, Discord, Guard, On, Once} from "discordx";
 import {exists, mkdir, unlink} from "fs/promises";
+import JSZip from "jszip";
 import lodash from "lodash";
 import {DateTime, Duration} from "luxon";
 import path from "path";
 import ptBr from "translations";
-import {cleanImageUrl, credentials} from "utilities";
+import {cleanImageUrl, credentials, delay} from "utilities";
 import {prisma} from "../db";
 import {dismissButtonCustomId} from "../lib/components/messagePayloads";
 import {isValidRoleplayMessage} from "../lib/guards";
 import {getNPCDetails, getUserLevelDetails, sendToImgur} from "../lib/util/helpers";
+import {Queue} from "../lib/util/queue";
 
 @Discord()
 export class Events {
   private guildInvites: Map<string, {uses: number; maxUses: number | null}>;
+  private queue: Queue;
   private timeOuts: Map<string, NodeJS.Timeout>;
 
   constructor() {
     this.timeOuts = new Map();
     this.guildInvites = new Map();
+    this.queue = new Queue();
     this.scheduleToDelete = this.scheduleToDelete.bind(this);
   }
 
@@ -406,6 +421,116 @@ export class Events {
       await interaction.message.delete();
     } catch (error) {
       console.error("Failed to delete message", error);
+    }
+  }
+
+  @On({event: "messageCreate"})
+  async onImageGenerationRequest([message]: ArgsOf<"messageCreate">) {
+    if (message.channel.id !== credentials.channels.imageGeneration || message.author.bot) return;
+    try {
+      const member = await message.member?.fetch(true);
+      if (!member) return;
+
+      const isAllowedMember =
+        member.roles.cache.has(credentials.roles.adminRole) ||
+        member.roles.cache.has(credentials.roles.levels.composerRole) ||
+        member.roles.cache.has(credentials.roles.levels.coordinatorRole) ||
+        member.premiumSinceTimestamp !== null;
+      if (!isAllowedMember) {
+        await message.reply(ptBr.errors.imageGenerationNitro).then(this.scheduleToDelete);
+        return;
+      }
+
+      const isAlreadyInQueue = this.queue.find(message.author.id);
+      if (isAlreadyInQueue) {
+        const TIME_PER_PERSON = 2 * 60 * 1000;
+        const currentPosition = this.queue.findPosition(message.author.id);
+        const timeLeft = (this.queue.length - currentPosition) * TIME_PER_PERSON;
+        await message
+          .reply(
+            ptBr.feedback.imageGenerationQueue
+              .replace("{time}", Duration.fromMillis(timeLeft).toFormat("mm:ss"))
+              .replace("{position}", currentPosition.toString()),
+          )
+          .then(this.scheduleToDelete);
+        return;
+      }
+
+      this.queue.enqueue({
+        id: message.author.id,
+        execute: async () => {
+          const loadingMessage = await message.channel.send(ptBr.feedback.loading);
+          try {
+            await delay(Duration.fromObject({minutes: 2}).as("milliseconds"));
+            const input = message.content.trim().split(",");
+            const seed = lodash.random(1000000000, 9999999999);
+            const isLarge = input.includes("large");
+            if (isLarge) input.splice(input.indexOf("large"), 1);
+
+            console.log(`Processing image generation request from ${message.author.username} with input: ${input.join(",")}`);
+            const data = {
+              input: input.join(","),
+              model: "nai-diffusion-2",
+              action: "generate",
+              parameters: {
+                width: isLarge ? 1216 : 832,
+                height: isLarge ? 832 : 1216,
+                scale: 10,
+                sampler: "k_euler_ancestral",
+                steps: 28,
+                seed,
+                n_samples: 1,
+                ucPreset: 0,
+                qualityToggle: false,
+                sm: false,
+                sm_dyn: false,
+                dynamic_thresholding: false,
+                controlnet_strength: 1,
+                legacy: false,
+                add_original_image: false,
+                uncond_scale: 1,
+                negative_prompt:
+                  "nsfw, lowres, bad, text, error, missing, extra, fewer, cropped, jpeg artifacts, worst quality, bad quality, watermark, displeasing, unfinished, chromatic aberration, scan, scan artifacts",
+              },
+            };
+            const response = await fetch("https://api.novelai.net/ai/generate-image", {
+              method: "POST",
+              body: JSON.stringify(data),
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${Bun.env.NOVELAI_TOKEN}`,
+              },
+            });
+
+            const result = await response.arrayBuffer();
+            const zip = new JSZip();
+            await zip.loadAsync(result);
+
+            const image = await zip.file(Object.keys(zip.files)[0])?.async("nodebuffer");
+            if (!image) {
+              await message.reply(ptBr.errors.imageGeneration).then(this.scheduleToDelete);
+              return;
+            }
+            const attachment = new AttachmentBuilder(image).setName(`${input.join(",").slice(0, 80)} s-${seed}.png`);
+
+            await message.channel.send({
+              content: ptBr.feedback.imageGenerationDone.replace("{prompt}", codeBlock(input.join(","))).replace("{user}", message.author.toString()),
+              files: [attachment],
+            });
+            console.log(`Image generation request from ${message.author.username} with input: ${input.join(",")} completed`);
+          } catch (error) {
+            console.error("Failed to generate image", error);
+            await message.reply(ptBr.errors.somethingWentWrong).then(this.scheduleToDelete);
+
+            return;
+          } finally {
+            await loadingMessage.delete().catch((error) => console.error("Failed to delete loading message", error));
+          }
+        },
+      });
+    } catch (error) {
+      message.reply(ptBr.errors.somethingWentWrong).then(this.scheduleToDelete);
+      console.error("Failed to listen to image generation request", error);
     }
   }
 

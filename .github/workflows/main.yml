@@ -23,6 +23,8 @@ env:
   VITE_API_BASE_URL: ${{ secrets.API_BASE_URL }}
   VITE_WEBSITE_BASE_URL: ${{ secrets.WEBSITE_BASE_URL }}
 
+  NOVELAI_TOKEN: ${{ secrets.NOVELAI_TOKEN }}
+
 jobs:
   build_and_push:
     runs-on: ubuntu-latest
@@ -77,6 +79,7 @@ jobs:
               -e VITE_DISCORD_CLIENT_ID=${{ env.VITE_DISCORD_CLIENT_ID }} \
               -e VITE_API_BASE_URL=${{ env.VITE_API_BASE_URL }} \
               -e VITE_WEBSITE_BASE_URL=${{ env.VITE_WEBSITE_BASE_URL }} \
+              -e NOVELAI_TOKEN=${{ env.NOVELAI_TOKEN }} \
               --restart unless-stopped \
               -v $HOME/prisma-data:/app/prisma \
               -v $HOME/cache:/app/cache \

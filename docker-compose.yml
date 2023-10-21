@@ -26,6 +26,7 @@ services:
       - VITE_WEBSITE_BASE_URL=${VITE_WEBSITE_BASE_URL}
       - VITE_API_BASE_URL=${VITE_API_BASE_URL}
       - VITE_DISCORD_CLIENT_ID=${VITE_DISCORD_CLIENT_ID}
+      - NOVELAI_TOKEN=${NOVELAI_TOKEN}
     restart: unless-stopped
     volumes:
       - ./prisma-data:/app/prisma

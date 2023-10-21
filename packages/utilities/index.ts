@@ -18,6 +18,8 @@ export function cleanImageUrl(url: string) {
 export function getSafeEntries<T extends object>(obj: T) {
   return Object.entries(obj) as [keyof T, T[keyof T]][];
 }
-
+export function delay(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 export * from "./credentials";
 export {};

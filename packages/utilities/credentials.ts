@@ -1,5 +1,6 @@
 export const credentials = {
   channels: {
+    imageGeneration: "1165128227405185134",
     announcementsChannel: "1155292395731157013",
     evaluationChannel: "1150143457202024510",
     approvedChannel: "1150151673696751616",
