@@ -143,11 +143,12 @@ export class Profile {
   ) {
     try {
       await interaction.deferReply();
-      if (!message) {
+      
+      const current = await prisma.user.findUnique({where: {id: interaction.user.id}, select: {afkMessage: true}});
+      if (!message && !current?.afkMessage) {
         await interaction.editReply(ptBr.feedback.afkMessage.empty);
         return;
       }
-      const current = await prisma.user.findUnique({where: {id: interaction.user.id}, select: {afkMessage: true}});
       if (current?.afkMessage) {
         await prisma.user.update({where: {id: interaction.user.id}, data: {afkMessage: null}});
         await interaction.editReply(ptBr.feedback.afkMessage.removed);
