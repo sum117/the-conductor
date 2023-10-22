@@ -4,8 +4,8 @@ import React from "react";
 type ProfilePreferencesAssets = Omit<ProfilePreferences, "id" | "about" | "userId">;
 
 export const DEFAULT_PREFERENCES = {
-  xpBarFillColor: "#888098",
-  xpBarBackgroundColor: "#CFB3CD",
+  xpBarFillColor: "#CFB3CD",
+  xpBarBackgroundColor: "#888098",
   textColor: "white",
   repBarColor: "#C9DDFF",
   featuredCharBorderColor: "#F7B32B",
