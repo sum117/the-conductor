@@ -123,6 +123,44 @@ export class Profile {
       interaction.editReply(ptBr.errors.profileColors).catch((error) => "Error sending error feedback: " + error);
     }
   }
+
+  @Slash({
+    name: "set-afk-message",
+    description: "Sets your AFK message.",
+    descriptionLocalizations: {"pt-BR": ptBr.commands.setAfkMessage.description},
+    nameLocalizations: {"pt-BR": ptBr.commands.setAfkMessage.name},
+  })
+  async setAfkMessage(
+    @SlashOption({
+      name: "message",
+      description: "The message to display when someone mentions you.",
+      descriptionLocalizations: {"pt-BR": ptBr.commands.setAfkMessage.options.message.description},
+      nameLocalizations: {"pt-BR": ptBr.commands.setAfkMessage.options.message.name},
+      type: ApplicationCommandOptionType.String,
+    })
+    message: string | undefined,
+    interaction: ChatInputCommandInteraction,
+  ) {
+    try {
+      await interaction.deferReply();
+      if (!message) {
+        await interaction.editReply(ptBr.feedback.afkMessage.empty);
+        return;
+      }
+      const current = await prisma.user.findUnique({where: {id: interaction.user.id}, select: {afkMessage: true}});
+      if (current?.afkMessage) {
+        await prisma.user.update({where: {id: interaction.user.id}, data: {afkMessage: null}});
+        await interaction.editReply(ptBr.feedback.afkMessage.removed);
+        return;
+      }
+      await prisma.user.update({where: {id: interaction.user.id}, data: {afkMessage: message}});
+      await interaction.editReply(ptBr.feedback.afkMessage.submitted);
+    } catch (afkMessageError) {
+      console.log("Error setting AFK message:", afkMessageError);
+      interaction.editReply(ptBr.errors.afkMessage).catch((error) => "Error sending error feedback: " + error);
+    }
+  }
+
   @Slash({
     name: "rep-someone",
     description: "Give someone a reputation point every 24 hours.",

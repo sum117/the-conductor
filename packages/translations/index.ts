@@ -248,6 +248,13 @@ export default {
     },
   },
   commands: {
+    setAfkMessage: {
+      name: "setar-mensagem-de-afk",
+      description: "Define sua mensagem de AFK.",
+      options: {
+        message: {name: "mensagem", description: "A mensagem de AFK."},
+      },
+    },
     setProfileColors: {
       name: "cores-do-perfil",
       description: "Define as cores do seu perfil.",
@@ -385,6 +392,7 @@ export default {
     },
   },
   errors: {
+    afkMessage: "Erro ao definir mensagem de AFK. Tente novamente mais tarde.",
     profileColors: "Erro ao definir cores do perfil. Tente novamente mais tarde.",
     imageGenerationNitro:
       "❌ Sentimos muito, mas gerar imagens é uma funcionalidade exclusiva para os Nitro Boosters, contribuidores, ou jogadores de alto nível do servidor .",
@@ -430,6 +438,12 @@ export default {
     },
   },
   feedback: {
+    afkMessage: {
+      empty: "⁉️ Você precisa fornecer uma mensagem para definir como AFK.",
+      triggered: "👋 {user} está AFK:\n\n{message}",
+      removed: "✅ Mensagem de AFK removida com sucesso.",
+      submitted: "✅ Mensagem de AFK definida com sucesso.",
+    },
     profileColors: {submitted: "✅ Cores do perfil definidas com sucesso."},
     imageGenerationQueue:
       "⏲️ Você já está na fila de geração de imagem. Aguarde sua vez.\nSua posição na fila é: {position}\nO tempo de espera aproximado é: {time}.",

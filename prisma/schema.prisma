@@ -17,6 +17,7 @@ model User {
   isEditing            Boolean             @default(false)
   reputation           Int                 @default(0)
   coins                Int                 @default(0)
+  afkMessage           String?
   profilePreferences   ProfilePreferences? @relation(fields: [profilePreferencesId], references: [id])
   characters           Character[]
   npcs                 NPC[]

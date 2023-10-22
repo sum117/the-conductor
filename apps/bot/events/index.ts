@@ -534,6 +534,24 @@ export class Events {
     }
   }
 
+  @On({event: "messageCreate"})
+  async onUserMention([message]: ArgsOf<"messageCreate">) {
+    if (message.mentions.users.size !== 1 || message.author.bot) return;
+    try {
+      const targetUser = message.mentions.users.first();
+      if (!targetUser) return;
+
+      const userData = await prisma.user.findFirst({where: {id: targetUser.id}});
+      if (!userData || !userData.afkMessage) return;
+
+      await message
+        .reply(ptBr.feedback.afkMessage.triggered.replace("{user}", targetUser.toString()).replace("{message}", userData.afkMessage))
+        .then(this.scheduleToDelete);
+    } catch (error) {
+      console.error("Failed to listen to user mention", error);
+    }
+  }
+
   private scheduleToDelete(messageToDelete: Message, minutes = 1) {
     this.timeOuts.set(
       messageToDelete.id,
