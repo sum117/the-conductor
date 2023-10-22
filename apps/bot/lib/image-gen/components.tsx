@@ -107,7 +107,7 @@ export function AboutSection({about, profilePreferences}: {about: string | null;
       <p
         style={{
           ...textShadowStyle,
-          color: "white",
+          color: textColor,
           maxWidth: "18rem",
           margin: "0",
           maxHeight: "5rem",
