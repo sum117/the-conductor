@@ -125,6 +125,14 @@ export default {
     },
   },
   modals: {
+    colorPreferences: {
+      title: "Cores do Perfil",
+      xpBarFillColor: {label: "Barra de XP", placeholder: "Uma cor em código hexadecimal. Ex: #FFFFFF"},
+      xpBarBackgroundColor: {label: "Fundo da Barra de XP", placeholder: "Uma cor em código hexadecimal. Ex: #FFFFFF"},
+      textColor: {label: "Texto", placeholder: "Uma cor em código hexadecimal. Ex: #FFFFFF"},
+      repBarColor: {label: "Barra de Reputação", placeholder: "Uma cor em código hexadecimal. Ex: #FFFFFF"},
+      featuredCharBorderColor: {label: "Borda de Destaque", placeholder: "Uma cor em código hexadecimal. Ex: #FFFFFF"},
+    },
     rpChannelEditor: {
       title: "Editor de Canal de RP",
       name: {label: "Nome do canal", placeholder: "Nome do canal"},
@@ -133,10 +141,8 @@ export default {
     },
     aboutMe: {
       title: "Sobre mim",
-      newAboutMe: {
-        placeholder: "Escreva sobre você.",
-        label: "Sobre mim",
-      },
+      newAboutMe: {placeholder: "Escreva sobre você.", label: "Sobre mim"},
+      backgroundUrl: {placeholder: "Link que termina com .png, .jpg, etc.", label: "URL do fundo"},
     },
     essentials: {
       title: "Campos Essenciais",
@@ -242,6 +248,10 @@ export default {
     },
   },
   commands: {
+    setProfileColors: {
+      name: "cores-do-perfil",
+      description: "Define as cores do seu perfil.",
+    },
     emoji: {
       description: "Adiciona um emoji ao servidor.",
       options: {link_or_id: {name: "link-ou-id", description: "O link ou id do emoji."}},
@@ -375,6 +385,7 @@ export default {
     },
   },
   errors: {
+    profileColors: "Erro ao definir cores do perfil. Tente novamente mais tarde.",
     imageGenerationNitro:
       "❌ Sentimos muito, mas gerar imagens é uma funcionalidade exclusiva para os Nitro Boosters, contribuidores, ou jogadores de alto nível do servidor .",
     imageGeneration: "❌ Erro ao gerar imagem. Tente novamente mais tarde.",
@@ -419,6 +430,7 @@ export default {
     },
   },
   feedback: {
+    profileColors: {submitted: "✅ Cores do perfil definidas com sucesso."},
     imageGenerationQueue:
       "⏲️ Você já está na fila de geração de imagem. Aguarde sua vez.\nSua posição na fila é: {position}\nO tempo de espera aproximado é: {time}.",
     emojiCreated: "{emoji} Emoji criado com sucesso!",

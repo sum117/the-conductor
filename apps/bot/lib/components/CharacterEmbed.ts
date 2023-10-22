@@ -31,20 +31,25 @@ export class CharacterPayload {
       characterEmbed.setImage(this.payload.character.imageUrl);
       characterEmbed.setColor("Random");
       characterEmbed.setFooter({text: ptBr.createCharacter.websiteCharFooterText});
-      getSafeKeys(this.payload.character).forEach((key) => {
-        if (key === "factionId" && this.payload.character?.faction) {
-          characterEmbed.addFields([
-            {name: ptBr.character.faction, value: `${this.payload.character.faction?.emoji} ${this.payload.character?.faction?.name}`},
-          ]);
-          return;
-        } else if (key === "raceId" && this.payload?.character?.race) {
-          characterEmbed.addFields([{name: ptBr.character.race, value: this.payload.character.race.name}]);
-          return;
-        }
-        if (!hasKey(ptBr.character, key) || key === "backstory" || key === "imageUrl" || key === "userId" || key === "faction" || key === "race") return;
+      getSafeKeys(this.payload.character)
+        .filter((key) => {
+          const value = this.payload.character?.[key];
+          return Boolean(value);
+        })
+        .forEach((key) => {
+          if (key === "factionId" && this.payload.character?.faction) {
+            characterEmbed.addFields([
+              {name: ptBr.character.faction, value: `${this.payload.character.faction?.emoji} ${this.payload.character?.faction?.name}`},
+            ]);
+            return;
+          } else if (key === "raceId" && this.payload?.character?.race) {
+            characterEmbed.addFields([{name: ptBr.character.race, value: this.payload.character.race.name}]);
+            return;
+          }
+          if (!hasKey(ptBr.character, key) || key === "backstory" || key === "imageUrl" || key === "userId" || key === "faction" || key === "race") return;
 
-        characterEmbed.addFields([{name: ptBr.character[key], value: this.payload.character?.[key] ?? ptBr.noneF}]);
-      });
+          characterEmbed.addFields([{name: ptBr.character[key], value: this.payload.character?.[key] ?? ptBr.noneF}]);
+        });
       this.payload.embeds.push(characterEmbed);
 
       this.payload.components = [createCharacterEvaluationButtonRow(this.payload.character.id)];

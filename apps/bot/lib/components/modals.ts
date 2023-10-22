@@ -1,4 +1,4 @@
-import {Channel, Character, Faction, Instrument, Race} from "@prisma/client";
+import {Channel, Character, Faction, Instrument, ProfilePreferences, Race} from "@prisma/client";
 import {ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle} from "discord.js";
 import ptBr from "translations";
 export const submissionEssentialsModalId = "submissionEssentialsModal";
@@ -371,4 +371,124 @@ export const rpChannelEditorModal = (currentValues: ChannelFields) => {
     .setCustomId(rpChannelEditorModalId)
     .setTitle(ptBr.modals.rpChannelEditor.title)
     .addComponents(nameField, descriptionField, imageUrlField);
+};
+
+type ColorPreferenceFields = Pick<ProfilePreferences, "xpBarFillColor" | "featuredCharBorderColor" | "repBarColor" | "textColor" | "xpBarBackgroundColor">;
+export const colorPreferencesModalId = "colorPreferencesModal";
+export const colorPreferencesFields = {
+  xpBarFillColor: "xpBarFillColor",
+  featuredCharBorderColor: "featuredCharBorderColor",
+  repBarColor: "repBarColor",
+  textColor: "textColor",
+  xpBarBackgroundColor: "xpBarBackgroundColor",
+} satisfies ColorPreferenceFields;
+
+export const colorPreferencesModal = (currentValues: ColorPreferenceFields) => {
+  const xpBarFillColorField = new ActionRowBuilder<TextInputBuilder>().addComponents(
+    new TextInputBuilder()
+      .setLabel(ptBr.modals.colorPreferences.xpBarFillColor.label)
+      .setPlaceholder(ptBr.modals.colorPreferences.xpBarFillColor.placeholder)
+      .setCustomId(colorPreferencesFields.xpBarFillColor)
+      .setRequired(false)
+      .setStyle(TextInputStyle.Short)
+      .setMaxLength(7),
+  );
+  if (currentValues.xpBarFillColor) {
+    xpBarFillColorField.components[0].setValue(currentValues.xpBarFillColor);
+  }
+
+  const featuredCharBorderColorField = new ActionRowBuilder<TextInputBuilder>().addComponents(
+    new TextInputBuilder()
+      .setLabel(ptBr.modals.colorPreferences.featuredCharBorderColor.label)
+      .setPlaceholder(ptBr.modals.colorPreferences.featuredCharBorderColor.placeholder)
+      .setCustomId(colorPreferencesFields.featuredCharBorderColor)
+      .setRequired(false)
+      .setStyle(TextInputStyle.Short)
+      .setMaxLength(7),
+  );
+  if (currentValues.featuredCharBorderColor) {
+    featuredCharBorderColorField.components[0].setValue(currentValues.featuredCharBorderColor);
+  }
+
+  const repBarColorField = new ActionRowBuilder<TextInputBuilder>().addComponents(
+    new TextInputBuilder()
+      .setLabel(ptBr.modals.colorPreferences.repBarColor.label)
+      .setPlaceholder(ptBr.modals.colorPreferences.repBarColor.placeholder)
+      .setCustomId(colorPreferencesFields.repBarColor)
+      .setRequired(false)
+      .setStyle(TextInputStyle.Short)
+      .setMaxLength(7),
+  );
+  if (currentValues.repBarColor) {
+    repBarColorField.components[0].setValue(currentValues.repBarColor);
+  }
+
+  const textColorField = new ActionRowBuilder<TextInputBuilder>().addComponents(
+    new TextInputBuilder()
+      .setLabel(ptBr.modals.colorPreferences.textColor.label)
+      .setPlaceholder(ptBr.modals.colorPreferences.textColor.placeholder)
+      .setCustomId(colorPreferencesFields.textColor)
+      .setRequired(false)
+      .setStyle(TextInputStyle.Short)
+      .setMaxLength(7),
+  );
+  if (currentValues.textColor) {
+    textColorField.components[0].setValue(currentValues.textColor);
+  }
+
+  const xpBarBackgroundColorField = new ActionRowBuilder<TextInputBuilder>().addComponents(
+    new TextInputBuilder()
+      .setLabel(ptBr.modals.colorPreferences.xpBarBackgroundColor.label)
+      .setPlaceholder(ptBr.modals.colorPreferences.xpBarBackgroundColor.placeholder)
+      .setCustomId(colorPreferencesFields.xpBarBackgroundColor)
+      .setRequired(false)
+      .setStyle(TextInputStyle.Short)
+      .setMaxLength(7),
+  );
+
+  if (currentValues.xpBarBackgroundColor) {
+    xpBarBackgroundColorField.components[0].setValue(currentValues.xpBarBackgroundColor);
+  }
+
+  return new ModalBuilder()
+    .setCustomId(colorPreferencesModalId)
+    .setTitle(ptBr.modals.colorPreferences.title)
+    .addComponents(xpBarFillColorField, featuredCharBorderColorField, repBarColorField, textColorField, xpBarBackgroundColorField);
+};
+
+type ProfileAssets = Pick<ProfilePreferences, "backgroundUrl" | "about">;
+export const profileAssetsModalId = "profileAssetsModal";
+export const profileAssetsFields = {
+  backgroundUrl: "backgroundUrl",
+  about: "about",
+} satisfies ProfileAssets;
+
+export const profileAssetsModal = (currentValues: ProfileAssets) => {
+  const backgroundUrlField = new ActionRowBuilder<TextInputBuilder>().addComponents(
+    new TextInputBuilder()
+      .setLabel(ptBr.modals.aboutMe.backgroundUrl.label)
+      .setPlaceholder(ptBr.modals.aboutMe.backgroundUrl.placeholder)
+      .setCustomId(profileAssetsFields.backgroundUrl)
+      .setMinLength(1)
+      .setStyle(TextInputStyle.Short)
+      .setMaxLength(256),
+  );
+  if (currentValues.backgroundUrl) {
+    backgroundUrlField.components[0].setValue(currentValues.backgroundUrl);
+  }
+
+  const aboutField = new ActionRowBuilder<TextInputBuilder>().addComponents(
+    new TextInputBuilder()
+      .setLabel(ptBr.modals.aboutMe.newAboutMe.label)
+      .setPlaceholder(ptBr.modals.aboutMe.newAboutMe.placeholder)
+      .setCustomId(profileAssetsFields.about)
+      .setMinLength(1)
+      .setStyle(TextInputStyle.Paragraph)
+      .setMaxLength(500),
+  );
+  if (currentValues.about) {
+    aboutField.components[0].setValue(currentValues.about);
+  }
+
+  return new ModalBuilder().setCustomId(profileAssetsModalId).setTitle(ptBr.modals.aboutMe.title).addComponents(backgroundUrlField, aboutField);
 };

@@ -12,6 +12,7 @@ export async function getSatoriImage(props: UserCardProps, options: SatoriOption
       progressBarWidth={props.progressBarWidth}
       counters={props.counters}
       mainCharacterWithUser={props.mainCharacterWithUser}
+      profilePreferences={props.profilePreferences}
       user={props.user}
     />,
     options,
