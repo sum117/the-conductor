@@ -1,21 +1,11 @@
-import {
-  ActionRowBuilder,
-  ApplicationCommandOptionType,
-  AttachmentBuilder,
-  ChatInputCommandInteraction,
-  GuildMember,
-  ModalBuilder,
-  TextInputBuilder,
-  TextInputStyle,
-  User,
-} from "discord.js";
+import {ApplicationCommandOptionType, AttachmentBuilder, ChatInputCommandInteraction, GuildMember, User} from "discord.js";
 import {Discord, Slash, SlashOption} from "discordx";
 import {DateTime} from "luxon";
 import ptBr from "translations";
+import {getSafeKeys} from "utilities";
 import {prisma} from "../db";
+import {colorPreferencesFields, colorPreferencesModal, profileAssetsFields, profileAssetsModal} from "../lib/components/modals";
 import {awaitSubmitModal} from "../lib/util/helpers";
-const aboutMeModalId = "aboutMeModal";
-const aboutMeTextInputId = "aboutMeTextInput";
 
 @Discord()
 export class Profile {
@@ -67,37 +57,107 @@ export class Profile {
   })
   async setAboutMe(interaction: ChatInputCommandInteraction) {
     try {
-      const user = await prisma.user.findUnique({where: {id: interaction.user.id}});
+      const user = await prisma.user.findUnique({where: {id: interaction.user.id}, include: {profilePreferences: true}});
 
-      const aboutMeInput = new TextInputBuilder()
-        .setCustomId(aboutMeTextInputId)
-        .setLabel(ptBr.modals.aboutMe.newAboutMe.label)
-        .setPlaceholder(ptBr.modals.aboutMe.newAboutMe.placeholder)
-        .setRequired(true)
-        .setStyle(TextInputStyle.Paragraph)
-        .setMinLength(1)
-        .setMaxLength(500);
-
-      if (user?.about) {
-        aboutMeInput.setValue(user.about);
-      }
-
-      const aboutMeModal = new ModalBuilder()
-        .setTitle(ptBr.modals.aboutMe.title)
-        .setCustomId(aboutMeModalId)
-        .addComponents(new ActionRowBuilder<TextInputBuilder>().addComponents(aboutMeInput));
-
-      await interaction.showModal(aboutMeModal);
+      await interaction.showModal(
+        profileAssetsModal({
+          about: user?.profilePreferences?.about ?? "",
+          backgroundUrl: user?.profilePreferences?.backgroundUrl ?? "",
+        }),
+      );
 
       const submitted = await awaitSubmitModal(interaction);
-      const aboutMe = submitted.fields.getTextInputValue(aboutMeTextInputId);
+      const aboutMe = submitted.fields.getTextInputValue(profileAssetsFields.about);
+      const backgroundUrl = submitted.fields.getTextInputValue(profileAssetsFields.backgroundUrl);
 
-      await prisma.user.update({where: {id: interaction.user.id}, data: {about: aboutMe}});
+      await prisma.user.update({
+        data: {profilePreferences: {upsert: {create: {about: aboutMe, backgroundUrl}, update: {about: aboutMe, backgroundUrl}}}},
+        where: {id: interaction.user.id},
+      });
 
       await submitted.editReply(ptBr.feedback.aboutMe.submitted);
     } catch (setAboutMeError) {
       console.log("Error setting about me:", setAboutMeError);
       interaction.editReply(ptBr.errors.aboutMe).catch((error) => "Error sending error feedback: " + error);
+    }
+  }
+
+  @Slash({
+    name: "set-profile-colors",
+    description: "Sets your profile colors.",
+    descriptionLocalizations: {"pt-BR": ptBr.commands.setProfileColors.description},
+    nameLocalizations: {"pt-BR": ptBr.commands.setProfileColors.name},
+  })
+  async setProfileColors(interaction: ChatInputCommandInteraction) {
+    try {
+      const user = await prisma.user.findUnique({where: {id: interaction.user.id}, include: {profilePreferences: true}});
+
+      await interaction.showModal(
+        colorPreferencesModal({
+          featuredCharBorderColor: user?.profilePreferences?.featuredCharBorderColor ?? "",
+          repBarColor: user?.profilePreferences?.repBarColor ?? "",
+          textColor: user?.profilePreferences?.textColor ?? "",
+          xpBarBackgroundColor: user?.profilePreferences?.xpBarBackgroundColor ?? "",
+          xpBarFillColor: user?.profilePreferences?.xpBarFillColor ?? "",
+        }),
+      );
+
+      const submitted = await awaitSubmitModal(interaction);
+
+      const fields = getSafeKeys(colorPreferencesFields).reduce(
+        (acc, key) => {
+          if (submitted.fields.getTextInputValue(colorPreferencesFields[key])) acc[key] = submitted.fields.getTextInputValue(colorPreferencesFields[key]);
+          return acc;
+        },
+        <Record<keyof typeof colorPreferencesFields, string>>{},
+      );
+
+      await prisma.user.update({
+        data: {profilePreferences: {upsert: {create: fields, update: fields}}},
+        where: {id: interaction.user.id},
+      });
+
+      await submitted.editReply(ptBr.feedback.profileColors.submitted);
+    } catch (setProfileColorsError) {
+      console.log("Error setting profile colors:", setProfileColorsError);
+      interaction.editReply(ptBr.errors.profileColors).catch((error) => "Error sending error feedback: " + error);
+    }
+  }
+
+  @Slash({
+    name: "set-afk-message",
+    description: "Sets your AFK message.",
+    descriptionLocalizations: {"pt-BR": ptBr.commands.setAfkMessage.description},
+    nameLocalizations: {"pt-BR": ptBr.commands.setAfkMessage.name},
+  })
+  async setAfkMessage(
+    @SlashOption({
+      name: "message",
+      description: "The message to display when someone mentions you.",
+      descriptionLocalizations: {"pt-BR": ptBr.commands.setAfkMessage.options.message.description},
+      nameLocalizations: {"pt-BR": ptBr.commands.setAfkMessage.options.message.name},
+      type: ApplicationCommandOptionType.String,
+    })
+    message: string | undefined,
+    interaction: ChatInputCommandInteraction,
+  ) {
+    try {
+      await interaction.deferReply();
+      if (!message) {
+        await interaction.editReply(ptBr.feedback.afkMessage.empty);
+        return;
+      }
+      const current = await prisma.user.findUnique({where: {id: interaction.user.id}, select: {afkMessage: true}});
+      if (current?.afkMessage) {
+        await prisma.user.update({where: {id: interaction.user.id}, data: {afkMessage: null}});
+        await interaction.editReply(ptBr.feedback.afkMessage.removed);
+        return;
+      }
+      await prisma.user.update({where: {id: interaction.user.id}, data: {afkMessage: message}});
+      await interaction.editReply(ptBr.feedback.afkMessage.submitted);
+    } catch (afkMessageError) {
+      console.log("Error setting AFK message:", afkMessageError);
+      interaction.editReply(ptBr.errors.afkMessage).catch((error) => "Error sending error feedback: " + error);
     }
   }
 

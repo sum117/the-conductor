@@ -10,19 +10,37 @@ datasource db {
 }
 
 model User {
-  id                  String      @id @default(uuid())
-  xp                  Int         @default(0)
-  lastXpTime          DateTime    @default(now())
-  lastReputationGiven DateTime    @default(now())
-  isEditing           Boolean     @default(false)
-  reputation          Int         @default(0)
-  about               String?     @default("")
-  coins               Int         @default(0)
-  characters          Character[]
-  npcs                NPC[]
-  isUsingNPC          Boolean     @default(false)
-  heartedMessages     Message[]
-  messages            Message[]   @relation("userMessages")
+  id                   String              @id @default(uuid())
+  xp                   Int                 @default(0)
+  lastXpTime           DateTime            @default(now())
+  lastReputationGiven  DateTime            @default(now())
+  isEditing            Boolean             @default(false)
+  reputation           Int                 @default(0)
+  coins                Int                 @default(0)
+  afkMessage           String?
+  profilePreferences   ProfilePreferences? @relation(fields: [profilePreferencesId], references: [id])
+  characters           Character[]
+  npcs                 NPC[]
+  isUsingNPC           Boolean             @default(false)
+  heartedMessages      Message[]
+  messages             Message[]           @relation("userMessages")
+  profilePreferencesId Int?                @unique
+}
+
+model ProfilePreferences {
+  id    Int    @id @default(autoincrement())
+  about String @default("")
+
+  backgroundUrl String?
+
+  xpBarFillColor          String?
+  xpBarBackgroundColor    String?
+  textColor               String?
+  repBarColor             String?
+  featuredCharBorderColor String?
+
+  user   User?
+  userId String?
 }
 
 model NPC {

@@ -26,7 +26,7 @@ elysiaServer.get("/api/image-gen/profile/:id", async ({params, set}) => {
     const {id} = params;
     const mainCharacterWithUser = await prisma.character.findFirst({
       where: {userId: id, isBeingUsed: true},
-      include: {user: true, messages: {select: {id: true}}},
+      include: {user: {include: {profilePreferences: true}}, messages: {select: {id: true}}},
     });
     if (!mainCharacterWithUser || !mainCharacterWithUser.imageUrl) {
       set.status = "Not Found";
@@ -54,7 +54,16 @@ elysiaServer.get("/api/image-gen/profile/:id", async ({params, set}) => {
     const progressBarWidth = -0.16 * percentageToNextLevel + 16;
 
     const png = await getSatoriImage(
-      {userLevel, levelEmoji, topFiveCharacters: allCharacters, progressBarWidth, counters, mainCharacterWithUser, user},
+      {
+        userLevel,
+        levelEmoji,
+        topFiveCharacters: allCharacters,
+        progressBarWidth,
+        counters,
+        mainCharacterWithUser,
+        user,
+        profilePreferences: mainCharacterWithUser.user.profilePreferences ?? undefined,
+      },
       options,
     );
 
