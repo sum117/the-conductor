@@ -10,7 +10,8 @@ export function RowContainer({gap = "1rem", style, children}: {gap?: string; sty
   return <div style={{display: "flex", columnGap: gap, ...style}}>{children}</div>;
 }
 export function LevelHeader({userLevel, profilePreferences}: {userLevel: number; profilePreferences?: ProfilePreferences}) {
-  return <p style={{...titleStyle(profilePreferences), ...textShadowStyle}}>lvl {userLevel}</p>;
+  const textColor = profilePreferences?.textColor ?? DEFAULT_PREFERENCES.textColor;
+  return <p style={{...titleStyle(profilePreferences), ...textShadowStyle, color: textColor}}>lvl {userLevel}</p>;
 }
 
 export function TopFiveCharacters({
