@@ -307,7 +307,7 @@ elysiaServer
   .post(
     "/api/characters/create",
     async (context) => {
-      const characterData: Prisma.CharacterUncheckedCreateInput = context.body;
+      const characterData: Prisma.CharacterUncheckedCreateInput = {...context.body};
       characterData.raceId = parseInt(context.body.race);
       characterData.factionId = parseInt(context.body.faction);
       "race" in characterData && delete characterData.race;
@@ -336,7 +336,7 @@ elysiaServer
             slug: lodash.kebabCase(`${characterData.name} ${characterData.surname}`),
             isBeingUsed: true,
             isPending: true,
-            instruments: {create: {instrumentId: parseInt(context.body.instrument), quantity: 1}},
+            instruments: {create: {instrument: {connect: {id: parseInt(context.body.instrument)}}, quantity: 1}},
           },
           include: {faction: true, race: true},
         });
