@@ -67,11 +67,18 @@ export class Profile {
       );
 
       const submitted = await awaitSubmitModal(interaction);
-      const aboutMe = submitted.fields.getTextInputValue(profileAssetsFields.about) ?? null;
-      const backgroundUrl = submitted.fields.getTextInputValue(profileAssetsFields.backgroundUrl) ?? null;
+      const aboutMe = submitted.fields.getTextInputValue(profileAssetsFields.about);
+      const backgroundUrl = submitted.fields.getTextInputValue(profileAssetsFields.backgroundUrl);
 
       await prisma.user.update({
-        data: {profilePreferences: {upsert: {create: {about: aboutMe, backgroundUrl}, update: {about: aboutMe, backgroundUrl}}}},
+        data: {
+          profilePreferences: {
+            upsert: {
+              create: {about: Boolean(aboutMe) ? aboutMe : undefined, backgroundUrl: Boolean(backgroundUrl) ? backgroundUrl : undefined},
+              update: {about: Boolean(aboutMe) ? aboutMe : undefined, backgroundUrl: Boolean(backgroundUrl) ? backgroundUrl : null},
+            },
+          },
+        },
         where: {id: interaction.user.id},
       });
 
