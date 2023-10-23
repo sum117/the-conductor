@@ -12,16 +12,17 @@ export const DEFAULT_PREFERENCES = {
   backgroundUrl: "radial-gradient(circle, rgba(238,174,202,1) 0%, rgba(148,187,233,1) 100%)",
 } satisfies ProfilePreferencesAssets;
 
-export const mainStyle = (preferences: ProfilePreferencesAssets = DEFAULT_PREFERENCES, backgroundUrl?: string | null) =>
-  ({
+export const mainStyle = (preferences: ProfilePreferencesAssets = DEFAULT_PREFERENCES, backgroundUrl?: string | null) => {
+  return {
     display: "flex",
     padding: "1rem",
     flexDirection: "column",
     borderRadius: "8px",
     rowGap: "1rem",
-    backgroundImage: backgroundUrl ? `url(${backgroundUrl})` : preferences.backgroundUrl,
+    backgroundImage: backgroundUrl ? `url(${backgroundUrl})` : DEFAULT_PREFERENCES.backgroundUrl,
     alignItems: "flex-start",
-  }) as React.CSSProperties;
+  } as React.CSSProperties;
+};
 
 export const textShadowStyle: React.CSSProperties = {
   filter: "drop-shadow(0 10px 8px rgb(0 0 0 / 0.04)) drop-shadow(0 4px 3px rgb(0 0 0 / 0.1))",
