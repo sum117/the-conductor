@@ -39,9 +39,9 @@ export const wikiCharactersQuery = <T extends WikiCharacterLink[] | WikiCharacte
     }),
 });
 
-export const wikiCharacterQuery = (characterName: string) => ({
-  queryKey: ["wiki-character", characterName],
-  queryFn: () => fetchData<WikiCharacter>(`/wiki/characters/${lodash.kebabCase(characterName)}`),
+export const wikiCharacterQuery = (slug: string) => ({
+  queryKey: ["wiki-character", slug],
+  queryFn: () => fetchData<WikiCharacter>(`/wiki/characters/${lodash.kebabCase(slug)}`),
 });
 
 export const announcementsQuery = () => ({

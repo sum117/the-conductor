@@ -137,7 +137,7 @@ export function CharacterForm({submit, onSubmit}: {submit: React.ReactNode; onSu
                   <FormItem className="col-span-full">
                     <FormLabel>{ptBr.character[key]}</FormLabel>
                     <FormControl>
-                      <Textarea placeholder={ptBr.form.character[key].placeholder} className="resize-none" {...field} />
+                      <Textarea placeholder={ptBr.form.character[key].placeholder} className="resize-none overflow-x-hidden break-words blur-none" {...field} />
                     </FormControl>
                     <FormDescription>{ptBr.form.character[key].description}</FormDescription>
                     <FormMessage />

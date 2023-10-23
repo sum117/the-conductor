@@ -17,7 +17,7 @@ export const credentials = {
     mentorRole: "1162989308068778054",
     levels: {
       studentRole: "1157545264358371369",
-      tunerRole: "1157545264358371369",
+      tunerRole: "1157548849561354270",
       coralistRole: "1157548926459707433",
       instrumentalistRole: "1157550534799134780",
       improviserRole: "1157551278679937144",

@@ -118,8 +118,8 @@ elysiaServer
     const htmlToSend = await context.html(replaceMetaTags(html));
 
     if (context.request.url.includes("wiki/characters")) {
-      const characterName = context.request.url.split("/").pop();
-      const character = await prisma.character.findFirst({include: {race: true, faction: true}, where: {name: {contains: characterName}}});
+      const slug = context.request.url.split("/").pop();
+      const character = await prisma.character.findFirst({include: {race: true, faction: true}, where: {slug: {contains: slug}}});
       if (!character) return htmlToSend;
 
       const makeCharacterDescription = () => {
@@ -142,7 +142,7 @@ elysiaServer
           title: `${character.name} ${character.surname}`,
           description: makeCharacterDescription() ?? ptBr.website.description,
           image: character.imageUrl ?? ptBr.website.image,
-          url: `${Bun.env.WEBSITE_BASE_URL}/wiki/characters/${lodash.kebabCase(character.name ?? "")}`,
+          url: `${Bun.env.WEBSITE_BASE_URL}/wiki/characters/${character.slug}`,
         }),
       );
     }
@@ -331,7 +331,13 @@ elysiaServer
           return "User Not Found";
         }
         const character = await prisma.character.create({
-          data: {...characterData, isBeingUsed: true, isPending: true, instruments: {create: {instrumentId: parseInt(context.body.instrument), quantity: 1}}},
+          data: {
+            ...characterData,
+            slug: lodash.kebabCase(`${characterData.name} ${characterData.surname}`),
+            isBeingUsed: true,
+            isPending: true,
+            instruments: {create: {instrumentId: parseInt(context.body.instrument), quantity: 1}},
+          },
           include: {faction: true, race: true},
         });
         const characterPayload = new CharacterPayload({character});
@@ -404,7 +410,7 @@ elysiaServer
     const page = context.query.page ? parseInt(context.query.page) : 1;
     const expanded = context.query.expanded ? Boolean(context.query.expanded) : false;
 
-    type WikiCharacterLink = Prisma.CharacterGetPayload<{select: {name: true; id: true; imageUrl: true}}>;
+    type WikiCharacterLink = Prisma.CharacterGetPayload<{select: {slug: true; name: true; id: true; imageUrl: true}}>;
     type WikiCharacter = Prisma.CharacterGetPayload<{include: {faction: true; instruments: true; race: true}}>;
 
     let characters: WikiCharacter[] | WikiCharacterLink[] = [];
@@ -417,7 +423,7 @@ elysiaServer
       });
     } else {
       characters = await prisma.character.findMany({
-        select: {name: true, id: true, imageUrl: true},
+        select: {name: true, id: true, imageUrl: true, slug: true},
         take: pageSize,
         skip: (page - 1) * pageSize,
       });
@@ -429,18 +435,18 @@ elysiaServer
       ? {
           characters: characters
             .filter(
-              (character): character is WikiCharacterLink & {link: string; name: string; imageUrl: string} =>
-                Boolean(character.name) && Boolean(character.imageUrl) && Boolean(character.id),
+              (character): character is WikiCharacterLink & {link: string; name: true; slug: string; imageUrl: string} =>
+                Boolean(character.slug) && Boolean(character.imageUrl) && Boolean(character.id) && Boolean(character.name),
             )
-            .map((character) => ({...character, link: lodash.kebabCase(character.name!)})),
+            .map((character) => ({...character, link: lodash.kebabCase(character.slug!)})),
           totalPages,
         }
       : {characters: characters, totalPages};
   })
 
-  .get("/api/wiki/characters/:name", async (context) => {
-    const {name} = context.params;
-    const character = await prisma.character.findFirst({where: {name: {contains: name}}, include: {faction: true, instruments: true, race: true}});
+  .get("/api/wiki/characters/:slug", async (context) => {
+    const {slug} = context.params;
+    const character = await prisma.character.findFirst({where: {slug: {contains: slug}}, include: {faction: true, instruments: true, race: true}});
     if (!character) {
       context.set.status = "Not Found";
       return "Character Not Found";

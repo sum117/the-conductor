@@ -18,6 +18,8 @@ import {
   userMention,
 } from "discord.js";
 import {ButtonComponent, Discord, SelectMenuComponent, Slash} from "discordx";
+import lodash from "lodash";
+import {Duration} from "luxon";
 import ptBr from "translations";
 import {cleanImageUrl, credentials} from "utilities";
 import {imageLinks} from "../data/assets";
@@ -46,6 +48,10 @@ export function createCharacterEvaluationButtonRow(characterId: number): ActionR
 }
 @Discord()
 export class Submission {
+  private timeOuts: Map<string, NodeJS.Timeout>;
+  constructor() {
+    this.timeOuts = new Map();
+  }
   // Admin
   @ButtonComponent({
     id: new RegExp(createCharacterApproveButtonIdPrefix + "\\d+"),
@@ -294,7 +300,23 @@ export class Submission {
             content: ptBr.feedback.essentials.submitted,
           });
 
-          await prisma.character.create({data: {name, surname, personality, backstory, age, userId: user.id, isPending: true}});
+          const created = await prisma.character.create({
+            data: {name, surname, personality, backstory, age, userId: user.id, isPending: true, slug: lodash.kebabCase(`${name} ${surname}`)},
+          });
+
+          this.timeOuts.set(
+            created.id.toString(),
+            setTimeout(
+              async () => {
+                try {
+                  await prisma.character.delete({where: {id: created.id, isPending: true}});
+                } catch (error) {
+                  console.error("Error finding character to delete: ", error);
+                }
+              },
+              Duration.fromObject({hours: 1}).as("milliseconds"),
+            ),
+          );
 
           break;
 

@@ -37,7 +37,7 @@ const router = createBrowserRouter(
         <Route path="wiki">
           <Route index element={<Wiki />} loader={wikiLoader(queryClient)} />
           <Route path="characters" loader={wikiCharactersLoader(queryClient)} element={<WikiCharacters />} />
-          <Route path="characters/:characterName" element={<WikiCharacter />} loader={wikiCharacterLoader(queryClient)} />
+          <Route path="characters/:slug" element={<WikiCharacter />} loader={wikiCharacterLoader(queryClient)} />
         </Route>
       </Route>
     </Route>,

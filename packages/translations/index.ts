@@ -486,7 +486,8 @@ export default {
       success: "Você deu +1 reputação para {user}!",
     },
     essentials: {
-      submitted: "Campos essenciais enviados, continue preenchendo os outros campos.",
+      submitted:
+        'Campos essenciais enviados, continue preenchendo os outros campos.\nSe você não liberou nenhum campo depois de receber essa mensagem, clique no botão "Essenciais" novamente e clique em "Enviar" mais uma vez.\nA partir de agora, você tem 1 hora para terminar este personagem através do Discord.',
     },
     aboutMe: {
       submitted: "Sobre mim modificado com sucesso.",

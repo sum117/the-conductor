@@ -469,7 +469,7 @@ export const profileAssetsModal = (currentValues: ProfileAssets) => {
       .setLabel(ptBr.modals.aboutMe.backgroundUrl.label)
       .setPlaceholder(ptBr.modals.aboutMe.backgroundUrl.placeholder)
       .setCustomId(profileAssetsFields.backgroundUrl)
-      .setMinLength(1)
+      .setRequired(false)
       .setStyle(TextInputStyle.Short)
       .setMaxLength(256),
   );
@@ -481,8 +481,8 @@ export const profileAssetsModal = (currentValues: ProfileAssets) => {
     new TextInputBuilder()
       .setLabel(ptBr.modals.aboutMe.newAboutMe.label)
       .setPlaceholder(ptBr.modals.aboutMe.newAboutMe.placeholder)
+      .setRequired(false)
       .setCustomId(profileAssetsFields.about)
-      .setMinLength(1)
       .setStyle(TextInputStyle.Paragraph)
       .setMaxLength(500),
   );

@@ -88,9 +88,10 @@ export function RepBar({reputation, profilePreferences}: {reputation: number; pr
   );
 }
 export function StatLine({label, value, profilePreferences}: {label: string; value: string | number; profilePreferences?: ProfilePreferences}) {
+  const textColor = profilePreferences?.textColor ?? DEFAULT_PREFERENCES.textColor;
   return (
     <div style={statsStyle(profilePreferences)}>
-      <span>{label}</span> <span>{value}</span>
+      <span style={{color: textColor}}>{label}</span> <span style={{color: textColor}}>{value}</span>
     </div>
   );
 }

@@ -32,7 +32,7 @@ export default function Index() {
             {!user ? (
               <p>{ptBr.welcomeCard.loginHelp}</p>
             ) : (
-              <div className="flex flex-col justify-center gap-y-2">
+              <div className="mx-auto flex flex-col justify-center gap-y-2">
                 <p className="mb-2 inline-flex w-full items-center justify-center gap-x-2 stroke-green-600 text-green-600">
                   <CheckCircle className="h-4 w-4" />
                   {ptBr.welcomeCard.loggedIn}

@@ -54,7 +54,7 @@ export function CharacterCreatePlaceholder() {
           <Plus />
         </button>
       </DialogTrigger>
-      <DialogContent className="max-h-[90svh] overflow-y-scroll p-4 max-sm:max-h-[100svh] sm:max-w-[553px]">
+      <DialogContent className="max-h-[90svh] overflow-y-scroll p-4  max-sm:max-h-[100svh] sm:max-w-[553px]">
         <DialogHeader>
           <DialogTitle className="">{ptBr.form.createChar}</DialogTitle>
           <DialogDescription>{ptBr.form.createCharDescription}</DialogDescription>

@@ -13,17 +13,17 @@ import {WikiCharacter as TWikiCharacter, wikiCharacterQuery} from "../lib/querie
 export const loader =
   (queryClient: QueryClient) =>
   async ({params}: LoaderFunctionArgs) => {
-    const {characterName} = params;
-    if (!characterName) throw new Response(null, {status: 404});
+    const {slug} = params;
+    if (!slug) throw new Response(null, {status: 404});
 
-    const query = wikiCharacterQuery(characterName);
+    const query = wikiCharacterQuery(slug);
     const character = queryClient.getQueryData<TWikiCharacter>(query.queryKey) ?? (await queryClient.fetchQuery(query));
-    return {character, characterName};
+    return {character, slug};
   };
 
 export default function WikiCharacter() {
   const initialData = useLoaderData() as Awaited<ReturnType<ReturnType<typeof loader>>>;
-  const {data: character} = useQuery({...wikiCharacterQuery(initialData.characterName), initialData: initialData.character});
+  const {data: character} = useQuery({...wikiCharacterQuery(initialData.slug), initialData: initialData.character});
   const [open, setOpen] = useState(true);
   const navigate = useNavigate();
   return (

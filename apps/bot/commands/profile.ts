@@ -67,8 +67,8 @@ export class Profile {
       );
 
       const submitted = await awaitSubmitModal(interaction);
-      const aboutMe = submitted.fields.getTextInputValue(profileAssetsFields.about);
-      const backgroundUrl = submitted.fields.getTextInputValue(profileAssetsFields.backgroundUrl);
+      const aboutMe = submitted.fields.getTextInputValue(profileAssetsFields.about) ?? null;
+      const backgroundUrl = submitted.fields.getTextInputValue(profileAssetsFields.backgroundUrl) ?? null;
 
       await prisma.user.update({
         data: {profilePreferences: {upsert: {create: {about: aboutMe, backgroundUrl}, update: {about: aboutMe, backgroundUrl}}}},
@@ -143,7 +143,7 @@ export class Profile {
   ) {
     try {
       await interaction.deferReply();
-      
+
       const current = await prisma.user.findUnique({where: {id: interaction.user.id}, select: {afkMessage: true}});
       if (!message && !current?.afkMessage) {
         await interaction.editReply(ptBr.feedback.afkMessage.empty);

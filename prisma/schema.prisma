@@ -59,6 +59,7 @@ model NPC {
 model Character {
   id          Int                   @id @default(autoincrement())
   name        String?
+  slug        String?
   surname     String?
   personality String?
   appearance  String?
