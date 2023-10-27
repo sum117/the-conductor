@@ -29,6 +29,10 @@ type WikiQueryProps = {
   expanded?: boolean;
 };
 
+export const featuredCharacterQuery = () => ({
+  queryKey: ["featured-characters"],
+  queryFn: () => fetchData<Character>("/characters/featured"),
+});
 export const wikiCharactersQuery = <T extends WikiCharacterLink[] | WikiCharacter[]>(props?: WikiQueryProps) => ({
   queryKey: ["wiki-characters", props?.page, props?.pageSize],
   queryFn: () =>

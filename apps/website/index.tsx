@@ -12,6 +12,7 @@ import Characters, {loader as charactersLoader} from "./routes/characters";
 import {action as deleteAction} from "./routes/delete";
 import {loader as loginLoader} from "./routes/login";
 import {action as logoutAction} from "./routes/logout";
+import {action as editAction} from "./routes/edit";
 import ProtectedRoute, {loader as protectedRouteLoader} from "./routes/protected-route";
 import Root, {loader as rootLoader} from "./routes/root";
 import Wiki, {loader as wikiLoader} from "./routes/wiki";
@@ -32,6 +33,7 @@ const router = createBrowserRouter(
           <Route path="characters" element={<Characters />} loader={charactersLoader(queryClient)}>
             <Route path=":characterId" element={<Character />} loader={characterLoader(queryClient)} />
             <Route path=":characterId/delete" action={deleteAction(queryClient)} />
+            <Route path=":characterId/edit" action={editAction(queryClient)} />
           </Route>
         </Route>
         <Route path="wiki">

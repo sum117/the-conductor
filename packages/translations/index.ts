@@ -2,6 +2,21 @@ import {credentials} from "utilities";
 
 export default {
   yes: "sim",
+  wiki: {
+    call: "Não há motivo para esperar mais...",
+    discordNotice: "A atividade do nosso servidor do Discord!",
+    announcements: {
+      label: "Anúncios",
+      description: "Os Anúncios recentes do servidor.",
+    },
+    newChars: {label: "Novos Personagens", description: "Os personagens mais recentes do servidor."},
+    welcome: "Bem vindo à Wiki do Maestro Obscuro!",
+    description: "Bem vindo ao Maestro Obscuro.\nAqui você pode encontrar informações sobre os personagens, facções, raças, e instrumentos do servidor.",
+    footer:
+      "Nós somos uma comunidade de escritores que se reúnem para escrever histórias em um mundo de fantasia medieval com um toque de música. Se você gosta de escrever, ou quer aprender, junte-se a nós através do botão.",
+    button: "Entrar",
+    featuredCharacter: "Personagem em Destaque",
+  },
   routes: {
     home: "Início",
     characters: "Seus Personagens",

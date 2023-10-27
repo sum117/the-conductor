@@ -2,7 +2,6 @@ import {buttonVariants} from "@/components/ui/button";
 import {NAVBAR_DATA} from "@/data/constants";
 import useNavbarBounds from "@/hooks/useNavbarBounds";
 import {CheckCircle, Lightbulb} from "lucide-react";
-import {Fragment} from "react";
 import {Link, useRouteLoaderData} from "react-router-dom";
 import ptBr from "translations";
 import {getSafeKeys} from "utilities";
@@ -42,7 +41,7 @@ export default function Index() {
                   const {name, path, children} = NAVBAR_DATA[key];
                   if (children) {
                     return (
-                      <Fragment>
+                      <div key={key} className="flex flex-col gap-y-2">
                         <h2 className="scroll-m-20 border-b pb-2 text-xl font-semibold tracking-tight transition-colors first:mt-0">{name}</h2>
                         <div className="grid grid-cols-2 gap-x-2">
                           <Link to={path} className={buttonVariants({variant: "secondary"})}>
@@ -57,7 +56,7 @@ export default function Index() {
                             );
                           })}
                         </div>
-                      </Fragment>
+                      </div>
                     );
                   }
                   return (

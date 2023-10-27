@@ -13,10 +13,11 @@ import {prisma} from "./db";
 import {CharacterPayload} from "./lib/components/CharacterEmbed";
 import {getSatoriImage} from "./lib/image-gen/getSatoriImage";
 import {getSatoriOptions} from "./lib/image-gen/getSatoriOptions";
-import {getUserLevelDetails} from "./lib/util/helpers";
+import {getUserLevelDetails, sendToImgur} from "./lib/util/helpers";
 import {bot} from "./main";
 
 const elysiaServer = new Elysia();
+// @ts-ignore
 if (Bun.env.NODE_ENV === "development") elysiaServer.use(cors());
 
 const options: SatoriOptions = await getSatoriOptions();
@@ -97,6 +98,7 @@ function replaceMetaTags(html: string, tags?: MetaTags) {
 }
 
 elysiaServer
+  // @ts-ignore
   .use(html())
   .onError((context) => {
     if (context.code === "NOT_FOUND") {
@@ -115,6 +117,7 @@ elysiaServer
       return Bun.file(path.join(WEBSITE_PATH, fileName));
     }
     const html = await Bun.file(path.join(WEBSITE_PATH, "index.html")).text();
+    // @ts-ignore
     const htmlToSend = await context.html(replaceMetaTags(html));
 
     if (context.request.url.includes("wiki/characters")) {
@@ -136,7 +139,7 @@ elysiaServer
         }
         return description;
       };
-
+      // @ts-ignore
       return context.html(
         replaceMetaTags(html, {
           title: `${character.name} ${character.surname}`,
@@ -389,6 +392,11 @@ elysiaServer
     context.set.status = "OK";
     return characters;
   })
+  .get("api/characters/featured", async (context) => {
+    const character = await prisma.character.findFirst({orderBy: {messages: {_count: "desc"}}});
+    context.set.status = "OK";
+    return character;
+  })
   .get("/api/characters/:id", async (context) => {
     const userId = await context.isSignedIn();
     const {id} = context.params;
@@ -402,7 +410,17 @@ elysiaServer
     const character = await prisma.character.delete({where: {id: parseInt(id), AND: {userId}}});
     context.set.status = "OK";
     return character;
-  });
+  })
+  .patch(
+    "/api/characters/:id/edit",
+    async (context) => {
+      const image = context.body.image;
+      const link = await sendToImgur(Buffer.from(await image.arrayBuffer()));
+      await prisma.character.update({where: {id: parseInt(context.params.id)}, data: {imageUrl: link}});
+      return link;
+    },
+    {body: t.Object({image: t.File()})},
+  );
 
 elysiaServer
   .get("/api/wiki/characters", async (context) => {
