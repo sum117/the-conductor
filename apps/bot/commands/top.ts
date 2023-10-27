@@ -6,6 +6,7 @@ import {Pagination, PaginationResolver} from "@discordx/pagination";
 import {Prisma, User} from "@prisma/client";
 import {getUserLevelDetails} from "../lib/util/helpers";
 import {PAGINATION_DEFAULT_OPTIONS} from "../data/constants";
+import {chunk} from "lodash";
 
 const PER_PAGE = 10;
 
@@ -21,45 +22,44 @@ export class Top {
     try {
       await interaction.deferReply();
 
-      const topByMessage = async (page: number, perPage: number) =>
+      const topByMessage = async () =>
         await prisma.user.findMany({
           orderBy: {messages: {_count: "desc"}},
-          take: PER_PAGE,
-          skip: page === 0 ? 0 : page * perPage,
           include: {characters: {select: {factionId: true}, where: {isBeingUsed: true}}, messages: {select: {id: true}}},
         });
-      const maxLength = Math.ceil((await prisma.user.count()) / PER_PAGE);
+      const userEntry = async (
+        user: Prisma.UserGetPayload<{include: {characters: {select: {factionId: true}; where: {isBeingUsed: true}}; messages: {select: {id: true}}}}>,
+        index: number,
+      ) => {
+        const levelDetails = getUserLevelDetails(user);
+        const factionId = user.characters[0].factionId;
+        let factionEmoji: string | undefined;
+        if (factionId) {
+          const faction = await prisma.faction.findFirst({where: {id: factionId}});
+          factionEmoji = faction?.emoji;
+        }
+        const emoji = interaction.guild?.emojis.cache.find((emoji) => emoji.id === levelDetails.emojiId);
+        if (factionEmoji && emoji) return `**${index}.** ${factionEmoji} ${emoji} ${userMention(user.id)} - **${user.messages.length}**`;
+        return `**${index}.** ${emoji} ${userMention(user.id)} - **${user.messages.length}**`;
+      };
 
-      const paginationResolver = new PaginationResolver(async (page) => {
-        const top = await topByMessage(page, PER_PAGE);
-
-        const userEntry = async (
-          user: Prisma.UserGetPayload<{include: {characters: {select: {factionId: true}; where: {isBeingUsed: true}}; messages: {select: {id: true}}}}>,
-          index: number,
-          page: number,
-        ) => {
-          const levelDetails = getUserLevelDetails(user);
-          const factionId = user.characters[0].factionId;
-          let factionEmoji: string | undefined;
-          if (factionId) {
-            const faction = await prisma.faction.findFirst({where: {id: factionId}});
-            factionEmoji = faction?.emoji;
-          }
-          const emoji = interaction.guild?.emojis.cache.find((emoji) => emoji.id === levelDetails.emojiId);
-          if (factionEmoji && emoji) return `**${index}.** ${factionEmoji} ${emoji} ${userMention(user.id)} - **${user.messages.length}**`;
-          return `**${index + page * PER_PAGE}.** ${emoji} ${userMention(user.id)} - **${user.messages.length}**`;
-        };
-        const topEntries = await Promise.all(top.map((user, index) => userEntry(user, index + 1, page)));
-        const embed = new EmbedBuilder()
-          .setTitle(`${interaction.guild?.name} - ${ptBr.embeds.topTile}`)
-          .setFooter({text: `${page + 1}/${maxLength}`})
-          .setColor("Random")
-          .setDescription(topEntries.join("\n"));
-
-        return {embeds: [embed]};
-      }, maxLength);
-
-      const pagination = new Pagination(interaction, paginationResolver, {
+      const generatePages = async () => {
+        const top = await topByMessage();
+        const topEntries = await Promise.all(top.map((user, index) => userEntry(user, index + 1)));
+        const chunks = chunk(topEntries, PER_PAGE);
+        return chunks.map((chunk) => {
+          return {
+            embeds: [
+              new EmbedBuilder()
+                .setTitle(`${interaction.guild?.name} - ${ptBr.embeds.topTile}`)
+                .setColor("Random")
+                .setDescription(chunk.join("\n")),
+            ],
+          };
+        });
+      };
+      const pages = await generatePages();
+      const pagination = new Pagination(interaction, pages, {
         ...PAGINATION_DEFAULT_OPTIONS,
         onTimeout: () => interaction.deleteReply().catch((error) => console.error("Error deleting reply", error)),
       });
