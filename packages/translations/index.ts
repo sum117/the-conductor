@@ -133,6 +133,7 @@ export default {
     },
   },
   embeds: {
+    topTile: "Placar de Autores",
     noDescriptionProvided: "Nenhuma descrição foi fornecida.",
     beginnerInstrument: "Iniciante",
     characterList: {
@@ -263,6 +264,10 @@ export default {
     },
   },
   commands: {
+    top: {
+      name: "placar",
+      description: "Mostra os melhores autores do servidor.",
+    },
     setAfkMessage: {
       name: "setar-mensagem-de-afk",
       description: "Define sua mensagem de AFK.",
