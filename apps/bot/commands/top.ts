@@ -32,7 +32,7 @@ export class Top {
         index: number,
       ) => {
         const levelDetails = getUserLevelDetails(user);
-        const factionId = user.characters[0].factionId;
+        const factionId = user.characters.at(0)?.factionId;
         let factionEmoji: string | undefined;
         if (factionId) {
           const faction = await prisma.faction.findFirst({where: {id: factionId}});
