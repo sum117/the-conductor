@@ -80,75 +80,77 @@ async function run() {
   console.log(`Elysia is running at ${elysiaServer.server?.hostname}:${elysiaServer.server?.port}`);
 
   // run every day at 00:00 to delete all the messages in the club channel and delete messages that doesn't exist in the server anymore from the database.
-  cron.schedule(
-    "0 0 * * *",
-    async () => {
-      async function handleClubChannel() {
-        try {
-          const clubChannel = await bot.channels.fetch(credentials.channels.clubChat);
-          if (clubChannel?.type !== ChannelType.GuildText) return;
+  if (Bun.env.NODE_ENV !== "development") {
+    cron.schedule(
+      "0 0 * * *",
+      async () => {
+        async function handleClubChannel() {
+          try {
+            const clubChannel = await bot.channels.fetch(credentials.channels.clubChat);
+            if (clubChannel?.type !== ChannelType.GuildText) return;
 
-          await recursivelyDelete(clubChannel);
-          await clubChannel.send(ptBr.feedback.clubChatCleared);
-        } catch (error) {
-          console.error("Error handling club channel:", error);
+            await recursivelyDelete(clubChannel);
+            await clubChannel.send(ptBr.feedback.clubChatCleared);
+          } catch (error) {
+            console.error("Error handling club channel:", error);
+          }
         }
-      }
 
-      async function handleInstrumentsChannel() {
-        try {
-          const instrumentsChannel = await bot.channels.fetch(credentials.channels.instrumentsChannel);
-          if (instrumentsChannel?.type !== ChannelType.GuildText) return;
+        async function handleInstrumentsChannel() {
+          try {
+            const instrumentsChannel = await bot.channels.fetch(credentials.channels.instrumentsChannel);
+            if (instrumentsChannel?.type !== ChannelType.GuildText) return;
 
-          await processInstruments(instrumentsChannel);
-        } catch (error) {
-          console.error("Error handling instruments channel:", error);
+            await processInstruments(instrumentsChannel);
+          } catch (error) {
+            console.error("Error handling instruments channel:", error);
+          }
         }
-      }
 
-      async function handleMessages(channel: GuildTextBasedChannel) {
-        try {
-          const messages = await prisma.message.findMany({where: {channelId: channel.id}});
-          if (!messages) return;
+        async function handleMessages(channel: GuildTextBasedChannel) {
+          try {
+            const messages = await prisma.message.findMany({where: {channelId: channel.id}});
+            if (!messages) return;
 
-          await Promise.all(
-            messages.map(async (message) => {
-              const discordMessage = await channel.messages.fetch(message.id).catch(() => null);
-              if (!discordMessage) await prisma.message.delete({where: {id: message.id}});
-            }),
-          );
-        } catch (error) {
-          console.error(`Error handling messages for channel with ID ${channel.id}:`, error);
+            await Promise.all(
+              messages.map(async (message) => {
+                const discordMessage = await channel.messages.fetch(message.id).catch(() => null);
+                if (!discordMessage) await prisma.message.delete({where: {id: message.id}});
+              }),
+            );
+          } catch (error) {
+            console.error(`Error handling messages for channel with ID ${channel.id}:`, error);
+          }
         }
-      }
 
-      async function mainRoutine() {
-        await handleClubChannel();
-        await handleInstrumentsChannel();
+        async function mainRoutine() {
+          await handleClubChannel();
+          await handleInstrumentsChannel();
 
+          for (const [_channelId, channel] of bot.channels.cache.entries()) {
+            if (channel.type !== ChannelType.GuildText) continue;
+            await handleMessages(channel);
+          }
+        }
+
+        mainRoutine();
+      },
+      {timezone: "America/Sao_Paulo", runOnInit: true},
+    );
+
+    cron.schedule(
+      "0 */2 * * *",
+      async () => {
         for (const [_channelId, channel] of bot.channels.cache.entries()) {
           if (channel.type !== ChannelType.GuildText) continue;
-          await handleMessages(channel);
+          const isFirstInCategory = channel.name.includes("📖");
+          if ((channel.parent?.name.startsWith("RP") && !isFirstInCategory) || channel.id === credentials.channels.randomRoleplay)
+            await processRoleplayChannel(channel);
         }
-      }
-
-      mainRoutine();
-    },
-    {timezone: "America/Sao_Paulo", runOnInit: true},
-  );
-
-  cron.schedule(
-    "0 */2 * * *",
-    async () => {
-      for (const [_channelId, channel] of bot.channels.cache.entries()) {
-        if (channel.type !== ChannelType.GuildText) continue;
-        const isFirstInCategory = channel.name.includes("📖");
-        if ((channel.parent?.name.startsWith("RP") && !isFirstInCategory) || channel.id === credentials.channels.randomRoleplay)
-          await processRoleplayChannel(channel);
-      }
-    },
-    {timezone: "America/Sao_Paulo", runOnInit: false},
-  );
+      },
+      {timezone: "America/Sao_Paulo", runOnInit: false},
+    );
+  }
 }
 
 run();
