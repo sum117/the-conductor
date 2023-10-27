@@ -25,7 +25,7 @@ export class Top {
         await prisma.user.findMany({
           orderBy: {messages: {_count: "desc"}},
           take: PER_PAGE,
-          skip: page * (perPage - 1),
+          skip: page === 0 ? 0 : page * perPage,
           include: {characters: {select: {factionId: true}, where: {isBeingUsed: true}}, messages: {select: {id: true}}},
         });
       const maxLength = Math.ceil((await prisma.user.count()) / PER_PAGE);
@@ -36,6 +36,7 @@ export class Top {
         const userEntry = async (
           user: Prisma.UserGetPayload<{include: {characters: {select: {factionId: true}; where: {isBeingUsed: true}}; messages: {select: {id: true}}}}>,
           index: number,
+          page: number,
         ) => {
           const levelDetails = getUserLevelDetails(user);
           const factionId = user.characters[0].factionId;
@@ -46,12 +47,12 @@ export class Top {
           }
           const emoji = interaction.guild?.emojis.cache.find((emoji) => emoji.id === levelDetails.emojiId);
           if (factionEmoji && emoji) return `**${index}.** ${factionEmoji} ${emoji} ${userMention(user.id)} - **${user.messages.length}**`;
-          return `**${index}.** ${emoji} ${userMention(user.id)} - **${user.messages.length}**`;
+          return `**${index + page * PER_PAGE}.** ${emoji} ${userMention(user.id)} - **${user.messages.length}**`;
         };
-        const topEntries = await Promise.all(top.map((user, index) => userEntry(user, index + 1)));
+        const topEntries = await Promise.all(top.map((user, index) => userEntry(user, index + 1, page)));
         const embed = new EmbedBuilder()
           .setTitle(`${interaction.guild?.name} - ${ptBr.embeds.topTile}`)
-          .setFooter({text: `${page}/${maxLength}`})
+          .setFooter({text: `${page + 1}/${maxLength}`})
           .setColor("Random")
           .setDescription(topEntries.join("\n"));
 
