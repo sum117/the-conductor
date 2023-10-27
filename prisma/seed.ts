@@ -444,6 +444,7 @@ async function main() {
   const charactersData = new Array<Prisma.CharacterUncheckedCreateInput>();
 
   charactersData.push({
+    slug: "kana-tsuki",
     userId: user.id,
     name: "Kana",
     surname: "Tsuki",
@@ -463,6 +464,7 @@ async function main() {
   });
 
   charactersData.push({
+    slug: "ryo-harada",
     userId: user.id,
     name: "Ryo",
     surname: "Harada",
@@ -482,6 +484,7 @@ async function main() {
   });
 
   charactersData.push({
+    slug: "hana-mizuki",
     userId: user.id,
     name: "Hana",
     surname: "Mizuki",
@@ -501,6 +504,7 @@ async function main() {
   });
 
   charactersData.push({
+    slug: "sora-nakamura",
     userId: user.id,
     name: "Sora",
     surname: "Nakamura",
@@ -520,6 +524,7 @@ async function main() {
   });
 
   charactersData.push({
+    slug: "mai-tanaka",
     userId: user.id,
     name: "Mai",
     surname: "Tanaka",
@@ -539,6 +544,7 @@ async function main() {
   });
 
   charactersData.push({
+    slug: "toshi-yamamoto",
     userId: user.id,
     name: "Toshi",
     surname: "Yamamoto",
@@ -558,6 +564,7 @@ async function main() {
   });
 
   charactersData.push({
+    slug: "aya-kojima",
     userId: user.id,
     name: "Aya",
     surname: "Kojima",
@@ -577,6 +584,7 @@ async function main() {
   });
 
   charactersData.push({
+    slug: "kai-watanabe",
     userId: user.id,
     name: "Kai",
     surname: "Watanabe",
@@ -596,6 +604,7 @@ async function main() {
   });
 
   charactersData.push({
+    slug: "yumi-sasaki",
     userId: user.id,
     name: "Yumi",
     surname: "Sasaki",
@@ -615,6 +624,7 @@ async function main() {
   });
 
   charactersData.push({
+    slug: "ren-okada",
     userId: user.id,
     name: "Ren",
     surname: "Okada",
@@ -634,6 +644,7 @@ async function main() {
   });
 
   charactersData.push({
+    slug: "miki-ito",
     userId: user.id,
     name: "Miki",
     surname: "Ito",
@@ -653,6 +664,7 @@ async function main() {
   });
 
   charactersData.push({
+    slug: "le-kobayashi",
     userId: user.id,
     name: "Leo",
     surname: "Kobayashi",
@@ -672,6 +684,7 @@ async function main() {
   });
 
   charactersData.push({
+    slug: "chihiro-nakajima",
     userId: user.id,
     name: "Chihiro",
     surname: "Nakajima",
@@ -693,9 +706,9 @@ async function main() {
   const characters = await Promise.all(
     charactersData.map(async (char, index) => {
       try {
-        const randomAnimeImageResponse = await fetch("https://pic.re/image", {method: "POST"});
-        const {file_url} = await randomAnimeImageResponse.json();
-        const created = await prisma.character.create({data: {...char, imageUrl: file_url}});
+        const randomAnimeImageResponse = await fetch("https://api.nekosapi.com/v2/images/random");
+        const json = (await randomAnimeImageResponse.json()) as {data: {attributes: {file: string}}};
+        const created = await prisma.character.create({data: {...char, imageUrl: json.data.attributes.file}});
         return created;
       } catch (error) {
         console.log(`Erro ao criar personagem ${index + 1}: ${char.name}: ${error}`);
