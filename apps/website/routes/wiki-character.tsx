@@ -29,10 +29,18 @@ export default function WikiCharacter() {
   return (
     <div className="bg-background relative flex py-4 max-sm:flex-col-reverse max-sm:gap-y-4 sm:mx-auto sm:max-w-4xl ">
       <article className="sm:w-prose px-8 sm:flex-1">
-        <Button variant="ghost" className="absolute left-0 top-5" onClick={() => navigate({pathname: "/wiki/characters"})}>
-          <ArrowLeft className="h-8 w-8" />
-          <span className="sr-only">{ptBr.website.back}</span>
-        </Button>
+        {history.length > 2 && (
+          <Button
+            variant="ghost"
+            className="absolute left-0 top-5"
+            onClick={() => {
+              navigate(-1);
+            }}
+          >
+            <ArrowLeft className="h-8 w-8" />
+            <span className="sr-only">{ptBr.website.back}</span>
+          </Button>
+        )}
         <header>
           <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight max-sm:text-center sm:pl-8 lg:text-5xl">{character?.name}</h1>
         </header>

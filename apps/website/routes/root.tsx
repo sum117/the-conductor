@@ -1,6 +1,6 @@
 import {NAVBAR_DATA, NavbarProps} from "@/data/constants";
 import {User} from "@prisma/client";
-import {ChevronsUpDown, LogIn, LogOut, Menu, Moon, Music4, Sun} from "lucide-react";
+import {ChevronDown, ChevronsUpDown, LogIn, LogOut, Menu, Moon, Music4, Sun} from "lucide-react";
 import React from "react";
 import {useQuery, type QueryClient} from "react-query";
 import {NavLink, Outlet, Form as RRDForm, useLoaderData, useSubmit} from "react-router-dom";
@@ -77,7 +77,7 @@ export default function Root() {
                   {getSafeKeys(children).map((childKey) => {
                     const {name: childName, path: childPath} = children[childKey];
                     return (
-                      <NavLink to={childPath} className={getNavLinkClass}>
+                      <NavLink to={childPath} className={getNavLinkClass} key={key}>
                         {childName}
                       </NavLink>
                     );
@@ -87,10 +87,8 @@ export default function Root() {
             })}
 
             <li>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="sm:hidden">
-                  <Menu className="h-4 w-4" />
-                </Button>
+              <SheetTrigger className={buttonVariants({variant: "ghost", size: "icon", className: "sm:hidden"})}>
+                <Menu className="h-4 w-4" />
               </SheetTrigger>
             </li>
             <li>
@@ -167,11 +165,9 @@ function MobileNavItem({path, name, children, style}: {path: string; name: strin
             <NavLink to={path} className={getNavLinkClass}>
               {name}
             </NavLink>
-            <CollapsibleTrigger>
-              <Button variant="ghost" size="sm" className="w-9 p-0">
-                <ChevronsUpDown className="h-4 w-4" />
-                <span className="sr-only">Toggle</span>
-              </Button>
+            <CollapsibleTrigger className={buttonVariants({variant: "ghost", size: "sm", className: "w-9 p-0"})}>
+              <ChevronsUpDown className="h-4 w-4" />
+              <span className="sr-only">Toggle</span>
             </CollapsibleTrigger>
           </div>
           <CollapsibleContent>{children}</CollapsibleContent>
@@ -189,16 +185,20 @@ function MobileNavItem({path, name, children, style}: {path: string; name: strin
   );
 }
 
-function DesktopNavItem({name, path, children}: {name: string; path: string; children?: React.ReactNode}) {
+function DesktopNavItem({name, children, path}: {name: string; path: string; children?: React.ReactNode}) {
+  const [isHoverCardOpen, setIsHoverCardOpen] = React.useState(false);
   return (
     <li className="max-sm:hidden">
-      <HoverCard openDelay={0}>
-        <HoverCardTrigger>
-          <NavLink to={path} className={getNavLinkClass}>
-            {name}
-          </NavLink>
+      <HoverCard openDelay={0} onOpenChange={setIsHoverCardOpen} open={isHoverCardOpen}>
+        <HoverCardTrigger className={buttonVariants({variant: "ghost", className: "inline-flex items-center gap-x-2"})}>
+          {name} <ChevronDown className={cn("h-4 w-4 transition-[transform]", isHoverCardOpen && "rotate-180 transform")} />
         </HoverCardTrigger>
-        <HoverCardContent className="max-w-max">{children}</HoverCardContent>
+        <HoverCardContent className="max-w-max">
+          <NavLink to={path} className={buttonVariants({variant: "link"})} key={name}>
+            {ptBr.routes.home}
+          </NavLink>
+          {children}
+        </HoverCardContent>
       </HoverCard>
     </li>
   );
