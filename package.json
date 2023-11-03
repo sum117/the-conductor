@@ -33,5 +33,5 @@
   "prisma": {
     "seed": "node --loader=ts-node/esm prisma/seed.ts"
   },
-  "packageManager": "bun@1.0.6"
+  "packageManager": "bun@1.0.7"
 }
