@@ -50,8 +50,8 @@ elysiaServer.get("/api/image-gen/profile/:id", async ({params, set}) => {
       return "User Not Found in Bot Cache";
     }
 
-    const {userLevel, percentageToNextLevel, emojiId} = getUserLevelDetails(mainCharacterWithUser.user);
-    const levelEmoji = bot.guilds.cache.first()?.emojis.cache.find((emoji) => emoji.id === emojiId);
+    const {userLevel, percentageToNextLevel, nextEmojiId} = getUserLevelDetails(mainCharacterWithUser.user);
+    const levelEmoji = bot.guilds.cache.first()?.emojis.cache.find((emoji) => emoji.id === nextEmojiId);
     const progressBarWidth = -0.16 * percentageToNextLevel + 16;
 
     const png = await getSatoriImage(

@@ -61,6 +61,9 @@ export function getUserLevelDetails(user: User) {
     }
   }
 
+  if (!nextRoleId) nextRoleId = roleId;
+  if (!nextEmojiId) nextEmojiId = emojiId;
+
   return {
     userLevel,
     emojiId,
