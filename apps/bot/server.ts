@@ -341,7 +341,7 @@ elysiaServer
             ...characterData,
             slug: lodash.kebabCase(`${characterData.name} ${characterData.surname}`),
             isBeingUsed: true,
-            isPending: true,
+            isPending: false,
             instruments: {create: {instrument: {connect: {id: parseInt(context.body.instrument)}}, quantity: 1}},
           },
           include: {faction: true, race: true},
