@@ -3,7 +3,7 @@ import {WIKI_CHARACTER_DETAILS_FIELDS, WIKI_CHARACTER_FIELDS} from "@/data/const
 import {ArrowBigDownDash, ArrowBigUpDash, ArrowLeft, Dot, List} from "lucide-react";
 import React, {useState} from "react";
 import {QueryClient, useQuery} from "react-query";
-import {LoaderFunctionArgs, useLoaderData, useNavigate} from "react-router-dom";
+import {Link, LoaderFunctionArgs, useLoaderData, useNavigate} from "react-router-dom";
 import ptBr from "translations";
 import {getSafeEntries, hasKey} from "utilities";
 import {Button, buttonVariants} from "../components/ui/button";
@@ -97,7 +97,20 @@ export default function WikiCharacter() {
             <h3 className="bg-muted-foreground scroll-m-20 text-center text-2xl font-semibold tracking-tight">{ptBr.characterDetails[label]}</h3>
             {entries.map((subField) => {
               if (!character) return null;
-              if (!hasKey(character, subField)) return null;
+              if (subField === "marriedTo" && character[subField]?.length)
+                return (
+                  <div key={subField} className="flex justify-between px-2">
+                    <span className="font-semibold">{ptBr.character[subField]}</span>
+                    <span className="flex flex-col gap-y-4">
+                      {character?.[subField].map((character) => (
+                        <Link key={character.name} to={`/wiki/characters/${character.slug}`} className="underline">
+                          {character.name}
+                        </Link>
+                      ))}
+                    </span>
+                  </div>
+                );
+              if (!hasKey(character, subField) || subField === "marriedTo") return null;
               return (
                 <div key={subField} className="flex justify-between px-2">
                   <span className="font-semibold">{ptBr.character[subField]}</span>

@@ -176,11 +176,14 @@ export async function processRoleplayChannel(channel: GuildTextBasedChannel) {
   }
 }
 
-export async function changeImageResolution(imageUrl: string, width: number, height: number) {
+export async function changeImageResolution(imageUrl: string, width: number, height: number, cover = true) {
   const response = await fetch(imageUrl);
   const buffer = Buffer.from(await response.arrayBuffer());
-
-  const resizedBuffer = await sharp(buffer).resize({width: width, height: height, fit: "cover", position: "top"}).png().toBuffer();
+  const options = cover ? {fit: "cover" as const, position: "top" as const} : {fit: "inside" as const};
+  const resizedBuffer = await sharp(buffer)
+    .resize({width: width, height: height, ...options})
+    .png()
+    .toBuffer();
 
   return resizedBuffer;
 }

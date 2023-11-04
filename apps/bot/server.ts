@@ -429,13 +429,13 @@ elysiaServer
     const expanded = context.query.expanded ? Boolean(context.query.expanded) : false;
 
     type WikiCharacterLink = Prisma.CharacterGetPayload<{select: {slug: true; name: true; id: true; imageUrl: true}}>;
-    type WikiCharacter = Prisma.CharacterGetPayload<{include: {faction: true; instruments: true; race: true}}>;
+    type WikiCharacter = Prisma.CharacterGetPayload<{include: {faction: true; instruments: true; race: true; marriedTo: true}}>;
 
     let characters: WikiCharacter[] | WikiCharacterLink[] = [];
 
     if (expanded) {
       characters = await prisma.character.findMany({
-        include: {faction: true, instruments: true, race: true},
+        include: {faction: true, instruments: true, race: true, marriedTo: true},
         take: pageSize,
         skip: (page - 1) * pageSize,
       });
@@ -464,7 +464,10 @@ elysiaServer
 
   .get("/api/wiki/characters/:slug", async (context) => {
     const {slug} = context.params;
-    const character = await prisma.character.findFirst({where: {slug: {contains: slug}}, include: {faction: true, instruments: true, race: true}});
+    const character = await prisma.character.findFirst({
+      where: {slug: {contains: slug}},
+      include: {faction: true, instruments: true, race: true, marriedTo: true},
+    });
     if (!character) {
       context.set.status = "Not Found";
       return "Character Not Found";

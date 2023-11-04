@@ -76,6 +76,11 @@ model Character {
   faction     Faction?              @relation(fields: [factionId], references: [id])
   userId      String
   raceId      Int?
+
+  lastMarriedId   Int?                
+  lastMarriedTo   Character?          @relation("marriage", fields: [lastMarriedId], references: [id], onDelete: SetNull)
+  marriedTo   Character[]         @relation("marriage")
+
   messages    Message[]
   instruments InstrumentCharacter[]
   factionId   Int?

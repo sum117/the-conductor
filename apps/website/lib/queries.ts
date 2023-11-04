@@ -101,4 +101,4 @@ export type WikiCharacterLink = Prisma.CharacterGetPayload<{select: {name: true;
 
 export type WikiCharactersResponse<T extends WikiCharacterLink[] | WikiCharacter[]> = {characters: T; totalPages: number};
 
-export type WikiCharacter = Prisma.CharacterGetPayload<{include: {faction: true; instruments: true; race: true}}>;
+export type WikiCharacter = Prisma.CharacterGetPayload<{include: {faction: true; instruments: true; race: true; marriedTo: true}}>;

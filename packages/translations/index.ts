@@ -77,6 +77,7 @@ export default {
     },
   },
   character: {
+    marriedTo: "Casado(a) com",
     name: "Nome",
     surname: "Sobrenome",
     personality: "Personalidade",
@@ -112,6 +113,8 @@ export default {
     websiteCharFooterText: "Esse personagem foi criado através do website, que legal!",
   },
   buttons: {
+    accept: "Aceitar",
+    decline: "Recusar",
     dismiss: "Descartar",
     displayCharacterProfile: "Ver perfil Completo",
     essentials: "Essenciais",
@@ -133,6 +136,12 @@ export default {
     },
   },
   embeds: {
+    marriageProposal: {
+      footerText: '"O amor é a única coisa que cresce à medida que se reparte." - Antoine de Saint-Exupéry',
+      title: "{character} 💞 {targetCharacter}",
+      description:
+        "{user}, dono(a) do personagem {character} está propondo um casamento à {targetUser}, dono(a) do personagem {targetCharacter}.\n\n{targetUser}, você aceita casar {targetCharacter} com {character}, de {user}?",
+    },
     topTile: "Placar de Autores",
     noDescriptionProvided: "Nenhuma descrição foi fornecida.",
     beginnerInstrument: "Iniciante",
@@ -264,6 +273,22 @@ export default {
     },
   },
   commands: {
+    divorceCharacter: {
+      name: "divorciar-personagem",
+      description: "Divorcia um personagem.",
+      options: {
+        character: {name: "personagem", description: "O personagem para divorciar."},
+        characterProposal: {name: "personagem_alvo", description: "O personagem para divorciar de."},
+      },
+    },
+    marryCharacter: {
+      name: "casar-personagem",
+      description: "Casa um personagem.",
+      options: {
+        character: {name: "personagem", description: "O personagem para casar."},
+        characterProposal: {name: "personagem_alvo", description: "O personagem para casar com."},
+      },
+    },
     top: {
       name: "placar",
       description: "Mostra os melhores autores do servidor.",
@@ -412,6 +437,10 @@ export default {
     },
   },
   errors: {
+    charactersNotMarried: "Esses personagens não estão casados um com o outro.",
+    charactersAlreadyMarried: "Esses personagens já estão casados um com o outro.",
+    marryCharacter: "Erro ao casar personagem. Tente novamente mais tarde.",
+    invalidChannelType: "Esse comando só pode ser usado em canais de texto.",
     afkMessage: "Erro ao definir mensagem de AFK. Tente novamente mais tarde.",
     profileColors: "Erro ao definir cores do perfil. Tente novamente mais tarde.",
     imageGenerationNitro:
@@ -433,6 +462,7 @@ export default {
     updatingChannel: "Erro ao atualizar o canal. Tente novamente mais tarde.",
     setCharacter: "Erro ao definir personagem. Tente novamente mais tarde.",
     noCharacters: "Esse usuário não tem nenhum personagem.",
+    characterNotFound: "Personagem não encontrado.",
     somethingWentWrong: "Algo deu errado, tente novamente.",
     somethingWentWrongDescription: "Se o erro persistir, entre em contato com um moderador.",
     aboutMe: "Erro ao definir sobre mim. Tente novamente.",
@@ -458,6 +488,14 @@ export default {
     },
   },
   feedback: {
+    divorceCharacter: {
+      submitted: "💔 Personagens divorciados com sucesso!",
+    },
+    marriageProposal: {
+      sent: "💞 Proposta de casamento enviada para {targetUser}!",
+      accepted: "💞 {user} aceitou a proposta de casamento de {targetUser}! **{character}** e **{targetCharacter}** agora estão casados!",
+      rejected: "💔 {user} recusou a proposta de casamento de {targetUser}! **{character}** e **{targetCharacter}** não vão acontecer.",
+    },
     afkMessage: {
       empty: "⁉️ Você precisa fornecer uma mensagem para definir como AFK.",
       triggered: "👋 {user} está AFK:\n\n{message}",

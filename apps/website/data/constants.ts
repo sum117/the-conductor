@@ -14,7 +14,7 @@ export const WIKI_CHARACTER_FIELDS = ["personality", "appearance", "backstory"] 
 
 export const WIKI_CHARACTER_DETAILS_FIELDS = {
   characteristics: ["gender", "age", "weight", "height", "race"],
-  affiliations: ["surname", "faction"],
+  affiliations: ["surname", "faction", "marriedTo"],
 } as const;
 export type NavbarProps = {name: string; path: string; protected: boolean; children?: Record<string, NavbarProps>};
 export const NAVBAR_DATA: Record<string, NavbarProps> = {
