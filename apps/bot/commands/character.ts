@@ -26,8 +26,8 @@ import sharp from "sharp";
 import {imageLinks} from "../data/assets";
 import {Duration} from "luxon";
 
-type CharacterWithInstrumentsFactionsMessages = Prisma.CharacterGetPayload<{
-  include: {instruments: {include: {instrument: true}}; faction: true; messages: {orderBy: {id: "desc"}}};
+type CharacterWithInstrumentsFactionsMessagesMarriage = Prisma.CharacterGetPayload<{
+  include: {instruments: {include: {instrument: true}}; marriedTo: true; faction: true; messages: {orderBy: {id: "desc"}}};
 }>;
 
 const displayCharacterProfileButtonIdPrefix = "displayCharacterProfileButtonId_";
@@ -85,14 +85,14 @@ export class Character {
       const characters = await prisma.character.findMany({
         where: {userId: member!.id},
         orderBy: {id: "asc"},
-        include: {faction: true, instruments: {include: {instrument: true}}, messages: {orderBy: {id: "desc"}}},
+        include: {marriedTo: true, faction: true, instruments: {include: {instrument: true}}, messages: {orderBy: {id: "desc"}}},
       });
       if (characters.length === 0) {
         interaction.editReply(ptBr.errors.noCharacters);
         return;
       }
 
-      const generatePages = async (characters: CharacterWithInstrumentsFactionsMessages[]) => {
+      const generatePages = async (characters: CharacterWithInstrumentsFactionsMessagesMarriage[]) => {
         const pages = [];
         for (const character of characters) {
           const messagePayload = await this.makeProfileComponent(character, member!, characters.indexOf(character) + 1, characters.length);
@@ -389,7 +389,12 @@ export class Character {
     return image;
   }
 
-  private async makeProfileComponent(character: CharacterWithInstrumentsFactionsMessages, member: GuildMember, currentIndex: number, characterCount: number) {
+  private async makeProfileComponent(
+    character: CharacterWithInstrumentsFactionsMessagesMarriage,
+    member: GuildMember,
+    currentIndex: number,
+    characterCount: number,
+  ) {
     const messagePayload: BaseMessageOptions = {};
 
     const displayEmbed = new EmbedBuilder()
@@ -399,7 +404,8 @@ export class Character {
       })
       .setColor("Random");
     if (character.faction) displayEmbed.addFields([{name: ptBr.character.faction, value: `${character.faction?.emoji} ${character.faction?.name}`}]);
-
+    if (character.marriedTo.length)
+      displayEmbed.addFields([{name: ptBr.character.marriedTo, value: character.marriedTo.map((marriedTo) => marriedTo.name).join(", ")}]);
     if (character.instruments.length)
       displayEmbed.addFields([
         {
