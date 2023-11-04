@@ -21,5 +21,29 @@ export function getSafeEntries<T extends object>(obj: T) {
 export function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
+
+export function chunkify(text: string, chunkSize: number) {
+  const chunks = [];
+
+  let index = 0;
+  while (index < text.length) {
+    let end = index + chunkSize;
+
+    while (end > index && text[end] !== "\n") {
+      end--;
+    }
+
+    if (end === index) {
+      end = index + chunkSize;
+    }
+
+    const chunk = text.substring(index, end);
+    chunks.push(chunk);
+    index = end;
+  }
+
+  return chunks;
+}
+
 export * from "./credentials";
 export {};
