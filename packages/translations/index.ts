@@ -273,6 +273,14 @@ export default {
     },
   },
   commands: {
+    setXp: {
+      name: "setar-xp",
+      description: "Define o XP de um usuário.",
+      options: {
+        user: {name: "usuário", description: "O usuário para definir o XP."},
+        xp: {name: "xp", description: "O XP para definir."},
+      },
+    },
     divorceCharacter: {
       name: "divorciar-personagem",
       description: "Divorcia um personagem.",
@@ -437,6 +445,7 @@ export default {
     },
   },
   errors: {
+    xp: "Erro ao definir XP. Tente novamente mais tarde.",
     charactersNotMarried: "Esses personagens não estão casados um com o outro.",
     charactersAlreadyMarried: "Esses personagens já estão casados um com o outro.",
     marryCharacter: "Erro ao casar personagem. Tente novamente mais tarde.",
@@ -490,6 +499,9 @@ export default {
   feedback: {
     divorceCharacter: {
       submitted: "💔 Personagens divorciados com sucesso!",
+    },
+    xp: {
+      submitted: "✅ XP de {amount} definido com sucesso para {user}!",
     },
     marriageProposal: {
       sent: "💞 Proposta de casamento enviada para {targetUser}!",

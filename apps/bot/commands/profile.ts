@@ -1,4 +1,4 @@
-import {ApplicationCommandOptionType, AttachmentBuilder, ChatInputCommandInteraction, GuildMember, User} from "discord.js";
+import {ApplicationCommandOptionType, AttachmentBuilder, ChatInputCommandInteraction, GuildMember, PermissionFlagsBits, User} from "discord.js";
 import {Discord, Slash, SlashOption} from "discordx";
 import {DateTime} from "luxon";
 import ptBr from "translations";
@@ -169,6 +169,45 @@ export class Profile {
     }
   }
 
+  @Slash({
+    name: "set-xp",
+    description: "Sets an user's XP.",
+    descriptionLocalizations: {"pt-BR": ptBr.commands.setXp.description},
+    nameLocalizations: {"pt-BR": ptBr.commands.setXp.name},
+    defaultMemberPermissions: [PermissionFlagsBits.ManageGuild],
+  })
+  async setXp(
+    @SlashOption({
+      name: "user",
+      description: "The user to set the XP.",
+      descriptionLocalizations: {"pt-BR": ptBr.commands.setXp.options.user.description},
+      nameLocalizations: {"pt-BR": ptBr.commands.setXp.options.user.name},
+      type: ApplicationCommandOptionType.User,
+      required: true,
+    })
+    targetUser: GuildMember | User,
+    @SlashOption({
+      name: "xp",
+      description: "The amount of XP to set.",
+      descriptionLocalizations: {"pt-BR": ptBr.commands.setXp.options.xp.description},
+      nameLocalizations: {"pt-BR": ptBr.commands.setXp.options.xp.name},
+      type: ApplicationCommandOptionType.Integer,
+      required: true,
+    })
+    xp: number,
+    interaction: ChatInputCommandInteraction,
+  ) {
+    try {
+      await interaction.deferReply();
+
+      await prisma.user.update({where: {id: targetUser.id}, data: {xp}});
+
+      await interaction.editReply(ptBr.feedback.xp.submitted.replace("{user}", targetUser.toString()).replace("{amount}", xp.toString()));
+    } catch (xpError) {
+      console.log("Error setting XP:", xpError);
+      interaction.editReply(ptBr.errors.xp).catch((error) => "Error sending error feedback: " + error);
+    }
+  }
   @Slash({
     name: "rep-someone",
     description: "Give someone a reputation point every 24 hours.",

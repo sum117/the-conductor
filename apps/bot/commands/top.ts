@@ -1,9 +1,9 @@
-import {ChatInputCommandInteraction, Embed, EmbedBuilder, userMention} from "discord.js";
+import {ChatInputCommandInteraction, EmbedBuilder, userMention} from "discord.js";
 import {Discord, Slash} from "discordx";
 import ptBr from "translations";
 import {prisma} from "../db";
-import {Pagination, PaginationResolver} from "@discordx/pagination";
-import {Prisma, User} from "@prisma/client";
+import {Pagination} from "@discordx/pagination";
+import {Prisma} from "@prisma/client";
 import {getUserLevelDetails} from "../lib/util/helpers";
 import {PAGINATION_DEFAULT_OPTIONS} from "../data/constants";
 import {chunk} from "lodash";
